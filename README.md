@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Life OS
 
-## Getting Started
+## Ideia resumida
 
-First, run the development server:
+**Dashboard da Sua Vida:**  
+Um painel central com Finanças, Estudos, Treino, Tarefas, Metas do ano...  
+Tipo um "Life OS".
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## O que é o seu Life OS?
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Um sistema central onde você gerencia sua vida como se fosse uma empresa com telas de controle:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Financeiro
+- Indicadores
+- Metas
+- Performance
+- Planejamento
+- Operação
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Estrutura ideal
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 1° - Dashboard (Home)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Painel com:
 
-## Deploy on Vercel
+- Saldo atual
+- Gastos do mês
+- Treinos feitos
+- Tarefas pendentes
+- Progresso do ano
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 2° - Módulo Financeiro
+
+- Receitas
+- Despesas
+- Categorias
+- Parcelamentos
+- Metas financeiras
+- Projeção mensal
+- Gráfico de fluxo de caixa
+- Planejamento anual
+- Simulação de cenário
+
+---
+
+### 3° - Módulo Treino
+
+- Registro de treino
+- Carga por exercício
+- Evolução por mês
+- Medidas corporais
+- Meta física
+
+---
+
+### 4° - Módulo Tarefas
+
+- Tarefas diárias
+- Prioridade
+- Status
+- Data limite
+- Recorrência
+- Kanban (avançado)
+
+---
+
+### 5° - Metas do Ano
+
+- Meta
+- Área
+- Percentual concluído
+- Prazo
+- Subtarefas
+- Score geral anual
+
+---
+
+## Foco do projeto Life OS
+
+Estrutura visual forte e com destaque frontend (**frontend-focused**)
+
+---
+
+## Exemplo do site para usar como base
+
+https://www.lifeosdashboard.com/
+
+---
+
+## Backend
+
+Algo bem simples como:
+
+- Supabase  
+  ou
+- SQLite + Prisma Local
+
+Mas tendo o foco inicial em MVP 100% visual primeiro.
+
+**Sem backend real.**
