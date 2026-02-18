@@ -2,7 +2,7 @@ import { Meta } from '@/features/meta/ui/view/meta';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Windel CRM - Tarefa',
+  title: 'Life Os - Tarefa',
   description: 'Tarefa',
 };
 

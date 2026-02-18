@@ -2,7 +2,7 @@ import { Financeiro } from '@/features/financeiro/ui/view/financeiro';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Windel CRM - Financeiro',
+  title: 'Life Os - Financeiro',
   description: 'Financeiro',
 };
 

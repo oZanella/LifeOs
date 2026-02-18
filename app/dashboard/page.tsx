@@ -2,7 +2,7 @@ import { Dashboard } from '@/features/dashboard/dashboard';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Windel CRM - Dashboard',
+  title: 'Life Os - Dashboard',
   description: 'Dashboard',
 };
 
