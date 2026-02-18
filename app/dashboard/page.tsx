@@ -1,4 +1,4 @@
-import { DashboardFinanceiro } from '@/features/dashboard/financeiro/ui/view/dashboard-financeiro';
+import { Dashboard } from '@/features/dashboard/dashboard';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-  return <DashboardFinanceiro />;
+  return <Dashboard />;
 }
