@@ -1,7 +1,7 @@
 import { Toaster } from 'react-hot-toast';
 
-import { ToastProvider } from './hot-toast-provider/hot-toast.provider';
 import { ProviderTanStackQuery } from './tan-stack-query-provider/tan-stack-query.provider';
+import { ToastProvider } from './hot-toast-provider/hot-toast.provider';
 
 export function PublicProviders({ children }: { children: React.ReactNode }) {
   return (
