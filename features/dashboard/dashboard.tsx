@@ -12,8 +12,8 @@ export function Dashboard() {
   return (
     <PageContainer className="bg-background">
       <DashboardHeader
-        personaLabel={personaLabel}
-        visaoAtual={dashboardData}
+        moduloLabel={personaLabel}
+        usuarioLabel={dashboardData}
         periodoLabel={''}
       />
     </PageContainer>
