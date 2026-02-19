@@ -1,7 +1,6 @@
 'use client';
 
 import { BadgeTone, badgeVariants } from '@/components/ui/badge';
-import { Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface HomeProgressSummaryProps {
@@ -11,12 +10,16 @@ interface HomeProgressSummaryProps {
 export function HomeProgressSummary({
   tone = 'primary',
 }: HomeProgressSummaryProps) {
-  const progress = 28;
+  const progress = 28 as number;
+  const isComplete = progress === 100;
 
   return (
     <div
       className={cn(
-        badgeVariants({ tone, variant: 'subtle' }),
+        badgeVariants({
+          tone: isComplete ? 'success' : tone,
+          variant: 'subtle',
+        }),
         'flex flex-col gap-4 p-4 rounded-2xl border border-border/10 transition-all duration-300 w-full',
       )}
       style={{ backgroundColor: 'transparent' }}
@@ -25,11 +28,22 @@ export function HomeProgressSummary({
         <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
           Progresso Diário
         </h3>
-        <Target
-          size={14}
-          className="opacity-50"
-          style={{ color: 'var(--tone-color)' }}
-        />
+        <div
+          className={cn(
+            badgeVariants({
+              tone: isComplete ? 'success' : tone,
+              variant: 'subtle',
+            }),
+            'px-2 py-0.5 border-none bg-transparent',
+          )}
+        >
+          <span
+            className="text-[10px] font-black"
+            style={{ color: 'var(--tone-color)' }}
+          >
+            {isComplete ? 'CONCLUÍDO' : 'EM ANDAMENTO'}
+          </span>
+        </div>
       </div>
 
       <div className="space-y-4 text-foreground">

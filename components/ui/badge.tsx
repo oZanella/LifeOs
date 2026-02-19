@@ -29,6 +29,10 @@ const badgeVariants = cva(
         accent:
           'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400 [--tone-color:theme(colors.purple.500)]',
         gold: 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white border-transparent shadow-sm [--tone-color:theme(colors.yellow.500)]',
+        online:
+          'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 [--tone-color:theme(colors.emerald.400)]',
+        neutral:
+          'bg-gray-500/10 text-gray-500 border-gray-500/20 [--tone-color:theme(colors.gray.400)]',
       },
     },
     compoundVariants: [

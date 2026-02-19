@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import React from 'react';
-import { NAV_ITEMS, type PageType } from '../tabs/home-config';
+import { lab_itens, type PageType } from '../tabs/home-config';
 
 interface HomeNavigationProps {
   activePage: PageType;
@@ -15,7 +15,7 @@ export function HomeNavigation({
 }: HomeNavigationProps) {
   return (
     <nav className="flex gap-2 p-2 bg-black/5 dark:bg-black/20 backdrop-blur-sm rounded-xl border border-border/40 overflow-x-auto no-scrollbar">
-      {NAV_ITEMS.map((item) => {
+      {lab_itens.map((item) => {
         const Icon = item.icon;
         const isActive = activePage === item.id;
 

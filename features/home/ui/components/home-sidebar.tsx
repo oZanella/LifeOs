@@ -4,7 +4,7 @@ import { HomeClock } from './home-clock';
 import { HomeProfileCard } from './home-profile-card';
 import { HomeProgressSummary } from './home-progress-summary';
 import { HomeThemeToggle } from './home-theme-toggle';
-import { NAV_ITEMS, type PageType } from '../tabs/home-config';
+import { lab_itens, type PageType } from '../tabs/home-config';
 
 interface HomeSidebarProps {
   activePage: PageType;
@@ -12,7 +12,7 @@ interface HomeSidebarProps {
 
 export function HomeSidebar({ activePage }: HomeSidebarProps) {
   const currentPage =
-    NAV_ITEMS.find((item) => item.id === activePage) || NAV_ITEMS[0];
+    lab_itens.find((item) => item.id === activePage) || lab_itens[0];
   const activeTone = currentPage.tone;
 
   return (

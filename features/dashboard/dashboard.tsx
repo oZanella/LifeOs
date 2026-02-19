@@ -2,10 +2,11 @@
 
 import { PageContainer } from '@/components/page/page-container';
 import { DashboardHeader } from './components/dashboard-header';
+import { dashboard_config } from './dashboard-config';
+import { user_config } from '../home/home-user-config';
 
 export function Dashboard() {
-  const dashboardData = 'Henrique Zanella';
-  const {} = dashboardData;
+  const dashboardData = user_config.name;
 
   const personaLabel = 'Dashboard ';
 
@@ -15,6 +16,7 @@ export function Dashboard() {
         moduloLabel={personaLabel}
         usuarioLabel={dashboardData}
         periodoLabel={''}
+        tone={dashboard_config.tone}
       />
     </PageContainer>
   );
