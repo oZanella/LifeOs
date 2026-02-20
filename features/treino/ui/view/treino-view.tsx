@@ -1,9 +1,15 @@
 'use client';
 
-export function Treino() {
+import { BadgeTone } from '@/components/ui/badge';
+
+interface TreinoProps {
+  tone?: BadgeTone;
+}
+
+export function Treino({ tone = 'accent' }: TreinoProps) {
   return (
-    <div>
-      <h1>Treino</h1>
+    <div data-tone={tone}>
+      <h1 style={{ color: 'var(--tone-color)' }}>Treino</h1>
     </div>
   );
 }

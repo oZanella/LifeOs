@@ -1,11 +1,11 @@
-import { Meta } from '@/features/meta/ui/view/meta';
+import { Meta } from '@/features/meta/ui/view/meta-view';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Life Os - Tarefa',
-  description: 'Tarefa',
+  title: 'Life Os - Meta',
+  description: 'Meta',
 };
 
 export default function MetaPage() {
-  return <Meta />;
+  return <Meta tone="warning" />;
 }

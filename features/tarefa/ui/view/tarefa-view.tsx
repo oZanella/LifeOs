@@ -1,9 +1,15 @@
 'use client';
 
-export function Tarefa() {
+import { BadgeTone } from '@/components/ui/badge';
+
+interface TarefaProps {
+  tone?: BadgeTone;
+}
+
+export function Tarefa({ tone = 'info' }: TarefaProps) {
   return (
-    <div>
-      <h1>Tarefa</h1>
+    <div data-tone={tone}>
+      <h1 style={{ color: 'var(--tone-color)' }}>Tarefa</h1>
     </div>
   );
 }

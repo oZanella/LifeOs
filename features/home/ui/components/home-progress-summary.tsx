@@ -10,8 +10,9 @@ interface HomeProgressSummaryProps {
 export function HomeProgressSummary({
   tone = 'primary',
 }: HomeProgressSummaryProps) {
-  const progress = 28 as number;
+  const progress = 0 as number;
   const isComplete = progress === 100;
+  const isNoComplete = progress === 0;
 
   return (
     <div
@@ -25,23 +26,27 @@ export function HomeProgressSummary({
       style={{ backgroundColor: 'transparent' }}
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-          Progresso Diário
-        </h3>
         <div
           className={cn(
             badgeVariants({
               tone: isComplete ? 'success' : tone,
               variant: 'subtle',
             }),
-            'px-2 py-0.5 border-none bg-transparent',
+            ' border-none bg-transparent',
           )}
         >
+          <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            Progresso Diário
+          </h3>
           <span
             className="text-[10px] font-black"
             style={{ color: 'var(--tone-color)' }}
           >
-            {isComplete ? 'CONCLUÍDO' : 'EM ANDAMENTO'}
+            {isComplete
+              ? 'CONCLUÍDO'
+              : isNoComplete
+                ? 'NÃO INICIADO'
+                : 'EM ANDAMENTO'}
           </span>
         </div>
       </div>

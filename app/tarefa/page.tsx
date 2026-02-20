@@ -1,4 +1,4 @@
-import { Tarefa } from '@/features/tarefa/ui/view/tarefa';
+import { Tarefa } from '@/features/tarefa/ui/view/tarefa-view';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function TarefaPage() {
-  return <Tarefa />;
+  return <Tarefa tone="info" />;
 }

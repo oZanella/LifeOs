@@ -1,4 +1,4 @@
-import { Treino } from '@/features/treino/ui/view/treino';
+import { Treino } from '@/features/treino/ui/view/treino-view';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function TreinoPage() {
-  return <Treino />;
+  return <Treino tone="accent" />;
 }

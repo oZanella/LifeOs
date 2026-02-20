@@ -26,7 +26,7 @@ export function HomeThemeToggle() {
   ];
 
   return (
-    <div className="flex gap-1 p-1 bg-black/20 dark:bg-[#1A1A1A] rounded-2xl border border-white/5 shadow-inner">
+    <div className="flex gap-1 p-1 rounded-2xl border border-border bg-background shadow-inner">
       {themes.map((t) => {
         const Icon = t.icon;
         const isActive = theme === t.id;
@@ -36,10 +36,10 @@ export function HomeThemeToggle() {
             key={t.id}
             onClick={() => setTheme(t.id)}
             className={cn(
-              'flex-1 flex items-center justify-center py-1.5 rounded-xl transition-all duration-200',
+              'flex-1 flex items-center justify-center py-1.5 rounded-xl transition-all duration-200 cursor-pointer',
               isActive
-                ? 'bg-white dark:bg-zinc-800 text-black dark:text-white shadow-sm'
-                : 'text-gray-500 hover:text-gray-300 hover:bg-white/5',
+                ? 'bg-background text-foreground shadow-sm ring-1 ring-border'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all duration-400',
             )}
             title={t.label}
           >

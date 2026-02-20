@@ -1,11 +1,13 @@
-'use client';
-
 import { PageContainer } from '@/components/page/page-container';
 import { DashboardHeader } from './components/dashboard-header';
-import { dashboard_config } from './dashboard-config';
 import { user_config } from '../home/home-user-config';
+import { BadgeTone } from '@/components/ui/badge';
 
-export function Dashboard() {
+interface DashboardProps {
+  tone?: BadgeTone;
+}
+
+export function Dashboard({ tone = 'primary' }: DashboardProps) {
   const dashboardData = user_config.name;
 
   const personaLabel = 'Dashboard ';
@@ -16,7 +18,7 @@ export function Dashboard() {
         moduloLabel={personaLabel}
         usuarioLabel={dashboardData}
         periodoLabel={''}
-        tone={dashboard_config.tone}
+        tone={tone}
       />
     </PageContainer>
   );

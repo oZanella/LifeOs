@@ -24,10 +24,11 @@ export function HomeNavigation({
             key={item.id}
             onClick={() => onPageChange(item.id)}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-lg relative group',
+              'flex items-center gap-2 px-4 py-2 rounded-lg relative group cursor-pointer',
               isActive
-                ? 'bg-zinc-100 dark:bg-[#1A1A1A] text-foreground shadow-sm'
-                : 'text-muted-foreground hover:bg-zinc-200/50 dark:hover:bg-white/5',
+                ? 'bg-zinc-200 dark:bg-zinc-900 text-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-zinc-200 dark:hover:bg-white/5',
+              item.className,
             )}
             style={isActive ? { color: 'var(--tone-color)' } : {}}
           >

@@ -25,12 +25,6 @@ export function HomeSidebar({ activePage }: HomeSidebarProps) {
       <HomeClock tone={activeTone} />
       <HomeThemeToggle />
       <HomeProgressSummary tone={activeTone} />
-
-      <div className="mt-auto flex flex-col items-center justify-center p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-white/5 shadow-inner">
-        <span className="text-[10px] text-gray-500 uppercase tracking-widest text-center">
-          Life OS v1.0
-        </span>
-      </div>
     </aside>
   );
 }

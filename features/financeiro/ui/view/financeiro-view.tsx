@@ -1,9 +1,15 @@
 'use client';
 
-export function Financeiro() {
+import { BadgeTone } from '@/components/ui/badge';
+
+interface FinanceiroProps {
+  tone?: BadgeTone;
+}
+
+export function Financeiro({ tone = 'success' }: FinanceiroProps) {
   return (
-    <div>
-      <h1>Financeiro</h1>
+    <div data-tone={tone}>
+      <h1 style={{ color: 'var(--tone-color)' }}>Financeiro</h1>
     </div>
   );
 }

@@ -35,7 +35,7 @@ export function Home() {
 
           <main className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
             <div className="max-w-7xl mx-auto">
-              <Content />
+              <Content tone={currentPage.tone} />
             </div>
           </main>
         </div>
