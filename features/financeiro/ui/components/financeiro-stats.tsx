@@ -61,7 +61,7 @@ export function FinanceiroStats({ tone = 'success' }: { tone?: BadgeTone }) {
       {items.map((item) => (
         <Card
           key={item.title}
-          className="overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm"
+          className="overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm cursor-pointer hover:bg-card/80 transition-colors"
         >
           <CardHeader className="p-4 pb-2">
             <div className="flex items-center justify-between">

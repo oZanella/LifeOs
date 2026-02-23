@@ -13,32 +13,39 @@ import {
   Edit2,
   TrendingUp,
   TrendingDown,
+  Calendar as CalendarIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge, BadgeTone } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
-  const { entries, filters, addEntry, updateEntry, deleteEntry } =
-    useFinanceiroContext();
+export function FinanceiroGrid({}: { tone?: BadgeTone }) {
+  const {
+    filteredEntries,
+    categories,
+    filters,
+    addEntry,
+    updateEntry,
+    deleteEntry,
+  } = useFinanceiroContext();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<FinancialEntry>>({});
-
-  console.log('Grid Tone:', tone); // Using tone to avoid unused warning
-
-  const filteredEntries = entries
-    .filter((entry: FinancialEntry) => {
-      const d = new Date(entry.date);
-      const mMatch =
-        filters.month === '' || d.getMonth().toString() === filters.month;
-      const yMatch =
-        filters.year === '' || d.getFullYear().toString() === filters.year;
-      return mMatch && yMatch;
-    })
-    .sort(
-      (a: FinancialEntry, b: FinancialEntry) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime(),
-    );
 
   const handleStartEdit = (entry: FinancialEntry) => {
     setEditingId(entry.id);
@@ -60,15 +67,75 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
 
   const handleAddDefault = () => {
     const today = new Date();
-    const dateStr = `${filters.year}-${(Number(filters.month) + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+    // Use filters month/year if selected, otherwise today
+    const y = filters.year || today.getFullYear().toString();
+    const m =
+      (Number(filters.month) + 1).toString().padStart(2, '0') ||
+      (today.getMonth() + 1).toString().padStart(2, '0');
+    const d = today.getDate().toString().padStart(2, '0');
+
     addEntry({
-      date: dateStr,
+      date: `${y}-${m}-${d}`,
       description: 'Nova entrada',
-      category: 'Outros',
+      categoryId: categories[0]?.id || '',
       amount: 0,
       type: 'despesa',
       isFixed: false,
     });
+  };
+
+  const CategoryCell = ({ entry }: { entry: FinancialEntry }) => {
+    const cat = categories.find((c) => c.id === entry.categoryId);
+
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button className="cursor-pointer outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm transition-opacity hover:opacity-80">
+            {cat ? (
+              <Badge
+                tone={cat.tone as BadgeTone}
+                variant="subtle"
+                className="text-[10px] uppercase font-bold tracking-tight border-none"
+              >
+                {cat.name}
+              </Badge>
+            ) : (
+              <Badge
+                variant="subtle"
+                className="text-[10px] uppercase font-bold tracking-tight bg-gray-500/10 text-gray-500 border-none"
+              >
+                Sem Categoria
+              </Badge>
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-48 p-1" align="start">
+          <div className="flex flex-col gap-0.5">
+            {categories.map((c) => (
+              <button
+                key={String(c.id)}
+                onClick={() => updateEntry(entry.id, { categoryId: c.id })}
+                className={cn(
+                  'flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors cursor-pointer',
+                  entry.categoryId === c.id
+                    ? 'bg-muted font-bold'
+                    : 'hover:bg-muted/50',
+                )}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: `var(--tone-${c.tone})` }}
+                />
+                {c.name}
+                {entry.categoryId === c.id && (
+                  <Check size={12} className="ml-auto" />
+                )}
+              </button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
   };
 
   return (
@@ -96,9 +163,9 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
         <table className="w-full text-left border-collapse min-w-200">
           <thead>
             <tr className="bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
-              <th className="px-4 py-3 w-32">Data</th>
+              <th className="px-4 py-3 w-40">Data</th>
               <th className="px-4 py-3">Descrição</th>
-              <th className="px-4 py-3 w-32">Categoria</th>
+              <th className="px-4 py-3 w-40">Categoria</th>
               <th className="px-4 py-3 w-32">Valor</th>
               <th className="px-4 py-3 w-24 text-center">Tipo</th>
               <th className="px-4 py-3 w-20 text-center">Fixo</th>
@@ -127,19 +194,53 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                     {/* Data */}
                     <td className="px-4 py-2">
                       {isEditing ? (
-                        <input
-                          type="date"
-                          className="w-full bg-background border border-border/40 rounded px-2 py-1 text-xs outline-none focus:border-(--tone-color)"
-                          value={editForm.date}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm, date: e.target.value })
-                          }
-                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={cn(
+                                'w-full justify-start text-left font-normal h-8 text-xs cursor-pointer',
+                                !editForm.date && 'text-muted-foreground',
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {editForm.date ? (
+                                format(
+                                  new Date(editForm.date + 'T12:00:00'),
+                                  'dd/MM/yyyy',
+                                )
+                              ) : (
+                                <span>Data</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={
+                                editForm.date
+                                  ? new Date(editForm.date + 'T12:00:00')
+                                  : undefined
+                              }
+                              onSelect={(date) =>
+                                setEditForm({
+                                  ...editForm,
+                                  date: date ? format(date, 'yyyy-MM-dd') : '',
+                                })
+                              }
+                              initialFocus
+                              locale={ptBR}
+                              className="cursor-pointer"
+                            />
+                          </PopoverContent>
+                        </Popover>
                       ) : (
                         <span className="text-xs font-medium tabular-nums">
-                          {new Date(
-                            entry.date + 'T12:00:00',
-                          ).toLocaleDateString('pt-BR')}
+                          {format(
+                            new Date(entry.date + 'T12:00:00'),
+                            'dd/MM/yyyy',
+                          )}
                         </span>
                       )}
                     </td>
@@ -147,10 +248,9 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                     {/* Descrição */}
                     <td className="px-4 py-2">
                       {isEditing ? (
-                        <input
-                          type="text"
-                          className="w-full bg-background border border-border/40 rounded px-2 py-1 text-xs outline-none focus:border-(--tone-color)"
-                          value={editForm.description}
+                        <Input
+                          className="h-8 text-xs bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color)"
+                          value={editForm.description || ''}
                           onChange={(e) =>
                             setEditForm({
                               ...editForm,
@@ -166,45 +266,43 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                     {/* Categoria */}
                     <td className="px-4 py-2">
                       {isEditing ? (
-                        <select
-                          className="w-full bg-background border border-border/40 rounded px-2 py-1 text-xs outline-none"
-                          value={editForm.category}
-                          onChange={(e) =>
+                        <Select
+                          value={String(editForm.categoryId || '')}
+                          onValueChange={(v) =>
                             setEditForm({
                               ...editForm,
-                              category: e.target.value,
+                              categoryId: v,
                             })
                           }
                         >
-                          <option value="Salário">Salário</option>
-                          <option value="Freelance">Freelance</option>
-                          <option value="Investimento">Investimento</option>
-                          <option value="Alimentação">Alimentação</option>
-                          <option value="Moradia">Moradia</option>
-                          <option value="Transporte">Transporte</option>
-                          <option value="Lazer">Lazer</option>
-                          <option value="Educação">Educação</option>
-                          <option value="Saúde">Saúde</option>
-                          <option value="Outros">Outros</option>
-                        </select>
+                          <SelectTrigger className="h-8 w-full text-xs bg-background border-border/40 cursor-pointer">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((cat) => (
+                              <SelectItem
+                                key={String(cat.id)}
+                                value={String(cat.id)}
+                                className="cursor-pointer text-xs"
+                              >
+                                {String(cat.name)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       ) : (
-                        <Badge
-                          variant="subtle"
-                          className="text-[10px] uppercase font-bold tracking-tight bg-gray-500/10 text-gray-500 border-none"
-                        >
-                          {entry.category}
-                        </Badge>
+                        <CategoryCell entry={entry} />
                       )}
                     </td>
 
                     {/* Valor */}
                     <td className="px-4 py-2">
                       {isEditing ? (
-                        <input
+                        <Input
                           type="number"
                           step="0.01"
-                          className="w-full bg-background border border-border/40 rounded px-2 py-1 text-xs outline-none focus:border-(--tone-color)"
-                          value={editForm.amount}
+                          className="h-8 text-xs bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color) tabular-nums"
+                          value={editForm.amount || 0}
                           onChange={(e) =>
                             setEditForm({
                               ...editForm,
@@ -236,7 +334,7 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                         <div className="flex items-center justify-center gap-2">
                           <button
                             className={cn(
-                              'p-1 rounded',
+                              'p-1 rounded cursor-pointer',
                               editForm.type === 'receita'
                                 ? 'bg-emerald-500/20 text-emerald-500'
                                 : 'text-muted-foreground',
@@ -249,7 +347,7 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                           </button>
                           <button
                             className={cn(
-                              'p-1 rounded',
+                              'p-1 rounded cursor-pointer',
                               editForm.type === 'despesa'
                                 ? 'bg-red-500/20 text-red-500'
                                 : 'text-muted-foreground',
@@ -280,7 +378,7 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                       {isEditing ? (
                         <input
                           type="checkbox"
-                          className="accent-(--tone-color)"
+                          className="accent-(--tone-color) cursor-pointer"
                           checked={editForm.isFixed}
                           onChange={(e) =>
                             setEditForm({
@@ -290,13 +388,18 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                           }
                         />
                       ) : (
-                        <div className="flex justify-center">
+                        <div
+                          className="flex justify-center cursor-pointer"
+                          onClick={() =>
+                            updateEntry(entry.id, { isFixed: !entry.isFixed })
+                          }
+                        >
                           <div
                             className={cn(
-                              'w-2 h-2 rounded-full',
+                              'w-2 h-2 rounded-full transition-all',
                               entry.isFixed
-                                ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
-                                : 'bg-gray-700',
+                                ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] scale-125'
+                                : 'bg-gray-700 hover:bg-gray-600',
                             )}
                           />
                         </div>
@@ -311,7 +414,7 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-7 w-7 text-emerald-500 hover:bg-emerald-500/10"
+                              className="h-7 w-7 text-emerald-500 hover:bg-emerald-500/10 cursor-pointer"
                               onClick={handleSaveEdit}
                             >
                               <Check size={14} />
@@ -319,7 +422,7 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-7 w-7 text-red-500 hover:bg-red-500/10"
+                              className="h-7 w-7 text-red-500 hover:bg-red-500/10 cursor-pointer"
                               onClick={handleCancelEdit}
                             >
                               <X size={14} />
@@ -330,7 +433,7 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
                               onClick={() => handleStartEdit(entry)}
                             >
                               <Edit2 size={14} />
@@ -338,7 +441,7 @@ export function FinanceiroGrid({ tone = 'success' }: { tone?: BadgeTone }) {
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                              className="h-7 w-7 text-muted-foreground hover:text-red-500 cursor-pointer"
                               onClick={() => deleteEntry(entry.id)}
                             >
                               <Trash2 size={14} />

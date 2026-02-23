@@ -77,11 +77,11 @@ export function HomeProgressSummary({
 
       <div className="space-y-4 text-foreground">
         <div className="space-y-2">
-          <div className="flex justify-between text-[10px] font-medium">
+          <div className="flex justify-between gap-2 text-[10px] font-medium">
             <span className="text-muted-foreground uppercase">
-              Progresso diário
+              Progresso diário -
             </span>
-            <span style={{ color: 'var(--tone-color)' }}> {progress}%</span>
+            <span style={{ color: 'var(--tone-color)' }}>{progress}%</span>
           </div>
           <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden border border-border/5">
             <div
