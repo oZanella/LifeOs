@@ -1,6 +1,11 @@
 'use client';
 
+import { PageContainer } from '@/components/page/page-container';
 import { BadgeTone } from '@/components/ui/badge';
+import { FinanceiroProvider } from '@/features/financeiro/application/context/financeiro-context';
+import { FinanceiroStats } from '../components/financeiro-stats';
+import { FinanceiroFilters } from '../components/financeiro-filters';
+import { FinanceiroGrid } from '../components/financeiro-grid';
 
 interface FinanceiroProps {
   tone?: BadgeTone;
@@ -8,8 +13,14 @@ interface FinanceiroProps {
 
 export function Financeiro({ tone = 'success' }: FinanceiroProps) {
   return (
-    <div data-tone={tone}>
-      <h1 style={{ color: 'var(--tone-color)' }}>Financeiro</h1>
-    </div>
+    <FinanceiroProvider>
+      <div data-tone={tone}>
+        <PageContainer className="bg-background gap-2">
+          <FinanceiroStats tone={tone} />
+          <FinanceiroFilters tone={tone} />
+          <FinanceiroGrid tone={tone} />
+        </PageContainer>
+      </div>
+    </FinanceiroProvider>
   );
 }

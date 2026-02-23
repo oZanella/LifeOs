@@ -2,6 +2,7 @@
 
 import { BadgeTone, badgeVariants } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 interface HomeProgressSummaryProps {
   tone?: BadgeTone;
@@ -10,7 +11,30 @@ interface HomeProgressSummaryProps {
 export function HomeProgressSummary({
   tone = 'primary',
 }: HomeProgressSummaryProps) {
-  const progress = 0 as number;
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const totalTimeSeconds = 2 * 60 * 60; // 2 horas
+    const startTime = Date.now();
+
+    const interval = setInterval(() => {
+      const currentTime = Date.now();
+      const elapsedSeconds = (currentTime - startTime) / 1000;
+      const currentProgress = Math.min(
+        100,
+        (elapsedSeconds / totalTimeSeconds) * 100,
+      );
+
+      setProgress(Number(currentProgress.toFixed(2)));
+
+      if (currentProgress >= 100) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const isComplete = progress === 100;
   const isNoComplete = progress === 0;
 
@@ -36,17 +60,17 @@ export function HomeProgressSummary({
           )}
         >
           <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-            Progresso Diário
+            Tempo de Sessão
           </h3>
           <span
             className="text-[10px] font-black"
             style={{ color: 'var(--tone-color)' }}
           >
             {isComplete
-              ? 'CONCLUÍDO'
+              ? 'LIMITE ATINGIDO'
               : isNoComplete
-                ? 'NÃO INICIADO'
-                : 'EM ANDAMENTO'}
+                ? 'INICIANDO'
+                : 'EM CURSO'}
           </span>
         </div>
       </div>
@@ -54,12 +78,14 @@ export function HomeProgressSummary({
       <div className="space-y-4 text-foreground">
         <div className="space-y-2">
           <div className="flex justify-between text-[10px] font-medium">
-            <span className="text-muted-foreground">TASKS COMPLETAS</span>
-            <span style={{ color: 'var(--tone-color)' }}> - {progress}%</span>
+            <span className="text-muted-foreground uppercase">
+              Progresso diário
+            </span>
+            <span style={{ color: 'var(--tone-color)' }}> {progress}%</span>
           </div>
           <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden border border-border/5">
             <div
-              className="h-full transition-all duration-500 rounded-full"
+              className="h-full transition-all duration-1000 ease-linear rounded-full"
               style={{
                 width: `${progress}%`,
                 backgroundColor: 'var(--tone-color)',
