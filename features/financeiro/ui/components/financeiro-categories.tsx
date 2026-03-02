@@ -54,11 +54,6 @@ export function FinanceiroCategories({
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditForm(INITIAL_FORM);
-  };
-
   const handleAdd = () => {
     if (editForm.name) {
       addCategory({
@@ -68,11 +63,6 @@ export function FinanceiroCategories({
       setIsAdding(false);
       setEditForm(INITIAL_FORM);
     }
-  };
-
-  const handleCancelAdd = () => {
-    setIsAdding(false);
-    setEditForm(INITIAL_FORM);
   };
 
   const tones: BadgeTone[] = [

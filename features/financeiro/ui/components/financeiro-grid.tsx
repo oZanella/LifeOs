@@ -296,12 +296,12 @@ export function FinanceiroGrid({}: { tone?: BadgeTone }) {
                     </td>
 
                     {/* Valor */}
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 text-right">
                       {isEditing ? (
                         <Input
                           type="number"
                           step="0.01"
-                          className="h-8 text-xs bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color) tabular-nums"
+                          className="h-8 text-xs bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color) tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           value={editForm.amount || 0}
                           onChange={(e) =>
                             setEditForm({
@@ -313,13 +313,12 @@ export function FinanceiroGrid({}: { tone?: BadgeTone }) {
                       ) : (
                         <span
                           className={cn(
-                            'text-sm font-black tabular-nums',
+                            'text-sm font-black tabular-nums whitespace-nowrap',
                             entry.type === 'receita'
                               ? 'text-emerald-500'
                               : 'text-red-500',
                           )}
                         >
-                          {entry.type === 'receita' ? '+' : '-'}{' '}
                           {new Intl.NumberFormat('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',

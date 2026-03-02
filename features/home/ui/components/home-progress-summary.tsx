@@ -14,28 +14,22 @@ export function HomeProgressSummary({
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const totalTimeSeconds = 2 * 60 * 60; // 2 horas
-    const startTime = Date.now();
+    const intervalTime = 2 * 60 * 1000;
 
     const interval = setInterval(() => {
-      const currentTime = Date.now();
-      const elapsedSeconds = (currentTime - startTime) / 1000;
-      const currentProgress = Math.min(
-        100,
-        (elapsedSeconds / totalTimeSeconds) * 100,
-      );
-
-      setProgress(Number(currentProgress.toFixed(2)));
-
-      if (currentProgress >= 100) {
-        clearInterval(interval);
-      }
-    }, 1000);
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, intervalTime);
 
     return () => clearInterval(interval);
   }, []);
 
-  const isComplete = progress === 100;
+  const isComplete = progress >= 100;
   const isNoComplete = progress === 0;
 
   return (
@@ -77,15 +71,16 @@ export function HomeProgressSummary({
 
       <div className="space-y-4 text-foreground">
         <div className="space-y-2">
-          <div className="flex justify-between gap-2 text-[10px] font-medium">
+          <div className="flex justify-between text-[11px]  font-medium">
             <span className="text-muted-foreground uppercase">
-              Progresso diário -
+              Progresso diário
             </span>
+            <span> - </span>
             <span style={{ color: 'var(--tone-color)' }}>{progress}%</span>
           </div>
-          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden border border-border/5">
+          <div className="h-1.5 w-35 shrink-0 bg-muted rounded-full overflow-hidden border border-border/5">
             <div
-              className="h-full transition-all duration-1000 ease-linear rounded-full"
+              className="h-full transition-all duration-1000 ease-linear rounded-full "
               style={{
                 width: `${progress}%`,
                 backgroundColor: 'var(--tone-color)',
