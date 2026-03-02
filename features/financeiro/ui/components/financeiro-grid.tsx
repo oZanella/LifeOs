@@ -14,6 +14,7 @@ import {
   TrendingUp,
   TrendingDown,
   Calendar as CalendarIcon,
+  Tags,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge, BadgeTone } from '@/components/ui/badge';
@@ -34,8 +35,9 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { FinanceiroCategories } from './financeiro-categories';
 
-export function FinanceiroGrid({}: { tone?: BadgeTone }) {
+export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
   const {
     filteredEntries,
     categories,
@@ -46,15 +48,32 @@ export function FinanceiroGrid({}: { tone?: BadgeTone }) {
   } = useFinanceiroContext();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<FinancialEntry>>({});
+  const [amountInput, setAmountInput] = useState('');
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+
+  const parseCurrencyInput = (raw: string) => {
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) {
+      return 0;
+    }
+    return Number(digits) / 100;
+  };
 
   const handleStartEdit = (entry: FinancialEntry) => {
     setEditingId(entry.id);
     setEditForm(entry);
+    setAmountInput(formatCurrency(entry.amount));
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditForm({});
+    setAmountInput('');
   };
 
   const handleSaveEdit = () => {
@@ -62,6 +81,7 @@ export function FinanceiroGrid({}: { tone?: BadgeTone }) {
       updateEntry(editingId, editForm);
       setEditingId(null);
       setEditForm({});
+      setAmountInput('');
     }
   };
 
@@ -144,22 +164,44 @@ export function FinanceiroGrid({}: { tone?: BadgeTone }) {
         <h2 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
           Fluxo de Caixa
         </h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleAddDefault}
-          className="gap-2 border-dashed hover:border-solid transition-all cursor-pointer"
-          style={{
-            borderColor: 'var(--tone-color)',
-            color: 'var(--tone-color)',
-          }}
-        >
-          <Plus size={14} />
-          Nova Linha
-        </Button>
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 cursor-pointer"
+              >
+                <Tags size={14} />
+                Categorias
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-[360px] p-0"
+              align="end"
+              sideOffset={8}
+            >
+              <FinanceiroCategories tone={tone} className="mb-0 border-0" />
+            </PopoverContent>
+          </Popover>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAddDefault}
+            className="gap-2 border-dashed hover:border-solid transition-all cursor-pointer"
+            style={{
+              borderColor: 'var(--tone-color)',
+              color: 'var(--tone-color)',
+            }}
+          >
+            <Plus size={14} />
+            Nova Linha
+          </Button>
+        </div>
       </div>
 
-      <div className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-hidden overflow-x-auto custom-scrollbar">
+      <div className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-hidden overflow-x-auto custom-scrollbar min-h-[260px]">
         <table className="w-full text-left border-collapse min-w-200">
           <thead>
             <tr className="bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
@@ -299,16 +341,20 @@ export function FinanceiroGrid({}: { tone?: BadgeTone }) {
                     <td className="px-4 py-2 text-right">
                       {isEditing ? (
                         <Input
-                          type="number"
-                          step="0.01"
-                          className="h-8 text-xs bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color) tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          value={editForm.amount || 0}
-                          onChange={(e) =>
+                          type="text"
+                          inputMode="decimal"
+                          className="h-8 text-xs bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color) tabular-nums text-right"
+                          value={amountInput}
+                          onChange={(e) => {
+                            const numericValue = parseCurrencyInput(
+                              e.target.value,
+                            );
                             setEditForm({
                               ...editForm,
-                              amount: Number(e.target.value),
-                            })
-                          }
+                              amount: numericValue,
+                            });
+                            setAmountInput(formatCurrency(numericValue));
+                          }}
                         />
                       ) : (
                         <span
@@ -319,10 +365,7 @@ export function FinanceiroGrid({}: { tone?: BadgeTone }) {
                               : 'text-red-500',
                           )}
                         >
-                          {new Intl.NumberFormat('pt-BR', {
-                            style: 'currency',
-                            currency: 'BRL',
-                          }).format(entry.amount)}
+                          {formatCurrency(entry.amount)}
                         </span>
                       )}
                     </td>

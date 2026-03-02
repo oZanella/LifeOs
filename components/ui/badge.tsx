@@ -22,13 +22,10 @@ const badgeVariants = cva(
         success:
           'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 [--tone-color:theme(colors.emerald.500)]',
         info: 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400 [--tone-color:theme(colors.blue.500)]',
-        warning:
-          'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400 [--tone-color:theme(colors.amber.500)]',
         error:
           'bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400 [--tone-color:theme(colors.red.500)]',
         accent:
           'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400 [--tone-color:theme(colors.purple.500)]',
-        gold: 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white border-transparent shadow-sm [--tone-color:theme(colors.yellow.500)]',
         online:
           'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 [--tone-color:theme(colors.emerald.400)]',
         neutral:

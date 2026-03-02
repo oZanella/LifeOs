@@ -10,7 +10,7 @@ export const PageContainer = ({
   return (
     <div
       className={cn(
-        'w-full h-full p-3 bg-card flex flex-1 flex-col',
+        'w-full h-full p-2 bg-card flex flex-1 flex-col',
         className,
       )}
     >

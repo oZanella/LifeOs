@@ -47,7 +47,7 @@ export const lab_itens: labelItem[] = [
     id: 'meta',
     label: 'Metas',
     icon: Target,
-    tone: 'warning',
+    tone: 'secondary',
     component: Meta,
   },
   {

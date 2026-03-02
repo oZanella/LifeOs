@@ -7,13 +7,14 @@ import React, {
   useState,
   useMemo,
 } from 'react';
+import { BadgeTone } from '@/components/ui/badge';
 
 export type EntryType = 'receita' | 'despesa';
 
 export interface Category {
   id: string;
   name: string;
-  tone: string;
+  tone: BadgeTone;
 }
 
 export interface FinancialEntry {
@@ -64,12 +65,27 @@ const FinanceiroContext = createContext<FinanceiroContextData>(
 );
 
 const DEFAULT_CATEGORIES: Category[] = [
-  { id: '1', name: 'Alimentação', tone: 'warning' },
+  { id: '1', name: 'Alimentação', tone: 'secondary' },
   { id: '2', name: 'Transporte', tone: 'info' },
   { id: '3', name: 'Saúde', tone: 'error' },
   { id: '4', name: 'Lazer', tone: 'accent' },
   { id: '5', name: 'Salário', tone: 'success' },
 ];
+
+const VALID_TONES: BadgeTone[] = [
+  'default',
+  'primary',
+  'secondary',
+  'success',
+  'info',
+  'error',
+  'accent',
+  'online',
+  'neutral',
+];
+
+const sanitizeTone = (tone: string) =>
+  (VALID_TONES.includes(tone as BadgeTone) ? tone : 'default') as BadgeTone;
 
 export function FinanceiroProvider({
   children,
@@ -94,6 +110,7 @@ export function FinanceiroProvider({
 
     if (savedEntries) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setEntries(JSON.parse(savedEntries));
       } catch (e) {
         console.error('Failed to load financial entries', e);
@@ -102,7 +119,13 @@ export function FinanceiroProvider({
 
     if (savedCategories) {
       try {
-        setCategories(JSON.parse(savedCategories));
+        const parsed = JSON.parse(savedCategories) as Category[];
+        setCategories(
+          parsed.map((cat) => ({
+            ...cat,
+            tone: sanitizeTone(String(cat.tone || 'default')),
+          })),
+        );
       } catch (e) {
         console.error('Failed to load financial categories', e);
       }

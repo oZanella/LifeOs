@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge, BadgeTone } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -27,8 +28,10 @@ const INITIAL_FORM: CategoryForm = { name: '', tone: 'default' };
 
 export function FinanceiroCategories({
   tone = 'success',
+  className,
 }: {
   tone?: BadgeTone;
+  className?: string;
 }) {
   const { categories, addCategory, updateCategory, deleteCategory } =
     useFinanceiroContext();
@@ -47,7 +50,7 @@ export function FinanceiroCategories({
     if (editingId && editForm.name) {
       updateCategory(editingId, {
         name: editForm.name || '',
-        tone: (editForm.tone as string) || 'default',
+        tone: 'default',
       });
       setEditingId(null);
       setEditForm(INITIAL_FORM);
@@ -58,7 +61,7 @@ export function FinanceiroCategories({
     if (editForm.name) {
       addCategory({
         name: editForm.name || '',
-        tone: (editForm.tone as string) || 'default',
+        tone: 'default',
       });
       setIsAdding(false);
       setEditForm(INITIAL_FORM);
@@ -71,14 +74,14 @@ export function FinanceiroCategories({
     'secondary',
     'success',
     'info',
-    'warning',
     'error',
     'accent',
-    'gold',
   ];
 
   return (
-    <Card className="border-border/40 bg-card/50 backdrop-blur-sm mb-6">
+    <Card
+      className={cn('border-border/40 bg-card/50 backdrop-blur-sm', className)}
+    >
       <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
         <CardTitle className="text-sm font-black text-muted-foreground uppercase tracking-widest">
           Gerenciar Categorias
