@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
       id: session.userId,
       username: session.username,
       email: session.email,
+      avatarUrl: session.avatarUrl,
       isAdmin: session.isAdmin,
     },
   });

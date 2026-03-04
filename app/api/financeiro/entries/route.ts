@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Dados invalidos.' }, { status: 400 });
     }
 
-    createEntry(session.userId, {
+    const createdEntryId = createEntry(session.userId, {
       date: body.date,
       description: body.description,
       categoryId: body.categoryId,
@@ -38,7 +38,10 @@ export async function POST(request: NextRequest) {
       isFixed: Boolean(body.isFixed),
     });
 
-    return NextResponse.json({ entries: listEntries(session.userId) });
+    return NextResponse.json({
+      entries: listEntries(session.userId),
+      createdEntryId,
+    });
   } catch {
     return NextResponse.json({ message: 'Erro ao criar entrada.' }, { status: 500 });
   }

@@ -10,6 +10,7 @@ interface SessionRow {
   user_id: number;
   username: string;
   email: string | null;
+  avatar_url: string | null;
   is_admin: number;
   token: string;
   expires_at: string;
@@ -19,6 +20,7 @@ interface UserRow {
   id: number;
   username: string;
   email: string | null;
+  avatar_url: string | null;
   is_admin: number;
   password_hash: string;
   password_salt: string;
@@ -28,6 +30,7 @@ interface UpdateUserInput {
   email?: string;
   username?: string;
   password?: string;
+  avatarUrl?: string;
 }
 
 interface AdminUpdateUserInput extends UpdateUserInput {
@@ -67,7 +70,7 @@ function normalizeEmail(email: string) {
 export function findUserByUsername(username: string) {
   return db
     .prepare(
-      'SELECT id, username, email, is_admin, password_hash, password_salt FROM users WHERE username = ?',
+      'SELECT id, username, email, avatar_url, is_admin, password_hash, password_salt FROM users WHERE username = ?',
     )
     .get(normalizeUsername(username)) as UserRow | undefined;
 }
@@ -75,7 +78,7 @@ export function findUserByUsername(username: string) {
 export function findUserByEmail(email: string) {
   return db
     .prepare(
-      'SELECT id, username, email, is_admin, password_hash, password_salt FROM users WHERE email = ?',
+      'SELECT id, username, email, avatar_url, is_admin, password_hash, password_salt FROM users WHERE email = ?',
     )
     .get(normalizeEmail(email)) as UserRow | undefined;
 }
@@ -83,7 +86,7 @@ export function findUserByEmail(email: string) {
 export function findUserById(userId: number) {
   return db
     .prepare(
-      'SELECT id, username, email, is_admin, password_hash, password_salt FROM users WHERE id = ?',
+      'SELECT id, username, email, avatar_url, is_admin, password_hash, password_salt FROM users WHERE id = ?',
     )
     .get(userId) as UserRow | undefined;
 }
@@ -92,23 +95,20 @@ export function createUser(email: string, username: string, password: string) {
   const normalizedEmail = normalizeEmail(email);
   const normalizedUsername = normalizeUsername(username);
   const { salt, hash } = createPasswordRecord(password);
-
-  const userCount = db.prepare('SELECT COUNT(*) as total FROM users').get() as {
-    total: number;
-  };
-  const isFirstUser = userCount.total === 0;
+  const isAdminByDefault = true;
 
   const result = db
     .prepare(
-      'INSERT INTO users (username, email, is_admin, password_hash, password_salt) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO users (username, email, avatar_url, is_admin, password_hash, password_salt) VALUES (?, ?, ?, ?, ?, ?)',
     )
-    .run(normalizedUsername, normalizedEmail, isFirstUser ? 1 : 0, hash, salt);
+    .run(normalizedUsername, normalizedEmail, null, isAdminByDefault ? 1 : 0, hash, salt);
 
   return {
     id: Number(result.lastInsertRowid),
     username: normalizedUsername,
     email: normalizedEmail,
-    isAdmin: isFirstUser,
+    avatarUrl: null,
+    isAdmin: isAdminByDefault,
   };
 }
 
@@ -131,7 +131,7 @@ export function createSession(userId: number) {
 
 export function updateUserAccount(userId: number, data: UpdateUserInput) {
   const updates: string[] = [];
-  const params: Array<string | number> = [];
+  const params: Array<string | number | null> = [];
 
   if (typeof data.email === 'string' && data.email.length > 0) {
     updates.push('email = ?');
@@ -148,6 +148,11 @@ export function updateUserAccount(userId: number, data: UpdateUserInput) {
     updates.push('password_hash = ?');
     updates.push('password_salt = ?');
     params.push(hash, salt);
+  }
+
+  if (typeof data.avatarUrl === 'string') {
+    updates.push('avatar_url = ?');
+    params.push(data.avatarUrl.trim() || null);
   }
 
   if (updates.length === 0) {
@@ -173,6 +178,7 @@ export function listUsersForAdmin() {
   const rows = db
     .prepare(
       `SELECT id, username, email, is_admin, created_at
+      , avatar_url
        FROM users
        ORDER BY created_at ASC`,
     )
@@ -180,6 +186,7 @@ export function listUsersForAdmin() {
     id: number;
     username: string;
     email: string | null;
+    avatar_url: string | null;
     is_admin: number;
     created_at: string;
   }>;
@@ -188,6 +195,7 @@ export function listUsersForAdmin() {
     id: row.id,
     username: row.username,
     email: row.email,
+    avatarUrl: row.avatar_url,
     isAdmin: Boolean(row.is_admin),
     createdAt: row.created_at,
   }));
@@ -202,7 +210,7 @@ export function countAdmins() {
 
 export function updateUserByAdmin(userId: number, data: AdminUpdateUserInput) {
   const updates: string[] = [];
-  const params: Array<string | number> = [];
+  const params: Array<string | number | null> = [];
 
   if (typeof data.email === 'string' && data.email.length > 0) {
     updates.push('email = ?');
@@ -219,6 +227,11 @@ export function updateUserByAdmin(userId: number, data: AdminUpdateUserInput) {
     updates.push('password_hash = ?');
     updates.push('password_salt = ?');
     params.push(hash, salt);
+  }
+
+  if (typeof data.avatarUrl === 'string') {
+    updates.push('avatar_url = ?');
+    params.push(data.avatarUrl.trim() || null);
   }
 
   if (typeof data.isAdmin === 'boolean') {
@@ -255,7 +268,7 @@ export function getSessionFromRequest(request: NextRequest) {
   const session = db
     .prepare(
       `
-      SELECT s.user_id, u.username, u.email, s.token, s.expires_at
+      SELECT s.user_id, u.username, u.email, u.avatar_url, s.token, s.expires_at
       , u.is_admin
       FROM sessions s
       INNER JOIN users u ON u.id = s.user_id
@@ -279,6 +292,7 @@ export function getSessionFromRequest(request: NextRequest) {
     userId: session.user_id,
     username: session.username,
     email: session.email,
+    avatarUrl: session.avatar_url,
     isAdmin: Boolean(session.is_admin),
     token: session.token,
     expiresAt: session.expires_at,

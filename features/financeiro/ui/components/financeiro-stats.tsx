@@ -11,11 +11,7 @@ import {
 } from 'lucide-react';
 import { BadgeTone } from '@/components/ui/badge';
 
-export function FinanceiroStats({
-  tone = 'success',
-}: {
-  tone?: BadgeTone;
-}) {
+export function FinanceiroStats({ tone = 'success' }: { tone?: BadgeTone }) {
   const { stats } = useFinanceiroContext();
 
   const format = (v: number) =>
@@ -65,11 +61,11 @@ export function FinanceiroStats({
       {items.map((item) => (
         <Card
           key={item.title}
-          className="overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm cursor-pointer hover:bg-card/80 transition-colors"
+          className="overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors"
         >
           <CardHeader className="p-4 pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider cursor-default">
                 {item.title}
               </CardTitle>
               <item.icon size={14} className={item.color} />

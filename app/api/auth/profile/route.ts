@@ -22,11 +22,15 @@ export async function PATCH(request: NextRequest) {
       email?: string;
       username?: string;
       password?: string;
+      avatarUrl?: string;
     };
 
     const nextEmail = body.email?.trim().toLowerCase();
     const nextUsername = body.username?.trim().toLowerCase();
     const nextPassword = body.password?.trim();
+    const avatarInput = body.avatarUrl;
+    const hasAvatarField = typeof avatarInput === 'string';
+    const nextAvatarUrl = hasAvatarField ? avatarInput.trim() : undefined;
 
     if (nextEmail && !nextEmail.includes('@')) {
       return NextResponse.json({ message: 'Email invalido.' }, { status: 400 });
@@ -42,6 +46,13 @@ export async function PATCH(request: NextRequest) {
     if (nextPassword && nextPassword.length < 6) {
       return NextResponse.json(
         { message: 'Senha precisa ter 6+ caracteres.' },
+        { status: 400 },
+      );
+    }
+
+    if (typeof nextAvatarUrl === 'string' && nextAvatarUrl.length > 2_000_000) {
+      return NextResponse.json(
+        { message: 'Avatar muito grande.' },
         { status: 400 },
       );
     }
@@ -67,6 +78,7 @@ export async function PATCH(request: NextRequest) {
       email: nextEmail,
       username: nextUsername,
       password: nextPassword,
+      avatarUrl: hasAvatarField ? nextAvatarUrl : undefined,
     });
 
     if (!updated) {
@@ -78,6 +90,7 @@ export async function PATCH(request: NextRequest) {
         id: updated.id,
         email: updated.email,
         username: updated.username,
+        avatarUrl: updated.avatar_url,
         isAdmin: Boolean(updated.is_admin),
       },
     });

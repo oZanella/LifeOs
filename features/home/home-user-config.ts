@@ -3,8 +3,18 @@
 import { useMemo } from 'react';
 import { useAuth } from '@/providers/auth-provider/auth.provider';
 
+export function toTitleCaseName(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 function buildInitials(username: string) {
-  const parts = username.trim().split(/\s+/).filter(Boolean);
+  const parts = toTitleCaseName(username).split(/\s+/).filter(Boolean);
 
   if (parts.length === 0) {
     return 'US';
@@ -19,14 +29,16 @@ function buildInitials(username: string) {
 
 export function useHomeUserConfig() {
   const { user } = useAuth();
+  const displayName = toTitleCaseName(user?.username ?? 'Usuario');
 
   return useMemo(
     () => ({
-      name: user?.username ?? 'Usuario',
+      name: displayName,
       email: user?.email ?? '',
+      avatarUrl: user?.avatarUrl ?? null,
       status: 'Online',
-      initials: buildInitials(user?.username ?? 'Usuario'),
+      initials: buildInitials(displayName),
     }),
-    [user?.email, user?.username],
+    [displayName, user?.avatarUrl, user?.email],
   );
 }

@@ -1,41 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import { Filter, Plus, Tags, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { BadgeTone } from '@/components/ui/badge';
 import {
   FinancialEntry,
   useFinanceiroContext,
 } from '@/features/financeiro/application/context/financeiro-context';
-import {
-  Plus,
-  Trash2,
-  Check,
-  X,
-  Edit2,
-  TrendingUp,
-  TrendingDown,
-  Calendar as CalendarIcon,
-  Tags,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge, BadgeTone } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { FinanceiroCategories } from './financeiro-categories';
+import { FinanceiroGridRow } from './financeiro-grid-row';
+import { FinanceiroFilters } from './financeiro-filters';
 
 export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
   const {
@@ -47,9 +22,12 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     updateEntry,
     deleteEntry,
   } = useFinanceiroContext();
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<FinancialEntry>>({});
   const [amountInput, setAmountInput] = useState('');
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', {
@@ -59,10 +37,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
 
   const parseCurrencyInput = (raw: string) => {
     const digits = raw.replace(/\D/g, '');
-    if (!digits) {
-      return 0;
-    }
-    return Number(digits) / 100;
+    return digits ? Number(digits) / 100 : 0;
   };
 
   const handleStartEdit = (entry: FinancialEntry) => {
@@ -78,118 +53,79 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
   };
 
   const handleSaveEdit = () => {
-    if (editingId) {
-      updateEntry(editingId, editForm);
-      setEditingId(null);
-      setEditForm({});
-      setAmountInput('');
+    if (!editingId) {
+      return;
     }
+
+    updateEntry(editingId, editForm);
+    handleCancelEdit();
   };
 
-  const handleAddDefault = () => {
+  const handleAddDefault = async () => {
     const today = new Date();
-    // Use filters month/year if selected, otherwise today
-    const y = filters.year || today.getFullYear().toString();
-    const m =
+    const year = filters.year || today.getFullYear().toString();
+    const month =
       (Number(filters.month) + 1).toString().padStart(2, '0') ||
       (today.getMonth() + 1).toString().padStart(2, '0');
-    const d = today.getDate().toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
 
-    addEntry({
-      date: `${y}-${m}-${d}`,
+    const createdEntryId = await addEntry({
+      date: `${year}-${month}-${day}`,
       description: 'Nova entrada',
       categoryId: categories[0]?.id || '',
       amount: 0,
       type: 'despesa',
       isFixed: false,
     });
-  };
 
-  const CategoryCell = ({ entry }: { entry: FinancialEntry }) => {
-    const cat = categories.find((c) => c.id === entry.categoryId);
-
-    return (
-      <Popover>
-        <PopoverTrigger asChild>
-          <button className="cursor-pointer outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm transition-opacity hover:opacity-80">
-            {cat ? (
-              <Badge
-                tone={cat.tone as BadgeTone}
-                variant="subtle"
-                className="text-[10px] uppercase font-bold tracking-tight border-none"
-              >
-                {cat.name}
-              </Badge>
-            ) : (
-              <Badge
-                variant="subtle"
-                className="text-[10px] uppercase font-bold tracking-tight bg-gray-500/10 text-gray-500 border-none"
-              >
-                Sem Categoria
-              </Badge>
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-48 p-1" align="start">
-          <div className="flex flex-col gap-0.5">
-            {categories.map((c) => (
-              <button
-                key={String(c.id)}
-                onClick={() => updateEntry(entry.id, { categoryId: c.id })}
-                className={cn(
-                  'flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors cursor-pointer',
-                  entry.categoryId === c.id
-                    ? 'bg-muted font-bold'
-                    : 'hover:bg-muted/50',
-                )}
-              >
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: `var(--tone-${c.tone})` }}
-                />
-                {c.name}
-                {entry.categoryId === c.id && (
-                  <Check size={12} className="ml-auto" />
-                )}
-              </button>
-            ))}
-          </div>
-        </PopoverContent>
-      </Popover>
-    );
+    if (createdEntryId) {
+      setEditingId(createdEntryId);
+      setEditForm({
+        id: createdEntryId,
+        date: `${year}-${month}-${day}`,
+        description: 'Nova entrada',
+        categoryId: categories[0]?.id || '',
+        amount: 0,
+        type: 'despesa',
+        isFixed: false,
+      });
+      setAmountInput(formatCurrency(0));
+    }
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
-          Fluxo de Caixa
-        </h2>
-        <div className="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 cursor-pointer"
-              >
-                <Tags size={14} />
-                Categorias
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              className="w-[360px] p-0"
-              align="end"
-              sideOffset={8}
-            >
-              <FinanceiroCategories tone={tone} className="mb-0 border-0" />
-            </PopoverContent>
-          </Popover>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 flex-wrap cursor-default">
+          <h2 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
+            Fluxo de Caixa
+          </h2>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 cursor-pointer"
+            onClick={() => setIsFiltersOpen(true)}
+          >
+            <Filter size={14} />
+            Filtros
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 cursor-pointer"
+            onClick={() => setIsCategoriesOpen(true)}
+          >
+            <Tags size={14} />
+            Categorias
+          </Button>
 
           <Button
             variant="outline"
             size="sm"
-            onClick={handleAddDefault}
+            onClick={() => void handleAddDefault()}
             className="gap-2 border-dashed hover:border-solid transition-all cursor-pointer"
             style={{
               borderColor: 'var(--tone-color)',
@@ -202,8 +138,8 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-hidden overflow-x-auto custom-scrollbar min-h-[260px]">
-        <table className="w-full text-left border-collapse min-w-200">
+      <div className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-hidden overflow-x-auto custom-scrollbar min-h-65">
+        <table className="w-full text-left border-collapse min-w-230 cursor-default">
           <thead>
             <tr className="bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
               <th className="px-4 py-3 w-40">Data</th>
@@ -215,6 +151,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
               <th className="px-4 py-3 w-32 text-center">Ações</th>
             </tr>
           </thead>
+
           <tbody className="divide-y divide-border/20">
             {loading ? (
               <tr>
@@ -235,280 +172,96 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                 </td>
               </tr>
             ) : (
-              filteredEntries.map((entry) => {
-                const isEditing = editingId === entry.id;
-
-                return (
-                  <tr
-                    key={entry.id}
-                    className="group hover:bg-white/5 transition-colors"
-                  >
-                    {/* Data */}
-                    <td className="px-4 py-2">
-                      {isEditing ? (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className={cn(
-                                'w-full justify-start text-left font-normal h-8 text-xs cursor-pointer',
-                                !editForm.date && 'text-muted-foreground',
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-3 w-3" />
-                              {editForm.date ? (
-                                format(
-                                  new Date(editForm.date + 'T12:00:00'),
-                                  'dd/MM/yyyy',
-                                )
-                              ) : (
-                                <span>Data</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={
-                                editForm.date
-                                  ? new Date(editForm.date + 'T12:00:00')
-                                  : undefined
-                              }
-                              onSelect={(date) =>
-                                setEditForm({
-                                  ...editForm,
-                                  date: date ? format(date, 'yyyy-MM-dd') : '',
-                                })
-                              }
-                              initialFocus
-                              locale={ptBR}
-                              className="cursor-pointer"
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      ) : (
-                        <span className="text-xs font-medium tabular-nums">
-                          {format(
-                            new Date(entry.date + 'T12:00:00'),
-                            'dd/MM/yyyy',
-                          )}
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Descrição */}
-                    <td className="px-4 py-2">
-                      {isEditing ? (
-                        <Input
-                          className="h-8 text-xs bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color)"
-                          value={editForm.description || ''}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              description: e.target.value,
-                            })
-                          }
-                        />
-                      ) : (
-                        <span className="text-sm">{entry.description}</span>
-                      )}
-                    </td>
-
-                    {/* Categoria */}
-                    <td className="px-4 py-2">
-                      {isEditing ? (
-                        <Select
-                          value={String(editForm.categoryId || '')}
-                          onValueChange={(v) =>
-                            setEditForm({
-                              ...editForm,
-                              categoryId: v,
-                            })
-                          }
-                        >
-                          <SelectTrigger className="h-8 w-full text-xs bg-background border-border/40 cursor-pointer">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((cat) => (
-                              <SelectItem
-                                key={String(cat.id)}
-                                value={String(cat.id)}
-                                className="cursor-pointer text-xs"
-                              >
-                                {String(cat.name)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <CategoryCell entry={entry} />
-                      )}
-                    </td>
-
-                    {/* Valor */}
-                    <td className="px-4 py-2 text-right">
-                      {isEditing ? (
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          className="h-8 text-xs bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color) tabular-nums text-right"
-                          value={amountInput}
-                          onChange={(e) => {
-                            const numericValue = parseCurrencyInput(
-                              e.target.value,
-                            );
-                            setEditForm({
-                              ...editForm,
-                              amount: numericValue,
-                            });
-                            setAmountInput(formatCurrency(numericValue));
-                          }}
-                        />
-                      ) : (
-                        <span
-                          className={cn(
-                            'text-sm font-black tabular-nums whitespace-nowrap',
-                            entry.type === 'receita'
-                              ? 'text-emerald-500'
-                              : 'text-red-500',
-                          )}
-                        >
-                          {formatCurrency(entry.amount)}
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Tipo */}
-                    <td className="px-4 py-2 text-center">
-                      {isEditing ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            className={cn(
-                              'p-1 rounded cursor-pointer',
-                              editForm.type === 'receita'
-                                ? 'bg-emerald-500/20 text-emerald-500'
-                                : 'text-muted-foreground',
-                            )}
-                            onClick={() =>
-                              setEditForm({ ...editForm, type: 'receita' })
-                            }
-                          >
-                            <TrendingUp size={14} />
-                          </button>
-                          <button
-                            className={cn(
-                              'p-1 rounded cursor-pointer',
-                              editForm.type === 'despesa'
-                                ? 'bg-red-500/20 text-red-500'
-                                : 'text-muted-foreground',
-                            )}
-                            onClick={() =>
-                              setEditForm({ ...editForm, type: 'despesa' })
-                            }
-                          >
-                            <TrendingDown size={14} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex justify-center">
-                          {entry.type === 'receita' ? (
-                            <TrendingUp
-                              size={14}
-                              className="text-emerald-500"
-                            />
-                          ) : (
-                            <TrendingDown size={14} className="text-red-500" />
-                          )}
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Fixo */}
-                    <td className="px-4 py-2 text-center">
-                      {isEditing ? (
-                        <input
-                          type="checkbox"
-                          className="accent-(--tone-color) cursor-pointer"
-                          checked={editForm.isFixed}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              isFixed: e.target.checked,
-                            })
-                          }
-                        />
-                      ) : (
-                        <div
-                          className="flex justify-center cursor-pointer"
-                          onClick={() =>
-                            updateEntry(entry.id, { isFixed: !entry.isFixed })
-                          }
-                        >
-                          <div
-                            className={cn(
-                              'w-2 h-2 rounded-full transition-all',
-                              entry.isFixed
-                                ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] scale-125'
-                                : 'bg-gray-700 hover:bg-gray-600',
-                            )}
-                          />
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Ações */}
-                    <td className="px-4 py-2">
-                      <div className="flex items-center justify-center gap-2 opacity-100 group-hover:opacity-100 transition-opacity">
-                        {isEditing ? (
-                          <>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-7 w-7 text-emerald-500 hover:bg-emerald-500/10 cursor-pointer"
-                              onClick={handleSaveEdit}
-                            >
-                              <Check size={14} />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-7 w-7 text-red-500 hover:bg-red-500/10 cursor-pointer"
-                              onClick={handleCancelEdit}
-                            >
-                              <X size={14} />
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
-                              onClick={() => handleStartEdit(entry)}
-                            >
-                              <Edit2 size={14} />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-7 w-7 text-muted-foreground hover:text-red-500 cursor-pointer"
-                              onClick={() => deleteEntry(entry.id)}
-                            >
-                              <Trash2 size={14} />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
+              filteredEntries.map((entry) => (
+                <FinanceiroGridRow
+                  key={entry.id}
+                  entry={entry}
+                  categories={categories}
+                  isEditing={editingId === entry.id}
+                  editForm={editForm}
+                  amountInput={amountInput}
+                  formatCurrency={formatCurrency}
+                  parseCurrencyInput={parseCurrencyInput}
+                  onChangeForm={setEditForm}
+                  onAmountInputChange={setAmountInput}
+                  onQuickCategoryChange={(entryId, categoryId) =>
+                    updateEntry(entryId, { categoryId })
+                  }
+                  onToggleFixed={(entryId, isFixed) =>
+                    updateEntry(entryId, { isFixed: !isFixed })
+                  }
+                  onStartEdit={() => handleStartEdit(entry)}
+                  onSaveEdit={handleSaveEdit}
+                  onCancelEdit={handleCancelEdit}
+                  onDelete={() => deleteEntry(entry.id)}
+                  autoFocusDescription={editingId === entry.id}
+                />
+              ))
             )}
           </tbody>
         </table>
       </div>
+
+      {isFiltersOpen && (
+        <div className="fixed inset-0 z-50">
+          <button
+            type="button"
+            aria-label="Fechar filtros"
+            className="absolute inset-0 bg-black/50 backdrop-blur-[1px] cursor-pointer"
+            onClick={() => setIsFiltersOpen(false)}
+          />
+          <div className="relative z-10 flex min-h-full items-center justify-center p-4">
+            <div className="w-full max-w-xl rounded-2xl border border-border/50 bg-background p-3 shadow-2xl">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-foreground">Filtros</h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={() => setIsFiltersOpen(false)}
+                >
+                  <X size={16} />
+                </Button>
+              </div>
+              <FinanceiroFilters tone={tone} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isCategoriesOpen && (
+        <div className="fixed inset-0 z-50">
+          <button
+            type="button"
+            aria-label="Fechar categorias"
+            className="absolute inset-0 bg-black/50 backdrop-blur-[1px] cursor-pointer"
+            onClick={() => setIsCategoriesOpen(false)}
+          />
+          <div className="relative z-10 flex min-h-full items-center justify-center p-4">
+            <div className="w-full max-w-lg rounded-2xl border border-border/50 bg-background p-0 shadow-2xl">
+              <div className="flex items-center justify-between px-3 pt-3">
+                <h3 className="text-sm font-bold text-foreground">
+                  Categorias
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={() => setIsCategoriesOpen(false)}
+                >
+                  <X size={16} />
+                </Button>
+              </div>
+              <div className="px-3 pb-3">
+                <FinanceiroCategories
+                  tone={tone}
+                  className="mb-0 border-0 shadow-none"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

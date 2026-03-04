@@ -78,7 +78,7 @@ export function HomeProgressSummary({
             <span> - </span>
             <span style={{ color: 'var(--tone-color)' }}>{progress}%</span>
           </div>
-          <div className="h-1.5 w-35 shrink-0 bg-muted rounded-full overflow-hidden border border-border/5">
+          <div className="h-1.5 w-full shrink-0 bg-muted rounded-full overflow-hidden border border-border/5">
             <div
               className="h-full transition-all duration-1000 ease-linear rounded-full "
               style={{

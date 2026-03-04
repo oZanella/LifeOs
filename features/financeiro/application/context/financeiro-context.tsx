@@ -9,6 +9,8 @@ import React, {
   useCallback,
 } from 'react';
 import { BadgeTone } from '@/components/ui/badge';
+import { requestJson } from '@/lib/request-json';
+import { AppBadgeTone, VALID_CATEGORY_TONES } from '@/lib/tone-options';
 import { useAuth } from '@/providers/auth-provider/auth.provider';
 
 export type EntryType = 'receita' | 'despesa';
@@ -33,7 +35,7 @@ interface FinanceiroContextData {
   entries: FinancialEntry[];
   filteredEntries: FinancialEntry[];
   categories: Category[];
-  addEntry: (entry: Omit<FinancialEntry, 'id'>) => Promise<void>;
+  addEntry: (entry: Omit<FinancialEntry, 'id'>) => Promise<string | null>;
   updateEntry: (id: string, entry: Partial<FinancialEntry>) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
   addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
@@ -67,40 +69,10 @@ const FinanceiroContext = createContext<FinanceiroContextData>(
   {} as FinanceiroContextData,
 );
 
-const VALID_TONES: BadgeTone[] = [
-  'default',
-  'primary',
-  'secondary',
-  'success',
-  'info',
-  'error',
-  'accent',
-  'online',
-  'neutral',
-];
-
 const sanitizeTone = (tone: string) =>
-  (VALID_TONES.includes(tone as BadgeTone) ? tone : 'default') as BadgeTone;
-
-async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers ?? {}),
-    },
-  });
-
-  const data = (await response.json().catch(() => ({}))) as T & {
-    message?: string;
-  };
-
-  if (!response.ok) {
-    throw new Error(data.message ?? 'Erro ao salvar dados financeiros.');
-  }
-
-  return data;
-}
+  (VALID_CATEGORY_TONES.includes(tone as AppBadgeTone)
+    ? tone
+    : 'default') as BadgeTone;
 
 export function FinanceiroProvider({
   children,
@@ -155,7 +127,10 @@ export function FinanceiroProvider({
   }, [loadFinanceiro]);
 
   const addEntry = async (entry: Omit<FinancialEntry, 'id'>) => {
-    const data = await requestJson<{ entries: FinancialEntry[] }>(
+    const data = await requestJson<{
+      entries: FinancialEntry[];
+      createdEntryId?: string;
+    }>(
       '/api/financeiro/entries',
       {
         method: 'POST',
@@ -164,6 +139,7 @@ export function FinanceiroProvider({
     );
 
     setEntries(data.entries);
+    return data.createdEntryId ?? null;
   };
 
   const updateEntry = async (

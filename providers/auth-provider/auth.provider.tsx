@@ -15,6 +15,7 @@ export interface AuthUser {
   id: number;
   username: string;
   email: string | null;
+  avatarUrl: string | null;
   isAdmin: boolean;
 }
 
@@ -82,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: user.id,
         username: user.username,
         email: user.email ?? null,
+        avatarUrl: user.avatarUrl ?? null,
         isAdmin: Boolean(user.isAdmin),
       };
     },

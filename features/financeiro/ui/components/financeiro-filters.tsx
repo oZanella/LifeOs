@@ -41,9 +41,9 @@ export function FinanceiroFilters({
   return (
     <div
       data-tone={tone}
-      className="flex flex-wrap items-center gap-4 mb-6 bg-muted/30 p-4 rounded-xl border border-border/40"
+      className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 bg-muted/30 p-3 sm:p-4 rounded-xl border border-border/40"
     >
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 w-full sm:w-auto">
         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Mês
         </label>
@@ -60,7 +60,7 @@ export function FinanceiroFilters({
             )
           }
         >
-          <SelectTrigger className="w-40 bg-background cursor-pointer">
+          <SelectTrigger className="w-full sm:w-40 bg-background cursor-pointer">
             <SelectValue placeholder="Selecione o mês" />
           </SelectTrigger>
           <SelectContent>
@@ -77,7 +77,7 @@ export function FinanceiroFilters({
         </Select>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 w-full sm:w-auto">
         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Ano
         </label>
@@ -94,7 +94,7 @@ export function FinanceiroFilters({
             )
           }
         >
-          <SelectTrigger className="w-30 bg-background cursor-pointer">
+          <SelectTrigger className="w-full sm:w-28 bg-background cursor-pointer">
             <SelectValue placeholder="Selecione o ano" />
           </SelectTrigger>
           <SelectContent>
@@ -107,7 +107,7 @@ export function FinanceiroFilters({
         </Select>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 w-full sm:w-auto">
         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Categoria
         </label>
@@ -124,7 +124,7 @@ export function FinanceiroFilters({
             )
           }
         >
-          <SelectTrigger className="w-44 bg-background cursor-pointer">
+          <SelectTrigger className="w-full sm:w-44 bg-background cursor-pointer">
             <SelectValue placeholder="Categoria" />
           </SelectTrigger>
           <SelectContent>
@@ -144,9 +144,9 @@ export function FinanceiroFilters({
         </Select>
       </div>
 
-      <div className="flex-1" />
+      <div className="hidden sm:block flex-1" />
 
-      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest sm:text-right">
         Filtrando por:{' '}
         <span style={{ color: 'var(--tone-color)' }}>
           {months[Number(filters.month)]} / {filters.year}

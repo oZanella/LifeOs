@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function MetaPage() {
-  return <Meta tone="error" />;
+  return <Meta tone="warning" />;
 }

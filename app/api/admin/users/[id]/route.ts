@@ -42,12 +42,16 @@ export async function PATCH(
       username?: string;
       password?: string;
       isAdmin?: boolean;
+      avatarUrl?: string;
     };
 
     const nextEmail = body.email?.trim().toLowerCase();
     const nextUsername = body.username?.trim().toLowerCase();
     const nextPassword = body.password?.trim();
     const nextIsAdmin = body.isAdmin;
+    const avatarInput = body.avatarUrl;
+    const hasAvatarField = typeof avatarInput === 'string';
+    const nextAvatarUrl = hasAvatarField ? avatarInput.trim() : undefined;
 
     if (nextEmail && !nextEmail.includes('@')) {
       return NextResponse.json({ message: 'Email invalido.' }, { status: 400 });
@@ -65,6 +69,10 @@ export async function PATCH(
         { message: 'Senha precisa ter 6+ caracteres.' },
         { status: 400 },
       );
+    }
+
+    if (typeof nextAvatarUrl === 'string' && nextAvatarUrl.length > 2_000_000) {
+      return NextResponse.json({ message: 'Avatar muito grande.' }, { status: 400 });
     }
 
     if (nextEmail) {
@@ -98,6 +106,7 @@ export async function PATCH(
       email: nextEmail,
       username: nextUsername,
       password: nextPassword,
+      avatarUrl: hasAvatarField ? nextAvatarUrl : undefined,
       isAdmin: nextIsAdmin,
     });
 

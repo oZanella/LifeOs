@@ -14,7 +14,7 @@ export function HomeNavigation({
   onPageChange,
 }: HomeNavigationProps) {
   return (
-    <nav className="flex gap-2 p-2 bg-black/5 dark:bg-black/20 backdrop-blur-sm rounded-xl border border-border/40 overflow-x-auto no-scrollbar">
+    <nav className="flex gap-2 p-2 bg-muted/70 dark:bg-black/20 backdrop-blur-sm rounded-xl border border-border/50 overflow-x-auto no-scrollbar">
       {lab_itens.map((item) => {
         const Icon = item.icon;
         const isActive = activePage === item.id;
@@ -26,8 +26,8 @@ export function HomeNavigation({
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-lg relative group cursor-pointer',
               isActive
-                ? 'bg-zinc-200 dark:bg-zinc-900 text-foreground shadow-sm'
-                : 'text-muted-foreground hover:bg-zinc-200 dark:hover:bg-white/5',
+                ? 'bg-background text-foreground shadow-sm border border-border/60'
+                : 'text-muted-foreground hover:bg-background/80 dark:hover:bg-white/5',
               item.className,
             )}
             style={isActive ? { color: 'var(--tone-color)' } : {}}

@@ -25,6 +25,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     email TEXT,
+    avatar_url TEXT,
     is_admin INTEGER NOT NULL DEFAULT 0,
     password_hash TEXT NOT NULL,
     password_salt TEXT NOT NULL,
@@ -73,6 +74,7 @@ const userColumns = db
   .all() as Array<{ name: string }>;
 const hasEmailColumn = userColumns.some((column) => column.name === 'email');
 const hasAdminColumn = userColumns.some((column) => column.name === 'is_admin');
+const hasAvatarColumn = userColumns.some((column) => column.name === 'avatar_url');
 
 if (!hasEmailColumn) {
   db.exec('ALTER TABLE users ADD COLUMN email TEXT');
@@ -80,6 +82,10 @@ if (!hasEmailColumn) {
 
 if (!hasAdminColumn) {
   db.exec('ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0');
+}
+
+if (!hasAvatarColumn) {
+  db.exec('ALTER TABLE users ADD COLUMN avatar_url TEXT');
 }
 
 db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique ON users(email)');

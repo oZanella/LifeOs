@@ -30,7 +30,7 @@ export function DashboardFiltersLayout() {
       </Select>
 
       <Select>
-        <SelectTrigger className="w-full sm:w-45">
+        <SelectTrigger className="w-full sm:w-44">
           <SelectValue placeholder="Período" />
         </SelectTrigger>
         <SelectContent>

@@ -23,7 +23,7 @@ export function PageHeader({
     <header
       className={cn(
         badgeVariants({ tone, variant: 'subtle' }),
-        'w-full flex flex-col border-b border-white/5 relative overflow-hidden px-6 pb-6 justify-end pt-12 min-h-32',
+        'w-full flex flex-col border-b border-border/60 relative overflow-hidden px-3 sm:px-6 pb-4 sm:pb-6 justify-end pt-9 sm:pt-12 min-h-28 sm:min-h-32',
         'rounded-none border-x-0 border-t-0 font-sans shadow-none transition-colors duration-300',
 
         className,
@@ -44,9 +44,9 @@ export function PageHeader({
         }}
       />
 
-      <div className="relative z-10 flex justify-between items-end w-full">
+      <div className="relative z-10 flex flex-col gap-3 sm:gap-0 sm:flex-row sm:justify-between sm:items-end w-full">
         <div>
-          <h1 className="text-3xl font-black tracking-tighter italic leading-none uppercase flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tighter italic leading-none uppercase flex items-center gap-2">
             <span className="text-foreground/90">{title}</span>
             {highlightText && (
               <span
@@ -58,13 +58,13 @@ export function PageHeader({
             )}
           </h1>
           {subtitle && (
-            <p className="text-[10px] text-muted-foreground/80 dark:text-gray-400 uppercase tracking-[0.3em] font-medium mt-3">
+            <p className="text-[10px] text-muted-foreground/80 dark:text-gray-400 uppercase tracking-[0.2em] sm:tracking-[0.3em] font-medium mt-2 sm:mt-3">
               {subtitle}
             </p>
           )}
         </div>
 
-        <div className="flex gap-2 mb-1">{children}</div>
+        <div className="flex gap-2 mb-0 sm:mb-1 flex-wrap">{children}</div>
       </div>
     </header>
   );
