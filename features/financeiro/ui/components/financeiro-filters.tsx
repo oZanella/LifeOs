@@ -2,7 +2,6 @@
 
 import {
   useFinanceiroContext,
-  Category,
 } from '@/features/financeiro/application/context/financeiro-context';
 import {
   Select,
@@ -32,13 +31,18 @@ const years = Array.from({ length: 10 }, (_, i) =>
   (new Date().getFullYear() - 5 + i).toString(),
 );
 
-export function FinanceiroFilters({ tone = 'success' }: { tone?: BadgeTone }) {
+export function FinanceiroFilters({
+  tone = 'success',
+}: {
+  tone?: BadgeTone;
+}) {
   const { filters, setFilters, categories } = useFinanceiroContext();
 
-  console.log('Filters Tone:', tone);
-
   return (
-    <div className="flex flex-wrap items-center gap-4 mb-6 bg-muted/30 p-4 rounded-xl border border-border/40">
+    <div
+      data-tone={tone}
+      className="flex flex-wrap items-center gap-4 mb-6 bg-muted/30 p-4 rounded-xl border border-border/40"
+    >
       <div className="flex flex-col gap-1.5">
         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Mês

@@ -39,29 +39,27 @@ export function FinanceiroCategories({
   const [editForm, setEditForm] = useState<CategoryForm>(INITIAL_FORM);
   const [isAdding, setIsAdding] = useState(false);
 
-  console.log('Categories tone:', tone);
-
   const handleStartEdit = (cat: Category) => {
     setEditingId(cat.id);
     setEditForm({ name: cat.name, tone: cat.tone as BadgeTone });
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingId && editForm.name) {
-      updateCategory(editingId, {
+      await updateCategory(editingId, {
         name: editForm.name || '',
-        tone: 'default',
+        tone: editForm.tone,
       });
       setEditingId(null);
       setEditForm(INITIAL_FORM);
     }
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (editForm.name) {
-      addCategory({
+      await addCategory({
         name: editForm.name || '',
-        tone: 'default',
+        tone: editForm.tone,
       });
       setIsAdding(false);
       setEditForm(INITIAL_FORM);
@@ -80,6 +78,7 @@ export function FinanceiroCategories({
 
   return (
     <Card
+      data-tone={tone}
       className={cn('border-border/40 bg-card/50 backdrop-blur-sm', className)}
     >
       <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
@@ -139,7 +138,7 @@ export function FinanceiroCategories({
                   size="icon"
                   variant="ghost"
                   className="h-7 w-7 text-emerald-500 cursor-pointer"
-                  onClick={handleAdd}
+                  onClick={() => void handleAdd()}
                 >
                   <Check size={14} />
                 </Button>
@@ -200,7 +199,7 @@ export function FinanceiroCategories({
                       size="icon"
                       variant="ghost"
                       className="h-7 w-7 text-emerald-500 cursor-pointer"
-                      onClick={handleSaveEdit}
+                      onClick={() => void handleSaveEdit()}
                     >
                       <Check size={14} />
                     </Button>
@@ -242,7 +241,7 @@ export function FinanceiroCategories({
                     size="icon"
                     variant="ghost"
                     className="h-6 w-6 text-muted-foreground hover:text-red-500 cursor-pointer"
-                    onClick={() => deleteCategory(cat.id)}
+                    onClick={() => void deleteCategory(cat.id)}
                   >
                     <Trash2 size={10} />
                   </Button>

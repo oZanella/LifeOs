@@ -10,14 +10,17 @@ import {
   Target,
   CheckSquare,
   Dumbbell,
+  Settings,
 } from 'lucide-react';
+import { HomeConfiguracoesView } from '../view/home-configuracoes-view';
 
 export type PageType =
   | 'dashboard'
   | 'financeiro'
   | 'meta'
   | 'tarefa'
-  | 'treino';
+  | 'treino'
+  | 'configuracoes';
 
 export interface labelItem {
   id: PageType;
@@ -63,5 +66,12 @@ export const lab_itens: labelItem[] = [
     icon: Dumbbell,
     tone: 'accent',
     component: Treino,
+  },
+  {
+    id: 'configuracoes',
+    label: 'Configurações',
+    icon: Settings,
+    tone: 'neutral',
+    component: HomeConfiguracoesView,
   },
 ];

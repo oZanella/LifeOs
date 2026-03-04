@@ -6,8 +6,10 @@ import React, {
   useEffect,
   useState,
   useMemo,
+  useCallback,
 } from 'react';
 import { BadgeTone } from '@/components/ui/badge';
+import { useAuth } from '@/providers/auth-provider/auth.provider';
 
 export type EntryType = 'receita' | 'despesa';
 
@@ -31,12 +33,13 @@ interface FinanceiroContextData {
   entries: FinancialEntry[];
   filteredEntries: FinancialEntry[];
   categories: Category[];
-  addEntry: (entry: Omit<FinancialEntry, 'id'>) => void;
-  updateEntry: (id: string, entry: Partial<FinancialEntry>) => void;
-  deleteEntry: (id: string) => void;
-  addCategory: (category: Omit<Category, 'id'>) => void;
-  updateCategory: (id: string, category: Partial<Category>) => void;
-  deleteCategory: (id: string) => void;
+  addEntry: (entry: Omit<FinancialEntry, 'id'>) => Promise<void>;
+  updateEntry: (id: string, entry: Partial<FinancialEntry>) => Promise<void>;
+  deleteEntry: (id: string) => Promise<void>;
+  addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
+  updateCategory: (id: string, category: Partial<Category>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  loading: boolean;
   filters: {
     month: string;
     year: string;
@@ -64,14 +67,6 @@ const FinanceiroContext = createContext<FinanceiroContextData>(
   {} as FinanceiroContextData,
 );
 
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: '1', name: 'Alimentação', tone: 'secondary' },
-  { id: '2', name: 'Transporte', tone: 'info' },
-  { id: '3', name: 'Saúde', tone: 'error' },
-  { id: '4', name: 'Lazer', tone: 'accent' },
-  { id: '5', name: 'Salário', tone: 'success' },
-];
-
 const VALID_TONES: BadgeTone[] = [
   'default',
   'primary',
@@ -87,13 +82,35 @@ const VALID_TONES: BadgeTone[] = [
 const sanitizeTone = (tone: string) =>
   (VALID_TONES.includes(tone as BadgeTone) ? tone : 'default') as BadgeTone;
 
+async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init?.headers ?? {}),
+    },
+  });
+
+  const data = (await response.json().catch(() => ({}))) as T & {
+    message?: string;
+  };
+
+  if (!response.ok) {
+    throw new Error(data.message ?? 'Erro ao salvar dados financeiros.');
+  }
+
+  return data;
+}
+
 export function FinanceiroProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user } = useAuth();
   const [entries, setEntries] = useState<FinancialEntry[]>([]);
-  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     day: '',
     month: new Date().getMonth().toString(),
@@ -101,89 +118,136 @@ export function FinanceiroProvider({
     categoryId: 'all',
   });
 
-  // Load from LocalStorage
-  useEffect(() => {
-    const savedEntries = localStorage.getItem('life-os-financeiro-entries');
-    const savedCategories = localStorage.getItem(
-      'life-os-financeiro-categories',
-    );
-
-    if (savedEntries) {
-      try {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setEntries(JSON.parse(savedEntries));
-      } catch (e) {
-        console.error('Failed to load financial entries', e);
-      }
+  const loadFinanceiro = useCallback(async () => {
+    if (!user) {
+      setEntries([]);
+      setCategories([]);
+      setLoading(false);
+      return;
     }
 
-    if (savedCategories) {
-      try {
-        const parsed = JSON.parse(savedCategories) as Category[];
-        setCategories(
-          parsed.map((cat) => ({
-            ...cat,
-            tone: sanitizeTone(String(cat.tone || 'default')),
-          })),
-        );
-      } catch (e) {
-        console.error('Failed to load financial categories', e);
-      }
+    setLoading(true);
+
+    try {
+      const data = await requestJson<{
+        entries: FinancialEntry[];
+        categories: Category[];
+      }>('/api/financeiro');
+
+      setEntries(data.entries);
+      setCategories(
+        data.categories.map((cat) => ({
+          ...cat,
+          tone: sanitizeTone(String(cat.tone || 'default')),
+        })),
+      );
+    } catch (error) {
+      console.error(error);
+      setEntries([]);
+      setCategories([]);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  // Save to LocalStorage
-  useEffect(() => {
-    localStorage.setItem('life-os-financeiro-entries', JSON.stringify(entries));
-  }, [entries]);
+  }, [user]);
 
   useEffect(() => {
-    localStorage.setItem(
-      'life-os-financeiro-categories',
-      JSON.stringify(categories),
+    loadFinanceiro();
+  }, [loadFinanceiro]);
+
+  const addEntry = async (entry: Omit<FinancialEntry, 'id'>) => {
+    const data = await requestJson<{ entries: FinancialEntry[] }>(
+      '/api/financeiro/entries',
+      {
+        method: 'POST',
+        body: JSON.stringify(entry),
+      },
     );
-  }, [categories]);
 
-  const addEntry = (entry: Omit<FinancialEntry, 'id'>) => {
-    const newEntry = { ...entry, id: crypto.randomUUID() };
-    setEntries((prev) => [...prev, newEntry]);
+    setEntries(data.entries);
   };
 
-  const updateEntry = (id: string, updatedFields: Partial<FinancialEntry>) => {
-    setEntries((prev) =>
-      prev.map((entry) =>
-        entry.id === id ? { ...entry, ...updatedFields } : entry,
-      ),
+  const updateEntry = async (
+    id: string,
+    updatedFields: Partial<FinancialEntry>,
+  ) => {
+    const data = await requestJson<{ entries: FinancialEntry[] }>(
+      `/api/financeiro/entries/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(updatedFields),
+      },
+    );
+
+    setEntries(data.entries);
+  };
+
+  const deleteEntry = async (id: string) => {
+    const data = await requestJson<{ entries: FinancialEntry[] }>(
+      `/api/financeiro/entries/${id}`,
+      {
+        method: 'DELETE',
+      },
+    );
+
+    setEntries(data.entries);
+  };
+
+  const addCategory = async (category: Omit<Category, 'id'>) => {
+    const data = await requestJson<{ categories: Category[] }>(
+      '/api/financeiro/categories',
+      {
+        method: 'POST',
+        body: JSON.stringify(category),
+      },
+    );
+
+    setCategories(
+      data.categories.map((cat) => ({
+        ...cat,
+        tone: sanitizeTone(String(cat.tone || 'default')),
+      })),
     );
   };
 
-  const deleteEntry = (id: string) => {
-    setEntries((prev) => prev.filter((entry) => entry.id !== id));
-  };
+  const updateCategory = async (id: string, updatedFields: Partial<Category>) => {
+    const data = await requestJson<{ categories: Category[] }>(
+      `/api/financeiro/categories/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(updatedFields),
+      },
+    );
 
-  const addCategory = (category: Omit<Category, 'id'>) => {
-    const newCategory = { ...category, id: crypto.randomUUID() };
-    setCategories((prev) => [...prev, newCategory]);
-  };
-
-  const updateCategory = (id: string, updatedFields: Partial<Category>) => {
-    setCategories((prev) =>
-      prev.map((cat) => (cat.id === id ? { ...cat, ...updatedFields } : cat)),
+    setCategories(
+      data.categories.map((cat) => ({
+        ...cat,
+        tone: sanitizeTone(String(cat.tone || 'default')),
+      })),
     );
   };
 
-  const deleteCategory = (id: string) => {
-    setCategories((prev) => prev.filter((cat) => cat.id !== id));
-    // Reset categoryId in entries or handle it accordingly
-    setEntries((prev) =>
-      prev.map((entry) =>
-        entry.categoryId === id ? { ...entry, categoryId: '' } : entry,
-      ),
+  const deleteCategory = async (id: string) => {
+    const categoriesData = await requestJson<{ categories: Category[] }>(
+      `/api/financeiro/categories/${id}`,
+      {
+        method: 'DELETE',
+      },
     );
+    const financeiroData = await requestJson<{
+      entries: FinancialEntry[];
+      categories: Category[];
+    }>('/api/financeiro');
+
+    setCategories(
+      categoriesData.categories.map((cat) => ({
+        ...cat,
+        tone: sanitizeTone(String(cat.tone || 'default')),
+      })),
+    );
+    setEntries(financeiroData.entries);
   };
 
   const stats = useMemo(() => {
-    // Base monthly entries (for global stats)
     const monthlyEntries = entries.filter((entry) => {
       const d = new Date(entry.date + 'T12:00:00');
       const mMatch =
@@ -193,7 +257,6 @@ export function FinanceiroProvider({
       return mMatch && yMatch;
     });
 
-    // Fully filtered entries (if needed for something else, but stats usually big picture)
     const filtered = monthlyEntries.filter((entry) => {
       const d = new Date(entry.date + 'T12:00:00');
       const dMatch =
@@ -216,8 +279,6 @@ export function FinanceiroProvider({
       .reduce((acc, e) => acc + e.amount, 0);
 
     const balance = totalRevenue - totalExpense;
-
-    // Simplified forecast: Current Balance
     const forecast = balance;
 
     return {
@@ -226,7 +287,7 @@ export function FinanceiroProvider({
       balance,
       fixedExpenses,
       forecast,
-      filtered, // Now used and returned
+      filtered,
     };
   }, [entries, filters]);
 
@@ -243,6 +304,7 @@ export function FinanceiroProvider({
         addCategory,
         updateCategory,
         deleteCategory,
+        loading,
         filters,
         setFilters,
         stats: computedStats,

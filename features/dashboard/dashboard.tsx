@@ -1,6 +1,8 @@
+'use client';
+
 import { PageContainer } from '@/components/page/page-container';
 import { DashboardHeader } from './components/dashboard-header';
-import { user_config } from '../home/home-user-config';
+import { useHomeUserConfig } from '../home/home-user-config';
 import { BadgeTone } from '@/components/ui/badge';
 
 interface DashboardProps {
@@ -8,7 +10,8 @@ interface DashboardProps {
 }
 
 export function Dashboard({ tone = 'primary' }: DashboardProps) {
-  const dashboardData = user_config.name;
+  const userConfig = useHomeUserConfig();
+  const dashboardData = userConfig.name;
 
   const personaLabel = 'Dashboard ';
 

@@ -42,6 +42,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     filteredEntries,
     categories,
     filters,
+    loading,
     addEntry,
     updateEntry,
     deleteEntry,
@@ -215,7 +216,16 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border/20">
-            {filteredEntries.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-4 py-12 text-center text-muted-foreground italic text-sm"
+                >
+                  Carregando transacoes...
+                </td>
+              </tr>
+            ) : filteredEntries.length === 0 ? (
               <tr>
                 <td
                   colSpan={7}

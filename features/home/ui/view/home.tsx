@@ -5,9 +5,12 @@ import { HomeSidebar } from '../components/home-sidebar';
 import { HomeNavigation } from '../components/home-navigation';
 import { PageHeader } from '@/components/ui/page-header';
 import { lab_itens, type PageType } from '../tabs/home-config';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/providers/auth-provider/auth.provider';
 
 export function Home() {
   const [activePage, setActivePage] = useState<PageType>('dashboard');
+  const { user, logout } = useAuth();
 
   const currentPage =
     lab_itens.find((item) => item.id === activePage) || lab_itens[0];
@@ -20,7 +23,21 @@ export function Home() {
         highlightText="OS"
         subtitle="Sistema de Gestão Pessoal"
         tone={currentPage.tone}
-      />
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-xs uppercase tracking-widest text-muted-foreground">
+            {user?.username}
+          </span>
+          <Button
+            className="cursor-pointer"
+            variant="outline"
+            size="sm"
+            onClick={() => logout()}
+          >
+            Sair
+          </Button>
+        </div>
+      </PageHeader>
 
       <div className="flex flex-1 overflow-hidden relative">
         <HomeSidebar activePage={'dashboard'} />

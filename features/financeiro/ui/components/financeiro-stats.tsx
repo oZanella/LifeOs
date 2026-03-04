@@ -11,11 +11,12 @@ import {
 } from 'lucide-react';
 import { BadgeTone } from '@/components/ui/badge';
 
-export function FinanceiroStats({ tone = 'success' }: { tone?: BadgeTone }) {
+export function FinanceiroStats({
+  tone = 'success',
+}: {
+  tone?: BadgeTone;
+}) {
   const { stats } = useFinanceiroContext();
-
-  // Use tone to avoid unused warning
-  console.log('Financeiro tone:', tone);
 
   const format = (v: number) =>
     new Intl.NumberFormat('pt-BR', {
@@ -57,7 +58,10 @@ export function FinanceiroStats({ tone = 'success' }: { tone?: BadgeTone }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div
+      data-tone={tone}
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6"
+    >
       {items.map((item) => (
         <Card
           key={item.title}

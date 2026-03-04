@@ -4,13 +4,15 @@ import { User } from 'lucide-react';
 
 import { BadgeTone, badgeVariants } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { user_config } from '../../home-user-config';
+import { useHomeUserConfig } from '../../home-user-config';
 
 interface HomeProfileCardProps {
   tone?: BadgeTone;
 }
 
 export function HomeProfileCard({ tone = 'primary' }: HomeProfileCardProps) {
+  const userConfig = useHomeUserConfig();
+
   return (
     <div
       className={cn(
@@ -25,7 +27,7 @@ export function HomeProfileCard({ tone = 'primary' }: HomeProfileCardProps) {
       </div>
       <div className="flex flex-col overflow-hidden">
         <span className="text-foreground font-semibold truncate text-sm">
-          {user_config.name}
+          {userConfig.name}
         </span>
         <div
           className={cn(

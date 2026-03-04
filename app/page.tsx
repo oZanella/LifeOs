@@ -1,6 +1,8 @@
 import { Home } from '@/features/home/ui/view/home';
 import type { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Life Os - Home',
   description: 'Home do sistema Life Os',
