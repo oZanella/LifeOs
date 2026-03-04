@@ -10,7 +10,7 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
@@ -23,9 +23,9 @@ export async function PATCH(
       tone?: string;
     };
 
-    updateCategory(session.userId, id, body);
+    await updateCategory(session.userId, id, body);
 
-    return NextResponse.json({ categories: listCategories(session.userId) });
+    return NextResponse.json({ categories: await listCategories(session.userId) });
   } catch {
     return NextResponse.json({ message: 'Erro ao atualizar categoria.' }, { status: 500 });
   }
@@ -35,7 +35,7 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
@@ -43,7 +43,7 @@ export async function DELETE(
 
   const { id } = await context.params;
 
-  deleteCategory(session.userId, id);
+  await deleteCategory(session.userId, id);
 
-  return NextResponse.json({ categories: listCategories(session.userId) });
+  return NextResponse.json({ categories: await listCategories(session.userId) });
 }

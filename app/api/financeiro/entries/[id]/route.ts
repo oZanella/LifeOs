@@ -6,7 +6,7 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
@@ -23,9 +23,9 @@ export async function PATCH(
       isFixed?: boolean;
     };
 
-    updateEntry(session.userId, id, body);
+    await updateEntry(session.userId, id, body);
 
-    return NextResponse.json({ entries: listEntries(session.userId) });
+    return NextResponse.json({ entries: await listEntries(session.userId) });
   } catch {
     return NextResponse.json({ message: 'Erro ao atualizar entrada.' }, { status: 500 });
   }
@@ -35,7 +35,7 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
@@ -43,7 +43,7 @@ export async function DELETE(
 
   const { id } = await context.params;
 
-  deleteEntry(session.userId, id);
+  await deleteEntry(session.userId, id);
 
-  return NextResponse.json({ entries: listEntries(session.userId) });
+  return NextResponse.json({ entries: await listEntries(session.userId) });
 }

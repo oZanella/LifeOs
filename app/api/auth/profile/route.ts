@@ -11,7 +11,7 @@ import {
 } from '@/lib/auth';
 
 export async function PATCH(request: NextRequest) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
@@ -58,14 +58,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (nextEmail) {
-      const existing = findUserByEmail(nextEmail);
+      const existing = await findUserByEmail(nextEmail);
       if (existing && existing.id !== session.userId) {
         return NextResponse.json({ message: 'Este email ja esta em uso.' }, { status: 409 });
       }
     }
 
     if (nextUsername) {
-      const existing = findUserByUsername(nextUsername);
+      const existing = await findUserByUsername(nextUsername);
       if (existing && existing.id !== session.userId) {
         return NextResponse.json(
           { message: 'Este nome de usuario ja existe.' },
@@ -74,7 +74,7 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    const updated = updateUserAccount(session.userId, {
+    const updated = await updateUserAccount(session.userId, {
       email: nextEmail,
       username: nextUsername,
       password: nextPassword,
@@ -100,7 +100,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
@@ -108,17 +108,17 @@ export async function DELETE(request: NextRequest) {
 
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
-  if (session.isAdmin && countAdmins() <= 1) {
+  if (session.isAdmin && (await countAdmins()) <= 1) {
     return NextResponse.json(
       { message: 'Nao e permitido remover o ultimo usuario ADM.' },
       { status: 400 },
     );
   }
 
-  deleteUserById(session.userId);
+  await deleteUserById(session.userId);
 
   if (token) {
-    deleteSessionByToken(token);
+    await deleteSessionByToken(token);
   }
 
   const response = NextResponse.json({ ok: true });

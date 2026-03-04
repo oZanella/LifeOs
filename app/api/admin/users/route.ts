@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest, listUsersForAdmin } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
@@ -12,5 +12,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: 'Acesso permitido apenas para ADM.' }, { status: 403 });
   }
 
-  return NextResponse.json({ users: listUsersForAdmin() });
+  return NextResponse.json({ users: await listUsersForAdmin() });
 }

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const email = body.email?.trim().toLowerCase() ?? '';
     const password = body.password ?? '';
 
-    const user = findUserByEmail(email);
+    const user = await findUserByEmail(email);
 
     if (!user) {
       return NextResponse.json({ message: 'Email nao encontrado.' }, { status: 401 });
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = createSession(user.id);
+    const session = await createSession(user.id);
 
     const response = NextResponse.json({
       user: {
@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch {
-    return NextResponse.json({ message: 'Erro ao fazer login.' }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao fazer login.';
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

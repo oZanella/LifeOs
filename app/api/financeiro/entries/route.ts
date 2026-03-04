@@ -3,7 +3,7 @@ import { getSessionFromRequest } from '@/lib/auth';
 import { createEntry, listEntries } from '@/lib/financeiro-db';
 
 export async function POST(request: NextRequest) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Dados invalidos.' }, { status: 400 });
     }
 
-    const createdEntryId = createEntry(session.userId, {
+    const createdEntryId = await createEntry(session.userId, {
       date: body.date,
       description: body.description,
       categoryId: body.categoryId,
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({
-      entries: listEntries(session.userId),
+      entries: await listEntries(session.userId),
       createdEntryId,
     });
   } catch {

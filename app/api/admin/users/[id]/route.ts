@@ -14,7 +14,7 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
@@ -32,7 +32,7 @@ export async function PATCH(
       return NextResponse.json({ message: 'Usuario invalido.' }, { status: 400 });
     }
 
-    const target = findUserById(targetId);
+    const target = await findUserById(targetId);
     if (!target) {
       return NextResponse.json({ message: 'Usuario nao encontrado.' }, { status: 404 });
     }
@@ -76,14 +76,14 @@ export async function PATCH(
     }
 
     if (nextEmail) {
-      const existing = findUserByEmail(nextEmail);
+      const existing = await findUserByEmail(nextEmail);
       if (existing && existing.id !== targetId) {
         return NextResponse.json({ message: 'Este email ja esta em uso.' }, { status: 409 });
       }
     }
 
     if (nextUsername) {
-      const existing = findUserByUsername(nextUsername);
+      const existing = await findUserByUsername(nextUsername);
       if (existing && existing.id !== targetId) {
         return NextResponse.json(
           { message: 'Este nome de usuario ja existe.' },
@@ -92,8 +92,8 @@ export async function PATCH(
       }
     }
 
-    if (typeof nextIsAdmin === 'boolean' && !nextIsAdmin && target.is_admin === 1) {
-      const admins = countAdmins();
+    if (typeof nextIsAdmin === 'boolean' && !nextIsAdmin && target.is_admin) {
+      const admins = await countAdmins();
       if (admins <= 1) {
         return NextResponse.json(
           { message: 'Nao e permitido remover o ultimo usuario ADM.' },
@@ -102,7 +102,7 @@ export async function PATCH(
       }
     }
 
-    const updated = updateUserByAdmin(targetId, {
+    const updated = await updateUserByAdmin(targetId, {
       email: nextEmail,
       username: nextUsername,
       password: nextPassword,
@@ -114,7 +114,7 @@ export async function PATCH(
       return NextResponse.json({ message: 'Nada para atualizar.' }, { status: 400 });
     }
 
-    return NextResponse.json({ users: listUsersForAdmin() });
+    return NextResponse.json({ users: await listUsersForAdmin() });
   } catch {
     return NextResponse.json({ message: 'Erro ao atualizar usuario.' }, { status: 500 });
   }
@@ -124,7 +124,7 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
@@ -141,19 +141,19 @@ export async function DELETE(
     return NextResponse.json({ message: 'Usuario invalido.' }, { status: 400 });
   }
 
-  const target = findUserById(targetId);
+  const target = await findUserById(targetId);
   if (!target) {
     return NextResponse.json({ message: 'Usuario nao encontrado.' }, { status: 404 });
   }
 
-  if (target.is_admin === 1 && countAdmins() <= 1) {
+  if (target.is_admin && (await countAdmins()) <= 1) {
     return NextResponse.json(
       { message: 'Nao e permitido remover o ultimo usuario ADM.' },
       { status: 400 },
     );
   }
 
-  deleteUserById(targetId);
+  await deleteUserById(targetId);
 
-  return NextResponse.json({ users: listUsersForAdmin() });
+  return NextResponse.json({ users: await listUsersForAdmin() });
 }

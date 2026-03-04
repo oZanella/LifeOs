@@ -7,16 +7,16 @@ import {
 } from '@/lib/financeiro-db';
 
 export async function GET(request: NextRequest) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
   }
 
-  ensureDefaultCategories(session.userId);
+  await ensureDefaultCategories(session.userId);
 
   return NextResponse.json({
-    categories: listCategories(session.userId),
-    entries: listEntries(session.userId),
+    categories: await listCategories(session.userId),
+    entries: await listEntries(session.userId),
   });
 }

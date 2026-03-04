@@ -31,12 +31,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingByEmail = findUserByEmail(email);
+    const existingByEmail = await findUserByEmail(email);
     if (existingByEmail) {
       return NextResponse.json({ message: 'Este email ja esta em uso.' }, { status: 409 });
     }
 
-    const existing = findUserByUsername(username);
+    const existing = await findUserByUsername(username);
 
     if (existing) {
       return NextResponse.json(
@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = createUser(email, username, password);
-    const session = createSession(user.id);
+    const user = await createUser(email, username, password);
+    const session = await createSession(user.id);
 
     const response = NextResponse.json({
       user: {
@@ -70,7 +70,9 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch {
-    return NextResponse.json({ message: 'Erro ao registrar usuario.' }, { status: 500 });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Erro ao registrar usuario.';
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

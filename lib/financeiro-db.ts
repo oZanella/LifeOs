@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { db } from '@/lib/db';
+import { dbExec, dbQuery, dbQueryOne } from '@/lib/db';
 
 export type EntryType = 'receita' | 'despesa';
 
@@ -27,55 +27,51 @@ const DEFAULT_CATEGORIES: Array<{ name: string; tone: string }> = [
   { name: 'Salario', tone: 'success' },
 ];
 
-export function ensureDefaultCategories(userId: number) {
-  const total = db
-    .prepare('SELECT COUNT(*) as total FROM financeiro_categories WHERE user_id = ?')
-    .get(userId) as { total: number };
+export async function ensureDefaultCategories(userId: number) {
+  const total = await dbQueryOne<{ total: number }>(
+    'SELECT COUNT(*)::int as total FROM financeiro_categories WHERE user_id = $1',
+    [userId],
+  );
 
-  if (total.total > 0) {
+  if ((total?.total ?? 0) > 0) {
     return;
   }
 
-  const stmt = db.prepare(
-    'INSERT INTO financeiro_categories (id, user_id, name, tone) VALUES (?, ?, ?, ?)',
+  await Promise.all(
+    DEFAULT_CATEGORIES.map((item) =>
+      dbExec(
+        'INSERT INTO financeiro_categories (id, user_id, name, tone) VALUES ($1, $2, $3, $4)',
+        [crypto.randomUUID(), userId, item.name, item.tone],
+      ),
+    ),
   );
-
-  const insertMany = db.transaction(() => {
-    for (const item of DEFAULT_CATEGORIES) {
-      stmt.run(crypto.randomUUID(), userId, item.name, item.tone);
-    }
-  });
-
-  insertMany();
 }
 
-export function listCategories(userId: number) {
-  return db
-    .prepare(
-      'SELECT id, name, tone FROM financeiro_categories WHERE user_id = ? ORDER BY created_at ASC',
-    )
-    .all(userId) as FinanceiroCategory[];
+export async function listCategories(userId: number) {
+  return dbQuery<FinanceiroCategory>(
+    'SELECT id, name, tone FROM financeiro_categories WHERE user_id = $1 ORDER BY created_at ASC',
+    [userId],
+  );
 }
 
-export function listEntries(userId: number) {
-  const rows = db
-    .prepare(
-      `
-      SELECT id, date, description, category_id, amount, type, is_fixed
-      FROM financeiro_entries
-      WHERE user_id = ?
-      ORDER BY date DESC, created_at DESC
-      `,
-    )
-    .all(userId) as Array<{
+export async function listEntries(userId: number) {
+  const rows = await dbQuery<{
     id: string;
     date: string;
     description: string;
     category_id: string;
     amount: number;
     type: EntryType;
-    is_fixed: number;
-  }>;
+    is_fixed: boolean;
+  }>(
+    `
+      SELECT id, date, description, category_id, amount, type, is_fixed
+      FROM financeiro_entries
+      WHERE user_id = $1
+      ORDER BY date DESC, created_at DESC
+    `,
+    [userId],
+  );
 
   return rows.map((row) => ({
     id: row.id,
@@ -88,143 +84,149 @@ export function listEntries(userId: number) {
   }));
 }
 
-export function createEntry(userId: number, data: Omit<FinanceiroEntry, 'id'>) {
+export async function createEntry(userId: number, data: Omit<FinanceiroEntry, 'id'>) {
   const id = crypto.randomUUID();
 
-  db.prepare(
+  await dbExec(
     `
-    INSERT INTO financeiro_entries
-      (id, user_id, date, description, category_id, amount, type, is_fixed)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO financeiro_entries
+        (id, user_id, date, description, category_id, amount, type, is_fixed)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `,
-  ).run(
-    id,
-    userId,
-    data.date,
-    data.description,
-    data.categoryId,
-    data.amount,
-    data.type,
-    data.isFixed ? 1 : 0,
+    [
+      id,
+      userId,
+      data.date,
+      data.description,
+      data.categoryId,
+      data.amount,
+      data.type,
+      data.isFixed,
+    ],
   );
 
   return id;
 }
 
-export function updateEntry(
+export async function updateEntry(
   userId: number,
   entryId: string,
   data: Partial<Omit<FinanceiroEntry, 'id'>>,
 ) {
   const updateParts: string[] = [];
-  const params: Array<string | number> = [];
+  const params: Array<string | number | boolean> = [];
 
   if (typeof data.date === 'string') {
-    updateParts.push('date = ?');
     params.push(data.date);
+    updateParts.push(`date = $${params.length}`);
   }
 
   if (typeof data.description === 'string') {
-    updateParts.push('description = ?');
     params.push(data.description);
+    updateParts.push(`description = $${params.length}`);
   }
 
   if (typeof data.categoryId === 'string') {
-    updateParts.push('category_id = ?');
     params.push(data.categoryId);
+    updateParts.push(`category_id = $${params.length}`);
   }
 
   if (typeof data.amount === 'number') {
-    updateParts.push('amount = ?');
     params.push(data.amount);
+    updateParts.push(`amount = $${params.length}`);
   }
 
   if (data.type === 'receita' || data.type === 'despesa') {
-    updateParts.push('type = ?');
     params.push(data.type);
+    updateParts.push(`type = $${params.length}`);
   }
 
   if (typeof data.isFixed === 'boolean') {
-    updateParts.push('is_fixed = ?');
-    params.push(data.isFixed ? 1 : 0);
+    params.push(data.isFixed);
+    updateParts.push(`is_fixed = $${params.length}`);
   }
 
   if (updateParts.length === 0) {
     return;
   }
 
-  updateParts.push("updated_at = datetime('now')");
+  updateParts.push('updated_at = NOW()');
 
-  db.prepare(
+  params.push(entryId, userId);
+
+  await dbExec(
     `
-    UPDATE financeiro_entries
-    SET ${updateParts.join(', ')}
-    WHERE id = ? AND user_id = ?
+      UPDATE financeiro_entries
+      SET ${updateParts.join(', ')}
+      WHERE id = $${params.length - 1} AND user_id = $${params.length}
     `,
-  ).run(...params, entryId, userId);
-}
-
-export function deleteEntry(userId: number, entryId: string) {
-  db.prepare('DELETE FROM financeiro_entries WHERE id = ? AND user_id = ?').run(
-    entryId,
-    userId,
+    params,
   );
 }
 
-export function createCategory(
+export async function deleteEntry(userId: number, entryId: string) {
+  await dbExec('DELETE FROM financeiro_entries WHERE id = $1 AND user_id = $2', [
+    entryId,
+    userId,
+  ]);
+}
+
+export async function createCategory(
   userId: number,
   data: Omit<FinanceiroCategory, 'id'>,
 ) {
   const id = crypto.randomUUID();
 
-  db.prepare(
-    'INSERT INTO financeiro_categories (id, user_id, name, tone) VALUES (?, ?, ?, ?)',
-  ).run(id, userId, data.name, data.tone);
+  await dbExec(
+    'INSERT INTO financeiro_categories (id, user_id, name, tone) VALUES ($1, $2, $3, $4)',
+    [id, userId, data.name, data.tone],
+  );
 
   return id;
 }
 
-export function updateCategory(
+export async function updateCategory(
   userId: number,
   categoryId: string,
   data: Partial<Omit<FinanceiroCategory, 'id'>>,
 ) {
   const updateParts: string[] = [];
-  const params: string[] = [];
+  const params: Array<string | number> = [];
 
   if (typeof data.name === 'string') {
-    updateParts.push('name = ?');
     params.push(data.name);
+    updateParts.push(`name = $${params.length}`);
   }
 
   if (typeof data.tone === 'string') {
-    updateParts.push('tone = ?');
     params.push(data.tone);
+    updateParts.push(`tone = $${params.length}`);
   }
 
   if (updateParts.length === 0) {
     return;
   }
 
-  db.prepare(
+  params.push(categoryId, userId);
+
+  await dbExec(
     `
-    UPDATE financeiro_categories
-    SET ${updateParts.join(', ')}
-    WHERE id = ? AND user_id = ?
+      UPDATE financeiro_categories
+      SET ${updateParts.join(', ')}
+      WHERE id = $${params.length - 1} AND user_id = $${params.length}
     `,
-  ).run(...params, categoryId, userId);
+    params,
+  );
 }
 
-export function deleteCategory(userId: number, categoryId: string) {
-  const tx = db.transaction(() => {
-    db.prepare(
-      "UPDATE financeiro_entries SET category_id = '' WHERE user_id = ? AND category_id = ?",
-    ).run(userId, categoryId);
-    db.prepare('DELETE FROM financeiro_categories WHERE id = ? AND user_id = ?').run(
-      categoryId,
-      userId,
-    );
-  });
+export async function deleteCategory(userId: number, categoryId: string) {
+  await dbExec(
+    "UPDATE financeiro_entries SET category_id = '' WHERE user_id = $1 AND category_id = $2",
+    [userId, categoryId],
+  );
 
-  tx();
+  await dbExec('DELETE FROM financeiro_categories WHERE id = $1 AND user_id = $2', [
+    categoryId,
+    userId,
+  ]);
 }

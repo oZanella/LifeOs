@@ -1,93 +1,117 @@
-import Database from 'better-sqlite3';
-import fs from 'node:fs';
-import path from 'node:path';
+import { Pool, QueryResultRow } from 'pg';
 
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true';
-const dataDir = process.env.DB_DATA_DIR
-  ? path.resolve(process.env.DB_DATA_DIR)
-  : isVercel
-    ? '/tmp/life-os-data'
-    : path.join(process.cwd(), 'data');
-const dbPath = path.join(dataDir, 'life-os.db');
-
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+declare global {
+  var __lifeOsPgPool: Pool | undefined;
+  var __lifeOsPgReady: Promise<void> | undefined;
 }
 
-const db = new Database(dbPath);
+function getPool() {
+  if (globalThis.__lifeOsPgPool) {
+    return globalThis.__lifeOsPgPool;
+  }
 
-// Better concurrency for Next.js route handlers.
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+  const connectionString =
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING ||
+    process.env.POSTGRES_URL_NO_SSL;
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
-    email TEXT,
-    avatar_url TEXT,
-    is_admin INTEGER NOT NULL DEFAULT 0,
-    password_hash TEXT NOT NULL,
-    password_salt TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
+  if (!connectionString) {
+    throw new Error(
+      'Banco nao configurado. Defina DATABASE_URL ou conecte o Vercel Postgres (POSTGRES_URL).',
+    );
+  }
 
-  CREATE TABLE IF NOT EXISTS sessions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    token TEXT NOT NULL UNIQUE,
-    expires_at TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-  );
+  const pool = new Pool({
+    connectionString,
+    ssl:
+      process.env.NODE_ENV === 'production'
+        ? { rejectUnauthorized: false }
+        : undefined,
+  });
 
-  CREATE TABLE IF NOT EXISTS financeiro_categories (
-    id TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    tone TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS financeiro_entries (
-    id TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    date TEXT NOT NULL,
-    description TEXT NOT NULL,
-    category_id TEXT NOT NULL,
-    amount REAL NOT NULL,
-    type TEXT NOT NULL CHECK(type IN ('receita', 'despesa')),
-    is_fixed INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-
-  CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
-  CREATE INDEX IF NOT EXISTS idx_financeiro_entries_user_id ON financeiro_entries(user_id);
-  CREATE INDEX IF NOT EXISTS idx_financeiro_categories_user_id ON financeiro_categories(user_id);
-`);
-
-const userColumns = db
-  .prepare("PRAGMA table_info('users')")
-  .all() as Array<{ name: string }>;
-const hasEmailColumn = userColumns.some((column) => column.name === 'email');
-const hasAdminColumn = userColumns.some((column) => column.name === 'is_admin');
-const hasAvatarColumn = userColumns.some((column) => column.name === 'avatar_url');
-
-if (!hasEmailColumn) {
-  db.exec('ALTER TABLE users ADD COLUMN email TEXT');
+  globalThis.__lifeOsPgPool = pool;
+  return pool;
 }
 
-if (!hasAdminColumn) {
-  db.exec('ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0');
+async function runMigrations() {
+  const pool = getPool();
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id BIGSERIAL PRIMARY KEY,
+      username TEXT NOT NULL UNIQUE,
+      email TEXT UNIQUE,
+      avatar_url TEXT,
+      is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+      password_hash TEXT NOT NULL,
+      password_salt TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token TEXT NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS financeiro_categories (
+      id TEXT PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      tone TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS financeiro_entries (
+      id TEXT PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      date TEXT NOT NULL,
+      description TEXT NOT NULL,
+      category_id TEXT NOT NULL,
+      amount DOUBLE PRECISION NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('receita', 'despesa')),
+      is_fixed BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
+    CREATE INDEX IF NOT EXISTS idx_financeiro_entries_user_id ON financeiro_entries(user_id);
+    CREATE INDEX IF NOT EXISTS idx_financeiro_categories_user_id ON financeiro_categories(user_id);
+  `);
 }
 
-if (!hasAvatarColumn) {
-  db.exec('ALTER TABLE users ADD COLUMN avatar_url TEXT');
+export async function ensureDbReady() {
+  if (!globalThis.__lifeOsPgReady) {
+    globalThis.__lifeOsPgReady = runMigrations();
+  }
+
+  await globalThis.__lifeOsPgReady;
 }
 
-db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique ON users(email)');
+export async function dbQuery<T extends QueryResultRow>(
+  text: string,
+  params: unknown[] = [],
+) {
+  const pool = getPool();
+  await ensureDbReady();
+  const result = await pool.query<T>(text, params);
+  return result.rows;
+}
 
-export { db };
+export async function dbQueryOne<T extends QueryResultRow>(
+  text: string,
+  params: unknown[] = [],
+) {
+  const rows = await dbQuery<T>(text, params);
+  return rows[0];
+}
+
+export async function dbExec(text: string, params: unknown[] = []) {
+  const pool = getPool();
+  await ensureDbReady();
+  await pool.query(text, params);
+}
