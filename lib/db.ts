@@ -2,7 +2,12 @@ import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const dataDir = path.join(process.cwd(), 'data');
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true';
+const dataDir = process.env.DB_DATA_DIR
+  ? path.resolve(process.env.DB_DATA_DIR)
+  : isVercel
+    ? '/tmp/life-os-data'
+    : path.join(process.cwd(), 'data');
 const dbPath = path.join(dataDir, 'life-os.db');
 
 if (!fs.existsSync(dataDir)) {
