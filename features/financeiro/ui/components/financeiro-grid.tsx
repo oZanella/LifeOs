@@ -100,22 +100,23 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
           <h2 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
             Fluxo de Caixa
           </h2>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <Button
             variant="outline"
             size="sm"
-            className="gap-2 cursor-pointer"
+            className="gap-2 cursor-pointer flex-1 sm:flex-none"
             onClick={() => setIsFiltersOpen(true)}
           >
             <Filter size={14} />
             Filtros
           </Button>
-        </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"
-            className="gap-2 cursor-pointer"
+            className="gap-2 cursor-pointer flex-1 sm:flex-none"
             onClick={() => setIsCategoriesOpen(true)}
           >
             <Tags size={14} />
@@ -126,14 +127,14 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             variant="outline"
             size="sm"
             onClick={() => void handleAddDefault()}
-            className="gap-2 border-dashed hover:border-solid transition-all cursor-pointer"
+            className="basis-full sm:basis-auto w-full sm:w-auto gap-2 border-dashed hover:border-solid transition-all cursor-pointer"
             style={{
               borderColor: 'var(--tone-color)',
               color: 'var(--tone-color)',
             }}
           >
             <Plus size={14} />
-            Nova Linha
+            Novo lançamento
           </Button>
         </div>
       </div>

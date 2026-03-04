@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut, PanelLeft } from 'lucide-react';
 import { HomeSidebar } from '../components/home-sidebar';
-import { HomeNavigation } from '../components/home-navigation';
 import { PageHeader } from '@/components/ui/page-header';
 import { lab_itens, type PageType } from '../tabs/home-config';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { useHomeUserConfig } from '../../home-user-config';
 
 export function Home() {
   const [activePage, setActivePage] = useState<PageType>('dashboard');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { logout } = useAuth();
   const userConfig = useHomeUserConfig();
 
@@ -21,6 +21,17 @@ export function Home() {
 
   return (
     <div className="flex flex-col min-h-dvh w-full bg-background text-foreground overflow-x-hidden font-sans selection:bg-primary/30">
+      <Button
+        className="fixed top-3 left-3 z-50 md:hidden cursor-pointer"
+        variant="outline"
+        size="icon"
+        onClick={() => setMobileSidebarOpen(true)}
+        aria-label="Abrir menu lateral"
+        title="Menu"
+      >
+        <PanelLeft size={18} />
+      </Button>
+
       <Button
         className="fixed top-3 right-3 sm:top-4 sm:right-6 z-50 cursor-pointer"
         variant="outline"
@@ -37,6 +48,7 @@ export function Home() {
         highlightText="OS"
         subtitle="Sistema de Gestão Pessoal"
         tone={currentPage.tone}
+        className="pl-16 sm:pl-6"
       >
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-[10px] sm:text-xs tracking-wide text-muted-foreground">
@@ -46,18 +58,16 @@ export function Home() {
       </PageHeader>
 
       <div className="flex flex-1 overflow-hidden relative">
-        <HomeSidebar activePage={activePage} />
+        <HomeSidebar
+          activePage={activePage}
+          onPageChange={(page) => setActivePage(page)}
+          mobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
+        />
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          <div className="px-3 sm:px-6 py-3 sm:py-4 z-10 sticky top-0 bg-background/80 backdrop-blur-md">
-            <HomeNavigation
-              activePage={activePage}
-              onPageChange={(page) => setActivePage(page)}
-            />
-          </div>
-
-          <main className="flex-1 overflow-y-auto px-3 sm:px-6 pb-4 sm:pb-6 custom-scrollbar">
-            <div className="max-w-7xl mx-auto">
+          <main className="flex-1 overflow-y-auto px-3 sm:px-6 pt-3 sm:pt-5 pb-4 sm:pb-6 custom-scrollbar">
+            <div className="max-w-7xl mx-auto w-full">
               <Content tone={currentPage.tone} />
             </div>
           </main>

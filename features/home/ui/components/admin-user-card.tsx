@@ -27,10 +27,22 @@ interface AdminUserCardProps {
   onAvatarSelect: () => void;
   onAvatarFileChange: (file: File | null) => void;
   setFileInputRef: (element: HTMLInputElement | null) => void;
-  onCropPointerDown: (event: React.PointerEvent<HTMLDivElement>, userId: number) => void;
-  onCropPointerMove: (event: React.PointerEvent<HTMLDivElement>, userId: number) => void;
-  onCropPointerUp: (event: React.PointerEvent<HTMLDivElement>, userId: number) => void;
-  onCropWheel: (event: React.WheelEvent<HTMLDivElement>, userId: number) => void;
+  onCropPointerDown: (
+    event: React.PointerEvent<HTMLDivElement>,
+    userId: number,
+  ) => void;
+  onCropPointerMove: (
+    event: React.PointerEvent<HTMLDivElement>,
+    userId: number,
+  ) => void;
+  onCropPointerUp: (
+    event: React.PointerEvent<HTMLDivElement>,
+    userId: number,
+  ) => void;
+  onCropWheel: (
+    event: React.WheelEvent<HTMLDivElement>,
+    userId: number,
+  ) => void;
   onCropZoomStep: (userId: number, step: number) => void;
   onCropZoomSet: (userId: number, zoom: number) => void;
   onCropReset: (userId: number) => void;
@@ -84,15 +96,22 @@ export function AdminUserCard({
 
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate">{displayName}</p>
-            <p className="text-xs text-muted-foreground truncate">{item.email ?? 'Sem e-mail'}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {item.email ?? 'Sem e-mail'}
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] px-2 py-1 rounded-full border border-border/60 bg-muted/40">
-            {item.isAdmin ? 'Administrador' : 'Usuario'}
+            {item.isAdmin ? 'Administrador' : 'Usuário'}
           </span>
-          <Button size="sm" variant="outline" onClick={onToggleEdit} className="cursor-pointer">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onToggleEdit}
+            className="cursor-pointer"
+          >
             {isEditing ? 'Fechar' : 'Editar'}
           </Button>
           <Button
@@ -112,7 +131,9 @@ export function AdminUserCard({
           <div className="rounded-md border border-border/50 bg-muted/20 p-3">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[auto_minmax(0,1fr)] md:items-center">
               <div className="shrink-0 flex flex-col items-center md:items-start">
-                <p className="text-xs text-muted-foreground mb-2 text-center md:text-left">Avatar</p>
+                <p className="text-xs text-muted-foreground mb-2 text-center md:text-left">
+                  Avatar
+                </p>
                 <button
                   type="button"
                   onClick={onAvatarSelect}
@@ -137,7 +158,9 @@ export function AdminUserCard({
                   type="file"
                   accept="image/*"
                   ref={setFileInputRef}
-                  onChange={(event) => onAvatarFileChange(event.target.files?.[0] ?? null)}
+                  onChange={(event) =>
+                    onAvatarFileChange(event.target.files?.[0] ?? null)
+                  }
                   className="hidden"
                 />
               </div>
@@ -147,27 +170,35 @@ export function AdminUserCard({
                   <Input
                     placeholder="Nome de usuario"
                     value={draft.username}
-                    onChange={(event) => onDraftChange({ ...draft, username: event.target.value })}
+                    onChange={(event) =>
+                      onDraftChange({ ...draft, username: event.target.value })
+                    }
                   />
 
                   <Input
                     placeholder="E-mail"
                     type="email"
                     value={draft.email}
-                    onChange={(event) => onDraftChange({ ...draft, email: event.target.value })}
+                    onChange={(event) =>
+                      onDraftChange({ ...draft, email: event.target.value })
+                    }
                   />
 
                   <Input
                     placeholder="Nova senha (opcional)"
                     type="password"
                     value={draft.password}
-                    onChange={(event) => onDraftChange({ ...draft, password: event.target.value })}
+                    onChange={(event) =>
+                      onDraftChange({ ...draft, password: event.target.value })
+                    }
                   />
 
                   <div className="flex items-center gap-2 text-xs text-muted-foreground px-2 rounded-md border border-border/50 bg-background/70">
                     <Switch
                       checked={draft.isAdmin}
-                      onCheckedChange={(checked) => onDraftChange({ ...draft, isAdmin: checked })}
+                      onCheckedChange={(checked) =>
+                        onDraftChange({ ...draft, isAdmin: checked })
+                      }
                     />
                     <span>Usuário Administrador</span>
                   </div>
@@ -193,16 +224,27 @@ export function AdminUserCard({
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <Button size="sm" onClick={onSave} disabled={isSubmitting} className="cursor-pointer">
+            <Button
+              size="sm"
+              onClick={onSave}
+              disabled={isSubmitting}
+              className="cursor-pointer"
+            >
               Salvar
             </Button>
 
-            <Button size="sm" variant="outline" onClick={onCancel} className="cursor-pointer">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onCancel}
+              className="cursor-pointer"
+            >
               Cancelar
             </Button>
 
             <span className="text-[10px] text-muted-foreground">
-              ID: {item.id} | Criado: {new Date(item.createdAt).toLocaleString('pt-BR')}
+              ID: {item.id} | Criado:{' '}
+              {new Date(item.createdAt).toLocaleString('pt-BR')}
             </span>
           </div>
         </div>

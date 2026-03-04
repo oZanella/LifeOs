@@ -71,16 +71,20 @@ export function HomeProgressSummary({
 
       <div className="space-y-4 text-foreground">
         <div className="space-y-2">
-          <div className="flex justify-between text-[11px]  font-medium">
+          <div className="flex items-center justify-between gap-1 text-[11px] font-medium">
             <span className="text-muted-foreground uppercase">
               Progresso diário
             </span>
-            <span> - </span>
-            <span style={{ color: 'var(--tone-color)' }}>{progress}%</span>
+
+            <div className="flex items-center gap-1">
+              <span> - </span>
+              <span style={{ color: 'var(--tone-color)' }}>{progress}%</span>
+            </div>
           </div>
+
           <div className="h-1.5 w-full shrink-0 bg-muted rounded-full overflow-hidden border border-border/5">
             <div
-              className="h-full transition-all duration-1000 ease-linear rounded-full "
+              className="h-full transition-all duration-1000 ease-linear rounded-full"
               style={{
                 width: `${progress}%`,
                 backgroundColor: 'var(--tone-color)',
