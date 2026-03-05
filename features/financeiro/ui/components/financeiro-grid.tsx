@@ -11,6 +11,7 @@ import {
 import { FinanceiroCategories } from './financeiro-categories';
 import { FinanceiroGridRow } from './financeiro-grid-row';
 import { FinanceiroFilters } from './financeiro-filters';
+import { FinanceiroEntryModal } from './financeiro-entry-modal';
 
 export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
   const {
@@ -23,9 +24,8 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     deleteEntry,
   } = useFinanceiroContext();
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Partial<FinancialEntry>>({});
-  const [amountInput, setAmountInput] = useState('');
+  const [editingEntry, setEditingEntry] =
+    useState<Partial<FinancialEntry> | null>(null);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
 
@@ -35,33 +35,11 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       currency: 'BRL',
     }).format(value);
 
-  const parseCurrencyInput = (raw: string) => {
-    const digits = raw.replace(/\D/g, '');
-    return digits ? Number(digits) / 100 : 0;
+  const handleOpenEdit = (entry: FinancialEntry) => {
+    setEditingEntry(entry);
   };
 
-  const handleStartEdit = (entry: FinancialEntry) => {
-    setEditingId(entry.id);
-    setEditForm(entry);
-    setAmountInput(formatCurrency(entry.amount));
-  };
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditForm({});
-    setAmountInput('');
-  };
-
-  const handleSaveEdit = () => {
-    if (!editingId) {
-      return;
-    }
-
-    updateEntry(editingId, editForm);
-    handleCancelEdit();
-  };
-
-  const handleAddDefault = async () => {
+  const handleOpenNew = () => {
     const today = new Date();
     const year = filters.year || today.getFullYear().toString();
     const month =
@@ -69,28 +47,30 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       (today.getMonth() + 1).toString().padStart(2, '0');
     const day = today.getDate().toString().padStart(2, '0');
 
-    const createdEntryId = await addEntry({
+    setEditingEntry({
       date: `${year}-${month}-${day}`,
-      description: 'Nova entrada',
+      description: '',
       categoryId: categories[0]?.id || '',
       amount: 0,
       type: 'despesa',
       isFixed: false,
     });
+  };
 
-    if (createdEntryId) {
-      setEditingId(createdEntryId);
-      setEditForm({
-        id: createdEntryId,
-        date: `${year}-${month}-${day}`,
-        description: 'Nova entrada',
-        categoryId: categories[0]?.id || '',
-        amount: 0,
-        type: 'despesa',
-        isFixed: false,
+  const handleSave = async (data: Partial<FinancialEntry>) => {
+    if (data.id) {
+      await updateEntry(data.id, data);
+    } else {
+      await addEntry({
+        date: data.date ?? '',
+        description: data.description ?? '',
+        categoryId: data.categoryId ?? '',
+        amount: data.amount ?? 0,
+        type: data.type ?? 'despesa',
+        isFixed: data.isFixed ?? false,
       });
-      setAmountInput(formatCurrency(0));
     }
+    setEditingEntry(null);
   };
 
   return (
@@ -98,7 +78,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 flex-wrap cursor-default">
           <h2 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
-            Fluxo de Caixa
+            Movimentações Financeiras
           </h2>
         </div>
 
@@ -126,7 +106,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => void handleAddDefault()}
+            onClick={handleOpenNew}
             className="basis-full sm:basis-auto w-full sm:w-auto gap-2 border-dashed hover:border-solid transition-all cursor-pointer"
             style={{
               borderColor: 'var(--tone-color)',
@@ -160,7 +140,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   colSpan={7}
                   className="px-4 py-12 text-center text-muted-foreground italic text-sm"
                 >
-                  Carregando transacoes...
+                  Carregando transações...
                 </td>
               </tr>
             ) : filteredEntries.length === 0 ? (
@@ -178,24 +158,15 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   key={entry.id}
                   entry={entry}
                   categories={categories}
-                  isEditing={editingId === entry.id}
-                  editForm={editForm}
-                  amountInput={amountInput}
                   formatCurrency={formatCurrency}
-                  parseCurrencyInput={parseCurrencyInput}
-                  onChangeForm={setEditForm}
-                  onAmountInputChange={setAmountInput}
                   onQuickCategoryChange={(entryId, categoryId) =>
                     updateEntry(entryId, { categoryId })
                   }
                   onToggleFixed={(entryId, isFixed) =>
                     updateEntry(entryId, { isFixed: !isFixed })
                   }
-                  onStartEdit={() => handleStartEdit(entry)}
-                  onSaveEdit={handleSaveEdit}
-                  onCancelEdit={handleCancelEdit}
+                  onStartEdit={() => handleOpenEdit(entry)}
                   onDelete={() => deleteEntry(entry.id)}
-                  autoFocusDescription={editingId === entry.id}
                 />
               ))
             )}
@@ -203,6 +174,17 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         </table>
       </div>
 
+      {/* Modal de edição/criação */}
+      {editingEntry !== null && (
+        <FinanceiroEntryModal
+          entry={editingEntry}
+          categories={categories}
+          onSave={(data) => void handleSave(data)}
+          onClose={() => setEditingEntry(null)}
+        />
+      )}
+
+      {/* Modal de Filtros */}
       {isFiltersOpen && (
         <div className="fixed inset-0 z-50">
           <button
@@ -230,6 +212,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         </div>
       )}
 
+      {/* Modal de Categorias */}
       {isCategoriesOpen && (
         <div className="fixed inset-0 z-50">
           <button
