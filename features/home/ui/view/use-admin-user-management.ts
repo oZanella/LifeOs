@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { requestJson } from '@/lib/request-json';
 import { useAuth } from '@/providers/auth-provider/auth.provider';
-import { AdminDraft, AdminUser, AvatarCropState } from './home-configuracoes.types';
+import {
+  AdminDraft,
+  AdminUser,
+  AvatarCropState,
+} from './home-configuracoes.types';
 import {
   buildAdminDrafts,
   clamp,
@@ -25,9 +29,13 @@ export function useAdminUserManagement() {
   } | null>(null);
 
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
-  const [adminDrafts, setAdminDrafts] = useState<Record<number, AdminDraft>>({});
+  const [adminDrafts, setAdminDrafts] = useState<Record<number, AdminDraft>>(
+    {},
+  );
   const [adminLoading, setAdminLoading] = useState(false);
-  const [adminSubmittingId, setAdminSubmittingId] = useState<number | null>(null);
+  const [adminSubmittingId, setAdminSubmittingId] = useState<number | null>(
+    null,
+  );
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [avatarCrop, setAvatarCrop] = useState<AvatarCropState | null>(null);
   const [adminError, setAdminError] = useState('');
@@ -44,10 +52,14 @@ export function useAdminUserManagement() {
     setAdminLoading(true);
 
     try {
-      const data = await requestJson<{ users: AdminUser[] }>('/api/admin/users');
+      const data = await requestJson<{ users: AdminUser[] }>(
+        '/api/admin/users',
+      );
       applyUsers(data.users);
     } catch (err) {
-      setAdminError(err instanceof Error ? err.message : 'Erro ao carregar usuarios.');
+      setAdminError(
+        err instanceof Error ? err.message : 'Erro ao carregar usuarios.',
+      );
     } finally {
       setAdminLoading(false);
     }
@@ -95,40 +107,54 @@ export function useAdminUserManagement() {
     [avatarCrop],
   );
 
-  const handleCropPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>, userId: number) => {
-    const dragState = dragStateRef.current;
-    if (!dragState || dragState.userId !== userId) {
-      return;
-    }
-
-    setAvatarCrop((prev) => {
-      if (!prev || prev.userId !== userId) {
-        return prev;
+  const handleCropPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>, userId: number) => {
+      const dragState = dragStateRef.current;
+      if (!dragState || dragState.userId !== userId) {
+        return;
       }
 
-      const deltaX = event.clientX - dragState.startX;
-      const deltaY = event.clientY - dragState.startY;
-      const layout = getCropLayout(prev);
+      setAvatarCrop((prev) => {
+        if (!prev || prev.userId !== userId) {
+          return prev;
+        }
 
-      return {
-        ...prev,
-        offsetX: clamp(dragState.originOffsetX + deltaX, -layout.maxOffsetX, layout.maxOffsetX),
-        offsetY: clamp(dragState.originOffsetY + deltaY, -layout.maxOffsetY, layout.maxOffsetY),
-      };
-    });
-  }, []);
+        const deltaX = event.clientX - dragState.startX;
+        const deltaY = event.clientY - dragState.startY;
+        const layout = getCropLayout(prev);
 
-  const handleCropPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>, userId: number) => {
-    const dragState = dragStateRef.current;
-    if (!dragState || dragState.userId !== userId) {
-      return;
-    }
+        return {
+          ...prev,
+          offsetX: clamp(
+            dragState.originOffsetX + deltaX,
+            -layout.maxOffsetX,
+            layout.maxOffsetX,
+          ),
+          offsetY: clamp(
+            dragState.originOffsetY + deltaY,
+            -layout.maxOffsetY,
+            layout.maxOffsetY,
+          ),
+        };
+      });
+    },
+    [],
+  );
 
-    dragStateRef.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-  }, []);
+  const handleCropPointerUp = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>, userId: number) => {
+      const dragState = dragStateRef.current;
+      if (!dragState || dragState.userId !== userId) {
+        return;
+      }
+
+      dragStateRef.current = null;
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    },
+    [],
+  );
 
   const handleCropWheel = useCallback(
     (event: React.WheelEvent<HTMLDivElement>, userId: number) => {
@@ -136,12 +162,18 @@ export function useAdminUserManagement() {
       if (!avatarCrop || avatarCrop.userId !== userId) {
         return;
       }
-      updateCropZoom(userId, avatarCrop.zoom + (event.deltaY > 0 ? -0.06 : 0.06));
+      updateCropZoom(
+        userId,
+        avatarCrop.zoom + (event.deltaY > 0 ? -0.06 : 0.06),
+      );
     },
     [avatarCrop, updateCropZoom],
   );
 
-  const handleAvatarUpload = async (targetUserId: number, file: File | null) => {
+  const handleAvatarUpload = async (
+    targetUserId: number,
+    file: File | null,
+  ) => {
     if (!file) {
       return;
     }
@@ -170,7 +202,9 @@ export function useAdminUserManagement() {
       });
       setAdminError('');
     } catch (err) {
-      setAdminError(err instanceof Error ? err.message : 'Erro ao carregar avatar.');
+      setAdminError(
+        err instanceof Error ? err.message : 'Erro ao carregar avatar.',
+      );
     }
   };
 
@@ -191,7 +225,9 @@ export function useAdminUserManagement() {
       setAvatarCrop(null);
       setAdminError('');
     } catch (err) {
-      setAdminError(err instanceof Error ? err.message : 'Erro ao recortar avatar.');
+      setAdminError(
+        err instanceof Error ? err.message : 'Erro ao recortar avatar.',
+      );
     }
   };
 
@@ -206,23 +242,28 @@ export function useAdminUserManagement() {
     setAdminSuccess('');
 
     try {
-      const data = await requestJson<{ users: AdminUser[] }>(`/api/admin/users/${targetUserId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          email: draft.email,
-          username: draft.username,
-          password: draft.password || undefined,
-          avatarUrl: draft.avatarUrl,
-          isAdmin: draft.isAdmin,
-        }),
-      });
+      const data = await requestJson<{ users: AdminUser[] }>(
+        `/api/admin/users/${targetUserId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            email: draft.email,
+            username: draft.username,
+            password: draft.password || undefined,
+            avatarUrl: draft.avatarUrl,
+            isAdmin: draft.isAdmin,
+          }),
+        },
+      );
 
       applyUsers(data.users);
       setEditingUserId(null);
       setAvatarCrop(null);
-      setAdminSuccess('Usuario atualizado.');
+      setAdminSuccess('Usuário atualizado.');
     } catch (err) {
-      setAdminError(err instanceof Error ? err.message : 'Erro ao atualizar usuario.');
+      setAdminError(
+        err instanceof Error ? err.message : 'Erro ao atualizar usuario.',
+      );
     } finally {
       setAdminSubmittingId(null);
     }
@@ -238,15 +279,20 @@ export function useAdminUserManagement() {
     setAdminSuccess('');
 
     try {
-      const data = await requestJson<{ users: AdminUser[] }>(`/api/admin/users/${targetUserId}`, {
-        method: 'DELETE',
-      });
+      const data = await requestJson<{ users: AdminUser[] }>(
+        `/api/admin/users/${targetUserId}`,
+        {
+          method: 'DELETE',
+        },
+      );
       applyUsers(data.users);
       setEditingUserId((prev) => (prev === targetUserId ? null : prev));
       setAvatarCrop((prev) => (prev?.userId === targetUserId ? null : prev));
       setAdminSuccess('Usuario excluido.');
     } catch (err) {
-      setAdminError(err instanceof Error ? err.message : 'Erro ao excluir usuario.');
+      setAdminError(
+        err instanceof Error ? err.message : 'Erro ao excluir usuario.',
+      );
     } finally {
       setAdminSubmittingId(null);
     }

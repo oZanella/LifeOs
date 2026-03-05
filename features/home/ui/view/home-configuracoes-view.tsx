@@ -35,30 +35,45 @@ export function HomeConfiguracoesView({ tone }: { tone?: BadgeTone }) {
 
   if (!user?.isAdmin) {
     return (
-      <section data-tone={tone} className="mb-4 rounded-xl border border-border/50 bg-card/70 p-4">
+      <section
+        data-tone={tone}
+        className="mb-4 rounded-xl border border-border/50 bg-card/70 p-4"
+      >
         <h3 className="text-sm font-bold">Configuracoes</h3>
         <p className="mt-2 text-xs text-muted-foreground">
-          Apenas usuarios administradores podem controlar os usuarios cadastrados.
+          Apenas usuarios administradores podem controlar os usuarios
+          cadastrados.
         </p>
       </section>
     );
   }
 
   return (
-    <section data-tone={tone} className="mb-4 rounded-xl border border-border/50 bg-card/70 p-4">
+    <section
+      data-tone={tone}
+      className="mb-4 rounded-xl border border-border/50 bg-card/70 p-4"
+    >
       <h3 className="text-sm font-bold">Controle de Usuarios</h3>
       <p className="mt-1 text-xs text-muted-foreground">
-        Gerencie usuarios, permissões e avatar com recorte responsivo.
+        Gerencie usuários, permissões e avatar com recorte responsivo.
       </p>
 
       {adminError && <p className="mt-3 text-xs text-red-500">{adminError}</p>}
-      {adminSuccess && <p className="mt-3 text-xs text-emerald-500">{adminSuccess}</p>}
+      {adminSuccess && (
+        <p className="mt-3 text-xs text-emerald-500">{adminSuccess}</p>
+      )}
 
       <div className="mt-3 space-y-3">
-        {adminLoading && <p className="text-xs text-muted-foreground">Carregando usuarios...</p>}
+        {adminLoading && (
+          <p className="text-xs text-muted-foreground">
+            Carregando usuarios...
+          </p>
+        )}
 
         {!adminLoading && adminUsers.length === 0 && (
-          <p className="text-xs text-muted-foreground">Nenhum usuario cadastrado.</p>
+          <p className="text-xs text-muted-foreground">
+            Nenhum usuario cadastrado.
+          </p>
         )}
 
         {!adminLoading &&
@@ -79,7 +94,9 @@ export function HomeConfiguracoesView({ tone }: { tone?: BadgeTone }) {
                 onToggleEdit={() => {
                   setAdminError('');
                   setAdminSuccess('');
-                  setEditingUserId((prev) => (prev === item.id ? null : item.id));
+                  setEditingUserId((prev) =>
+                    prev === item.id ? null : item.id,
+                  );
                 }}
                 onDelete={() => void deleteUser(item.id)}
                 onSave={() => void updateUser(item.id)}
@@ -94,14 +111,18 @@ export function HomeConfiguracoesView({ tone }: { tone?: BadgeTone }) {
                       isAdmin: item.isAdmin,
                     },
                   }));
-                  setAvatarCrop((prev) => (prev?.userId === item.id ? null : prev));
+                  setAvatarCrop((prev) =>
+                    prev?.userId === item.id ? null : prev,
+                  );
                   setEditingUserId(null);
                 }}
                 onDraftChange={(nextDraft) =>
                   setAdminDrafts((prev) => ({ ...prev, [item.id]: nextDraft }))
                 }
                 onAvatarSelect={() => fileInputRefs.current[item.id]?.click()}
-                onAvatarFileChange={(file) => void handleAvatarUpload(item.id, file)}
+                onAvatarFileChange={(file) =>
+                  void handleAvatarUpload(item.id, file)
+                }
                 setFileInputRef={(element) => {
                   fileInputRefs.current[item.id] = element;
                 }}
@@ -110,7 +131,8 @@ export function HomeConfiguracoesView({ tone }: { tone?: BadgeTone }) {
                 onCropPointerUp={handleCropPointerUp}
                 onCropWheel={handleCropWheel}
                 onCropZoomStep={(userId, step) => {
-                  const current = avatarCrop?.userId === userId ? avatarCrop.zoom : 1;
+                  const current =
+                    avatarCrop?.userId === userId ? avatarCrop.zoom : 1;
                   updateCropZoom(userId, current + step);
                 }}
                 onCropZoomSet={updateCropZoom}
