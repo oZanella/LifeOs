@@ -96,14 +96,19 @@ export function HomeSidebar({
                     key={item.id}
                     type="button"
                     onClick={() => {
-                      onPageChange(item.id);
-                      onCloseMobile();
+                      if (!item.disabled) {
+                        onPageChange(item.id);
+                        onCloseMobile();
+                      }
                     }}
+                    disabled={item.disabled}
                     className={cn(
-                      'w-full flex items-center gap-2 rounded-xl px-3 py-2 text-sm cursor-pointer transition-colors',
-                      isActive
-                        ? 'bg-background border border-border/60 text-foreground'
-                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                      'w-full flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors',
+                      item.disabled
+                        ? 'opacity-40 cursor-not-allowed grayscale pointer-events-none'
+                        : isActive
+                          ? 'bg-background border border-border/60 text-foreground'
+                          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground cursor-pointer',
                     )}
                   >
                     <Icon
@@ -116,7 +121,6 @@ export function HomeSidebar({
               })}
             </div>
           </div>
-
           <HomeProgressSummary tone={activeTone} />
         </div>
       </aside>

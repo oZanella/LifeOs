@@ -29,15 +29,17 @@ export interface labelItem {
   tone: BadgeTone;
   component: React.ComponentType<{ tone?: BadgeTone }>;
   className?: string;
+  disabled?: boolean;
 }
 
 export const lab_itens: labelItem[] = [
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: 'Dashboard - em desenvolvimento',
     icon: LayoutDashboard,
     tone: 'primary',
     component: Dashboard,
+    disabled: true,
   },
   {
     id: 'financeiro',
@@ -48,24 +50,27 @@ export const lab_itens: labelItem[] = [
   },
   {
     id: 'meta',
-    label: 'Metas',
+    label: 'Metas - em desenvolvimento',
     icon: Target,
     tone: 'warning',
     component: Meta,
+    disabled: true,
   },
   {
     id: 'tarefa',
-    label: 'Tarefas',
+    label: 'Tarefas - em desenvolvimento',
     icon: CheckSquare,
     tone: 'info',
     component: Tarefa,
+    disabled: true,
   },
   {
     id: 'treino',
-    label: 'Treino',
+    label: 'Treino - em desenvolvimento',
     icon: Dumbbell,
     tone: 'accent',
     component: Treino,
+    disabled: true,
   },
   {
     id: 'configuracoes',
