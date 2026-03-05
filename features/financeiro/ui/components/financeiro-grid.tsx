@@ -12,6 +12,8 @@ import { FinanceiroCategories } from './financeiro-categories';
 import { FinanceiroGridRow } from './financeiro-grid-row';
 import { FinanceiroFilters } from './financeiro-filters';
 import { FinanceiroEntryModal } from './financeiro-entry-modal';
+import { FinanceiroMobileCard } from './financeiro-mobile-card';
+import { FinanceiroStats } from './financeiro-stats';
 
 export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
   const {
@@ -119,7 +121,35 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-hidden overflow-x-auto custom-scrollbar min-h-65">
+      <FinanceiroStats tone={tone} />
+
+      <div className="flex sm:hidden flex-col gap-2">
+        {loading ? (
+          <div className="py-12 text-center text-muted-foreground italic text-sm">
+            Carregando transações...
+          </div>
+        ) : filteredEntries.length === 0 ? (
+          <div className="py-12 text-center text-muted-foreground italic text-sm">
+            Nenhuma transação encontrada para este período.
+          </div>
+        ) : (
+          filteredEntries.map((entry) => (
+            <FinanceiroMobileCard
+              key={entry.id}
+              entry={entry}
+              categories={categories}
+              formatCurrency={formatCurrency}
+              onToggleFixed={(entryId, isFixed) =>
+                updateEntry(entryId, { isFixed: !isFixed })
+              }
+              onStartEdit={() => handleOpenEdit(entry)}
+              onDelete={() => deleteEntry(entry.id)}
+            />
+          ))
+        )}
+      </div>
+
+      <div className="hidden sm:block rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-hidden overflow-x-auto custom-scrollbar min-h-65">
         <table className="w-full text-left border-collapse min-w-230 cursor-default">
           <thead>
             <tr className="bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
@@ -174,7 +204,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         </table>
       </div>
 
-      {/* Modal de edição/criação */}
       {editingEntry !== null && (
         <FinanceiroEntryModal
           entry={editingEntry}
@@ -184,7 +213,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         />
       )}
 
-      {/* Modal de Filtros */}
       {isFiltersOpen && (
         <div className="fixed inset-0 z-50">
           <button
@@ -212,7 +240,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         </div>
       )}
 
-      {/* Modal de Categorias */}
       {isCategoriesOpen && (
         <div className="fixed inset-0 z-50">
           <button
