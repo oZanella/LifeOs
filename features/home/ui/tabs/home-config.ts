@@ -35,11 +35,10 @@ export interface labelItem {
 export const lab_itens: labelItem[] = [
   {
     id: 'dashboard',
-    label: 'Dashboard - em desenvolvimento',
+    label: 'Dashboard',
     icon: LayoutDashboard,
     tone: 'primary',
     component: Dashboard,
-    disabled: true,
   },
   {
     id: 'financeiro',
