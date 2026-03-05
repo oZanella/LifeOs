@@ -44,8 +44,8 @@ export function PageHeader({
         }}
       />
 
-      <div className="relative z-10 flex flex-col gap-3 sm:gap-0 sm:flex-row sm:justify-between sm:items-end w-full">
-        <div>
+      <div className="relative z-10 flex flex-col sm:flex-row sm:justify-between sm:items-end w-full gap-5 sm:gap-0">
+        <div className="order-2 sm:order-1">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tighter italic leading-none uppercase flex items-center gap-2">
             <span className="text-foreground/90">{title}</span>
             {highlightText && (
@@ -58,13 +58,15 @@ export function PageHeader({
             )}
           </h1>
           {subtitle && (
-            <p className="text-[10px] text-muted-foreground/80 dark:text-gray-400 uppercase tracking-[0.2em] sm:tracking-[0.3em] font-medium mt-2 sm:mt-3">
+            <p className="text-[10px] text-muted-foreground/80 dark:text-gray-400 uppercase tracking-[0.2em] sm:tracking-[0.3em] font-medium mt-1 sm:mt-2">
               {subtitle}
             </p>
           )}
         </div>
 
-        <div className="flex gap-2 mb-0 sm:mb-1 flex-wrap">{children}</div>
+        <div className="order-1 sm:order-2 flex gap-2 items-center justify-between sm:justify-end w-full sm:w-auto">
+          {children}
+        </div>
       </div>
     </header>
   );

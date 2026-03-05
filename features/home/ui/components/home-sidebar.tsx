@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { PanelLeftCloseIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HomeClock } from './home-clock';
 import { HomeProfileCard } from './home-profile-card';
@@ -45,14 +45,16 @@ export function HomeSidebar({
       <div
         className={cn(
           'fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] transition-opacity md:hidden',
-          mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
+          mobileOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none',
         )}
         onClick={onCloseMobile}
       />
 
       <aside
         className={cn(
-          'fixed left-0 top-0 z-50 h-dvh w-[86vw] max-w-[340px] bg-sidebar text-sidebar-foreground p-4 overflow-y-auto no-scrollbar transition-transform duration-300 md:static md:z-auto md:h-full md:w-72 lg:w-80 md:translate-x-0 md:bg-background md:text-foreground',
+          'fixed left-0 top-0 z-50 h-dvh w-[86vw] max-w-85 bg-sidebar text-sidebar-foreground p-4 overflow-y-auto no-scrollbar transition-transform duration-300 md:static md:z-auto md:h-full md:w-72 lg:w-80 md:translate-x-0 md:bg-background md:text-foreground',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
@@ -67,11 +69,14 @@ export function HomeSidebar({
             className="h-8 w-8 cursor-pointer"
             onClick={onCloseMobile}
           >
-            <X size={16} />
+            <PanelLeftCloseIcon size={16} />
           </Button>
         </div>
 
-        <div className="hidden md:block" style={{ color: 'var(--tone-color)' }} />
+        <div
+          className="hidden md:block"
+          style={{ color: 'var(--tone-color)' }}
+        />
         <div className="flex flex-col items-stretch gap-4">
           <HomeProfileCard tone={activeTone} />
           <HomeClock tone={activeTone} />

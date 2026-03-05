@@ -131,9 +131,6 @@ export function AdminUserCard({
           <div className="rounded-md border border-border/50 bg-muted/20 p-3">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[auto_minmax(0,1fr)] md:items-center">
               <div className="shrink-0 flex flex-col items-center md:items-start">
-                <p className="text-xs text-muted-foreground mb-2 text-center md:text-left">
-                  Avatar
-                </p>
                 <button
                   type="button"
                   onClick={onAvatarSelect}
