@@ -1,8 +1,7 @@
 import crypto from 'node:crypto';
 import { NextRequest } from 'next/server';
 import { dbExec, dbQuery, dbQueryOne } from '@/lib/db';
-
-export const SESSION_COOKIE_NAME = 'life-os-session';
+import { SESSION_COOKIE_NAME } from './auth-constants';
 
 const SESSION_DURATION_DAYS = 30;
 
@@ -38,7 +37,9 @@ interface AdminUpdateUserInput extends UpdateUserInput {
 }
 
 export function hashPassword(password: string, salt: string) {
-  return crypto.pbkdf2Sync(password, salt, 120000, 64, 'sha512').toString('hex');
+  return crypto
+    .pbkdf2Sync(password, salt, 120000, 64, 'sha512')
+    .toString('hex');
 }
 
 export function createPasswordRecord(password: string) {
@@ -121,7 +122,11 @@ export async function findUserById(userId: number) {
   );
 }
 
-export async function createUser(email: string, username: string, password: string) {
+export async function createUser(
+  email: string,
+  username: string,
+  password: string,
+) {
   const normalizedEmail = normalizeEmail(email);
   const normalizedUsername = normalizeUsername(username);
   const { salt, hash } = createPasswordRecord(password);
@@ -255,7 +260,10 @@ export async function countAdmins() {
   return row?.total ?? 0;
 }
 
-export async function updateUserByAdmin(userId: number, data: AdminUpdateUserInput) {
+export async function updateUserByAdmin(
+  userId: number,
+  data: AdminUpdateUserInput,
+) {
   const updates: string[] = [];
   const params: Array<string | number | boolean | null> = [];
 

@@ -1,7 +1,8 @@
 'use client';
 
-import { LogOut, PanelLeftOpen } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { HomeSidebar } from '../components/home-sidebar';
+import { HomeMobileNav } from '../components/home-mobile-nav';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { useState } from 'react';
@@ -28,15 +29,6 @@ export function Home() {
         tone={currentPage.tone}
         className="px-4 sm:px-6"
       >
-        <Button
-          className="md:hidden cursor-pointer"
-          variant="link"
-          size="icon"
-          onClick={() => setMobileSidebarOpen(true)}
-        >
-          <PanelLeftOpen size={18} />
-        </Button>
-
         <div className="hidden xs:flex items-center gap-2">
           <span className="text-[10px] sm:text-xs tracking-wide text-muted-foreground uppercase">
             {userConfig.name}
@@ -44,7 +36,7 @@ export function Home() {
         </div>
 
         <Button
-          className="cursor-pointer"
+          className="cursor-pointer absolute top-2 right-2 sm:static sm:top-auto sm:right-auto"
           variant="link"
           size="icon"
           onClick={() => logout()}
@@ -62,13 +54,18 @@ export function Home() {
         />
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          <main className="flex-1 overflow-y-auto px-3 sm:px-6 pt-3 sm:pt-5 pb-4 sm:pb-6 custom-scrollbar">
+          <main className="flex-1 overflow-y-auto px-3 sm:px-6 pt-3 sm:pt-5 pb-20 sm:pb-6 custom-scrollbar">
             <div className="max-w-7xl mx-auto w-full">
               <Content tone={currentPage.tone} />
             </div>
           </main>
         </div>
       </div>
+
+      <HomeMobileNav
+        activePage={activePage}
+        onPageChange={(page) => setActivePage(page)}
+      />
     </div>
   );
 }

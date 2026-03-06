@@ -75,7 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const normalizeUser = useCallback(
     (user: Partial<AuthUser> | null | undefined): AuthUser | null => {
-      if (!user || typeof user.id !== 'number' || typeof user.username !== 'string') {
+      if (
+        !user ||
+        typeof user.id !== 'number' ||
+        typeof user.username !== 'string'
+      ) {
         return null;
       }
 
@@ -112,14 +116,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (!user && pathname !== '/login') {
-      router.replace('/login');
-      return;
-    }
-
+    // O middleware já cuida do redirecionamento para /login se não houver cookie.
+    // Aqui apenas garantimos que se o usuário o usuário estiver logado e na tela de login, vá para a home.
     if (user && pathname === '/login') {
       router.replace('/');
     }
+
+    // Se o usuário não estiver logado (e.g. sessão expirou no client),
+    // o middleware pegará na próxima navegação ou se tentarmos acessar algo.
   }, [loading, pathname, router, user]);
 
   const login = useCallback(
@@ -204,7 +208,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       refreshSession,
     }),
-    [deleteAccount, loading, login, logout, refreshSession, register, updateAccount, user],
+    [
+      deleteAccount,
+      loading,
+      login,
+      logout,
+      refreshSession,
+      register,
+      updateAccount,
+      user,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

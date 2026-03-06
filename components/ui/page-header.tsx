@@ -23,7 +23,7 @@ export function PageHeader({
     <header
       className={cn(
         badgeVariants({ tone, variant: 'subtle' }),
-        'w-full flex flex-col border-b border-border/60 relative overflow-hidden px-3 sm:px-6 pb-4 sm:pb-6 justify-end pt-9 sm:pt-12 min-h-28 sm:min-h-32',
+        'w-full flex flex-col border-b border-border/60 relative overflow-hidden px-3 sm:px-6 pb-2.5 sm:pb-3 justify-end pt-5 sm:pt-6 min-h-16 sm:min-h-20',
         'rounded-none border-x-0 border-t-0 font-sans shadow-none transition-colors duration-300',
 
         className,
@@ -44,9 +44,9 @@ export function PageHeader({
         }}
       />
 
-      <div className="relative z-10 flex flex-col sm:flex-row sm:justify-between sm:items-end w-full gap-5 sm:gap-0">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:justify-between sm:items-end w-full gap-2 sm:gap-0">
         <div className="order-2 sm:order-1">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tighter italic leading-none uppercase flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tighter italic leading-none uppercase flex items-center gap-2">
             <span className="text-foreground/90">{title}</span>
             {highlightText && (
               <span
@@ -58,7 +58,7 @@ export function PageHeader({
             )}
           </h1>
           {subtitle && (
-            <p className="text-[10px] text-muted-foreground/80 dark:text-gray-400 uppercase tracking-[0.2em] sm:tracking-[0.3em] font-medium mt-1 sm:mt-2">
+            <p className="text-[10px] text-muted-foreground/80 dark:text-gray-400 uppercase tracking-[0.2em] sm:tracking-[0.3em] font-medium mt-0.5 sm:mt-1">
               {subtitle}
             </p>
           )}

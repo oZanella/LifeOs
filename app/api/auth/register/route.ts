@@ -4,8 +4,8 @@ import {
   createUser,
   findUserByEmail,
   findUserByUsername,
-  SESSION_COOKIE_NAME,
 } from '@/lib/auth';
+import { SESSION_COOKIE_NAME } from '@/lib/auth-constants';
 
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
@@ -33,7 +33,10 @@ export async function POST(request: NextRequest) {
 
     const existingByEmail = await findUserByEmail(email);
     if (existingByEmail) {
-      return NextResponse.json({ message: 'Este email ja esta em uso.' }, { status: 409 });
+      return NextResponse.json(
+        { message: 'Este email ja esta em uso.' },
+        { status: 409 },
+      );
     }
 
     const existing = await findUserByUsername(username);

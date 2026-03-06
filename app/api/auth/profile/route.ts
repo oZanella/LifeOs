@@ -5,10 +5,10 @@ import {
   findUserByEmail,
   findUserByUsername,
   getSessionFromRequest,
-  SESSION_COOKIE_NAME,
   updateUserAccount,
   deleteUserById,
 } from '@/lib/auth';
+import { SESSION_COOKIE_NAME } from '@/lib/auth-constants';
 
 export async function PATCH(request: NextRequest) {
   const session = await getSessionFromRequest(request);
@@ -60,7 +60,10 @@ export async function PATCH(request: NextRequest) {
     if (nextEmail) {
       const existing = await findUserByEmail(nextEmail);
       if (existing && existing.id !== session.userId) {
-        return NextResponse.json({ message: 'Este email ja esta em uso.' }, { status: 409 });
+        return NextResponse.json(
+          { message: 'Este email ja esta em uso.' },
+          { status: 409 },
+        );
       }
     }
 
@@ -82,7 +85,10 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!updated) {
-      return NextResponse.json({ message: 'Nada para atualizar.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Nada para atualizar.' },
+        { status: 400 },
+      );
     }
 
     return NextResponse.json({
@@ -95,7 +101,10 @@ export async function PATCH(request: NextRequest) {
       },
     });
   } catch {
-    return NextResponse.json({ message: 'Erro ao atualizar usuario.' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Erro ao atualizar usuario.' },
+      { status: 500 },
+    );
   }
 }
 

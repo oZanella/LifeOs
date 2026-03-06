@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  createSession,
-  findUserByEmail,
-  SESSION_COOKIE_NAME,
-  verifyPassword,
-} from '@/lib/auth';
+import { createSession, findUserByEmail, verifyPassword } from '@/lib/auth';
+import { SESSION_COOKIE_NAME } from '@/lib/auth-constants';
 
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
@@ -21,7 +17,10 @@ export async function POST(request: NextRequest) {
     const user = await findUserByEmail(email);
 
     if (!user) {
-      return NextResponse.json({ message: 'Email nao encontrado.' }, { status: 401 });
+      return NextResponse.json(
+        { message: 'Email nao encontrado.' },
+        { status: 401 },
+      );
     }
 
     if (!verifyPassword(password, user)) {
@@ -56,7 +55,8 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Erro ao fazer login.';
+    const message =
+      error instanceof Error ? error.message : 'Erro ao fazer login.';
     return NextResponse.json({ message }, { status: 500 });
   }
 }
