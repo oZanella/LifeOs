@@ -152,7 +152,6 @@ export function FinanceiroEntryModal({
                 Descrição
               </Label>
               <Input
-                autoFocus
                 placeholder="Ex: Aluguel, Salário..."
                 className="h-9 text-sm bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color)"
                 value={form.description ?? ''}

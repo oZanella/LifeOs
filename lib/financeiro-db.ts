@@ -20,11 +20,10 @@ export interface FinanceiroEntry {
 }
 
 const DEFAULT_CATEGORIES: Array<{ name: string; tone: string }> = [
-  { name: 'Alimentacao', tone: 'secondary' },
   { name: 'Transporte', tone: 'info' },
-  { name: 'Saude', tone: 'error' },
+  { name: 'Saúde', tone: 'error' },
   { name: 'Lazer', tone: 'accent' },
-  { name: 'Salario', tone: 'success' },
+  { name: 'Salário', tone: 'success' },
 ];
 
 export async function ensureDefaultCategories(userId: number) {
@@ -84,7 +83,10 @@ export async function listEntries(userId: number) {
   }));
 }
 
-export async function createEntry(userId: number, data: Omit<FinanceiroEntry, 'id'>) {
+export async function createEntry(
+  userId: number,
+  data: Omit<FinanceiroEntry, 'id'>,
+) {
   const id = crypto.randomUUID();
 
   await dbExec(
@@ -165,10 +167,10 @@ export async function updateEntry(
 }
 
 export async function deleteEntry(userId: number, entryId: string) {
-  await dbExec('DELETE FROM financeiro_entries WHERE id = $1 AND user_id = $2', [
-    entryId,
-    userId,
-  ]);
+  await dbExec(
+    'DELETE FROM financeiro_entries WHERE id = $1 AND user_id = $2',
+    [entryId, userId],
+  );
 }
 
 export async function createCategory(
@@ -225,8 +227,8 @@ export async function deleteCategory(userId: number, categoryId: string) {
     [userId, categoryId],
   );
 
-  await dbExec('DELETE FROM financeiro_categories WHERE id = $1 AND user_id = $2', [
-    categoryId,
-    userId,
-  ]);
+  await dbExec(
+    'DELETE FROM financeiro_categories WHERE id = $1 AND user_id = $2',
+    [categoryId, userId],
+  );
 }

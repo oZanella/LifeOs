@@ -35,6 +35,7 @@ interface FinanceiroContextData {
   entries: FinancialEntry[];
   filteredEntries: FinancialEntry[];
   categories: Category[];
+
   addEntry: (entry: Omit<FinancialEntry, 'id'>) => Promise<string | null>;
   updateEntry: (id: string, entry: Partial<FinancialEntry>) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
@@ -43,6 +44,7 @@ interface FinanceiroContextData {
   deleteCategory: (id: string) => Promise<void>;
   loading: boolean;
   filters: {
+    type: string;
     month: string;
     year: string;
     day: string;
@@ -50,6 +52,7 @@ interface FinanceiroContextData {
   };
   setFilters: React.Dispatch<
     React.SetStateAction<{
+      type: string;
       month: string;
       year: string;
       day: string;
@@ -84,6 +87,7 @@ export function FinanceiroProvider({
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
+    type: 'all',
     day: '',
     month: new Date().getMonth().toString(),
     year: new Date().getFullYear().toString(),
@@ -130,13 +134,10 @@ export function FinanceiroProvider({
     const data = await requestJson<{
       entries: FinancialEntry[];
       createdEntryId?: string;
-    }>(
-      '/api/financeiro/entries',
-      {
-        method: 'POST',
-        body: JSON.stringify(entry),
-      },
-    );
+    }>('/api/financeiro/entries', {
+      method: 'POST',
+      body: JSON.stringify(entry),
+    });
 
     setEntries(data.entries);
     return data.createdEntryId ?? null;
@@ -185,7 +186,10 @@ export function FinanceiroProvider({
     );
   };
 
-  const updateCategory = async (id: string, updatedFields: Partial<Category>) => {
+  const updateCategory = async (
+    id: string,
+    updatedFields: Partial<Category>,
+  ) => {
     const data = await requestJson<{ categories: Category[] }>(
       `/api/financeiro/categories/${id}`,
       {
@@ -239,7 +243,9 @@ export function FinanceiroProvider({
         filters.day === '' || d.getDate().toString() === filters.day;
       const cMatch =
         filters.categoryId === 'all' || entry.categoryId === filters.categoryId;
-      return dMatch && cMatch;
+      const tMatch =
+        !filters.type || filters.type === 'all' || entry.type === filters.type;
+      return dMatch && cMatch && tMatch;
     });
 
     const totalRevenue = monthlyEntries
