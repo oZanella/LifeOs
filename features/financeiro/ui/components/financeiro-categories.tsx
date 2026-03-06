@@ -102,7 +102,7 @@ export function FinanceiroCategories({
                 <Input
                   autoFocus
                   placeholder="Nome..."
-                  className="h-8 text-xs w-full min-w-0 sm:col-span-3 bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color)"
+                  className="h-8 text-xs w-full min-w-0 sm:col-span-3 bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-[var(--tone-color)]"
                   value={editForm.name || ''}
                   onChange={(e) =>
                     setEditForm({ ...editForm, name: e.target.value })
@@ -143,7 +143,7 @@ export function FinanceiroCategories({
             <div className="bg-muted/40 p-2 rounded-lg border border-border/40 animate-in fade-in zoom-in-95">
               <div className="grid w-full grid-cols-1 sm:grid-cols-5 gap-2 min-w-0 items-center">
                 <Input
-                  className="h-8 text-xs w-full min-w-0 truncate sm:col-span-3 bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-(--tone-color)"
+                  className="h-8 text-xs w-full min-w-0 truncate sm:col-span-3 bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-[var(--tone-color)]"
                   value={editForm.name || ''}
                   onChange={(e) =>
                     setEditForm({ ...editForm, name: e.target.value })

@@ -26,6 +26,7 @@ import {
 import {
   Category,
   FinancialEntry,
+  useFinanceiroContext,
 } from '@/features/financeiro/application/context/financeiro-context';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -55,6 +56,7 @@ export function FinanceiroEntryModal({
   onSave,
   onClose,
 }: FinanceiroEntryModalProps) {
+  const { isProcessing } = useFinanceiroContext();
   const [form, setForm] = useState<Partial<FinancialEntry>>({});
   const [amountInput, setAmountInput] = useState('');
 
@@ -284,9 +286,10 @@ export function FinanceiroEntryModal({
               variant="ghost"
               size="sm"
               className="cursor-pointer"
+              disabled={isProcessing}
               onClick={handleSave}
             >
-              Salvar
+              {isProcessing ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </div>

@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { Filter, Plus, Tags, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BadgeTone } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
+  FiltersType,
   FinancialEntry,
   useFinanceiroContext,
 } from '@/features/financeiro/application/context/financeiro-context';
@@ -20,7 +22,9 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     filteredEntries,
     categories,
     filters,
+    setFilters,
     loading,
+    isProcessing,
     addEntry,
     updateEntry,
     deleteEntry,
@@ -30,6 +34,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     useState<Partial<FinancialEntry> | null>(null);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [pendingFilters, setPendingFilters] = useState<FiltersType>(filters);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', {
@@ -43,10 +48,8 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
 
   const handleOpenNew = () => {
     const today = new Date();
-    const year = filters.year || today.getFullYear().toString();
-    const month =
-      (Number(filters.month) + 1).toString().padStart(2, '0') ||
-      (today.getMonth() + 1).toString().padStart(2, '0');
+    const year = today.getFullYear().toString();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
     const day = today.getDate().toString().padStart(2, '0');
 
     setEditingEntry({
@@ -89,7 +92,11 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             variant="outline"
             size="sm"
             className="gap-2 cursor-pointer flex-1 sm:flex-none"
-            onClick={() => setIsFiltersOpen(true)}
+            disabled={isProcessing}
+            onClick={() => {
+              setPendingFilters(filters);
+              setIsFiltersOpen(true);
+            }}
           >
             <Filter size={14} />
             Filtros
@@ -99,6 +106,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             variant="outline"
             size="sm"
             className="gap-2 cursor-pointer flex-1 sm:flex-none"
+            disabled={isProcessing}
             onClick={() => setIsCategoriesOpen(true)}
           >
             <Tags size={14} />
@@ -109,6 +117,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             variant="outline"
             size="sm"
             onClick={handleOpenNew}
+            disabled={isProcessing}
             className="basis-full sm:basis-auto w-full sm:w-auto gap-2 border-dashed hover:border-solid transition-all cursor-pointer"
             style={{
               borderColor: 'var(--tone-color)',
@@ -125,9 +134,22 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
 
       <div className="flex sm:hidden flex-col gap-2">
         {loading ? (
-          <div className="py-12 text-center text-muted-foreground italic text-sm">
-            Carregando transações...
-          </div>
+          Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-border/40 bg-card/30 p-4 space-y-3"
+            >
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+              <Skeleton className="h-6 w-full" />
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+              </div>
+            </div>
+          ))
         ) : filteredEntries.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground italic text-sm">
             Nenhuma transação encontrada para este período.
@@ -165,14 +187,31 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
 
           <tbody className="divide-y divide-border/20">
             {loading ? (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="px-4 py-12 text-center text-muted-foreground italic text-sm"
-                >
-                  Carregando transações...
-                </td>
-              </tr>
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i}>
+                  <td className="px-4 py-4">
+                    <Skeleton className="h-4 w-24" />
+                  </td>
+                  <td className="px-4 py-4">
+                    <Skeleton className="h-4 w-48" />
+                  </td>
+                  <td className="px-4 py-4">
+                    <Skeleton className="h-4 w-32" />
+                  </td>
+                  <td className="px-4 py-4">
+                    <Skeleton className="h-4 w-20" />
+                  </td>
+                  <td className="px-4 py-4 flex justify-center">
+                    <Skeleton className="h-4 w-12" />
+                  </td>
+                  <td className="px-4 py-4 text-center">
+                    <Skeleton className="h-4 w-8 mx-auto" />
+                  </td>
+                  <td className="px-4 py-4 text-center">
+                    <Skeleton className="h-8 w-24 mx-auto" />
+                  </td>
+                </tr>
+              ))
             ) : filteredEntries.length === 0 ? (
               <tr>
                 <td
@@ -234,7 +273,23 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   <X size={16} />
                 </Button>
               </div>
-              <FinanceiroFilters tone={tone} />
+              <FinanceiroFilters
+                tone={tone}
+                filters={pendingFilters}
+                setFilters={setPendingFilters}
+              />
+              <div className="mt-4 flex justify-end">
+                <Button
+                  size="sm"
+                  className="w-full sm:w-auto px-8 cursor-pointer"
+                  onClick={() => {
+                    setFilters(pendingFilters);
+                    setIsFiltersOpen(false);
+                  }}
+                >
+                  Aplicar Filtros
+                </Button>
+              </div>
             </div>
           </div>
         </div>

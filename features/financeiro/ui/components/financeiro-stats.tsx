@@ -2,6 +2,7 @@
 
 import { useFinanceiroContext } from '@/features/financeiro/application/context/financeiro-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   TrendingUp,
   TrendingDown,
@@ -188,8 +189,30 @@ function DesktopStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
   );
 }
 
+function StatsSkeleton({ tone }: { tone: BadgeTone }) {
+  return (
+    <>
+      <div className="flex sm:hidden flex-col gap-3">
+        <Skeleton className="h-[84px] w-full rounded-2xl" />
+        <div className="grid grid-cols-2 gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-[60px] w-full rounded-xl" />
+          ))}
+        </div>
+      </div>
+      <div className="hidden sm:grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-[92px] w-full rounded-2xl" />
+        ))}
+      </div>
+    </>
+  );
+}
+
 export function FinanceiroStats({ tone = 'success' }: { tone?: BadgeTone }) {
-  const { stats } = useFinanceiroContext();
+  const { stats, loading } = useFinanceiroContext();
+
+  if (loading) return <StatsSkeleton tone={tone} />;
 
   return (
     <>

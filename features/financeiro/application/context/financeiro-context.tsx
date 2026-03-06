@@ -31,6 +31,14 @@ export interface FinancialEntry {
   isFixed: boolean;
 }
 
+export interface FiltersType {
+  type: string;
+  month: string;
+  year: string;
+  day: string;
+  categoryId: string;
+}
+
 interface FinanceiroContextData {
   entries: FinancialEntry[];
   filteredEntries: FinancialEntry[];
@@ -43,13 +51,8 @@ interface FinanceiroContextData {
   updateCategory: (id: string, category: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   loading: boolean;
-  filters: {
-    type: string;
-    month: string;
-    year: string;
-    day: string;
-    categoryId: string;
-  };
+  isProcessing: boolean;
+  filters: FiltersType;
   setFilters: React.Dispatch<
     React.SetStateAction<{
       type: string;
@@ -86,7 +89,8 @@ export function FinanceiroProvider({
   const [entries, setEntries] = useState<FinancialEntry[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [filters, setFilters] = useState<FiltersType>({
     type: 'all',
     day: '',
     month: new Date().getMonth().toString(),
@@ -131,144 +135,183 @@ export function FinanceiroProvider({
   }, [loadFinanceiro]);
 
   const addEntry = async (entry: Omit<FinancialEntry, 'id'>) => {
-    const data = await requestJson<{
-      entries: FinancialEntry[];
-      createdEntryId?: string;
-    }>('/api/financeiro/entries', {
-      method: 'POST',
-      body: JSON.stringify(entry),
-    });
+    setIsProcessing(true);
+    try {
+      const data = await requestJson<{
+        entries: FinancialEntry[];
+        createdEntryId?: string;
+      }>('/api/financeiro/entries', {
+        method: 'POST',
+        body: JSON.stringify(entry),
+      });
 
-    setEntries(data.entries);
-    return data.createdEntryId ?? null;
+      setEntries(data.entries);
+      return data.createdEntryId ?? null;
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const updateEntry = async (
     id: string,
     updatedFields: Partial<FinancialEntry>,
   ) => {
-    const data = await requestJson<{ entries: FinancialEntry[] }>(
-      `/api/financeiro/entries/${id}`,
-      {
-        method: 'PATCH',
-        body: JSON.stringify(updatedFields),
-      },
-    );
+    setIsProcessing(true);
+    try {
+      const data = await requestJson<{ entries: FinancialEntry[] }>(
+        `/api/financeiro/entries/${id}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(updatedFields),
+        },
+      );
 
-    setEntries(data.entries);
+      setEntries(data.entries);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const deleteEntry = async (id: string) => {
-    const data = await requestJson<{ entries: FinancialEntry[] }>(
-      `/api/financeiro/entries/${id}`,
-      {
-        method: 'DELETE',
-      },
-    );
+    setIsProcessing(true);
+    try {
+      const data = await requestJson<{ entries: FinancialEntry[] }>(
+        `/api/financeiro/entries/${id}`,
+        {
+          method: 'DELETE',
+        },
+      );
 
-    setEntries(data.entries);
+      setEntries(data.entries);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const addCategory = async (category: Omit<Category, 'id'>) => {
-    const data = await requestJson<{ categories: Category[] }>(
-      '/api/financeiro/categories',
-      {
-        method: 'POST',
-        body: JSON.stringify(category),
-      },
-    );
+    setIsProcessing(true);
+    try {
+      const data = await requestJson<{ categories: Category[] }>(
+        '/api/financeiro/categories',
+        {
+          method: 'POST',
+          body: JSON.stringify(category),
+        },
+      );
 
-    setCategories(
-      data.categories.map((cat) => ({
-        ...cat,
-        tone: sanitizeTone(String(cat.tone || 'default')),
-      })),
-    );
+      setCategories(
+        data.categories.map((cat) => ({
+          ...cat,
+          tone: sanitizeTone(String(cat.tone || 'default')),
+        })),
+      );
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const updateCategory = async (
     id: string,
     updatedFields: Partial<Category>,
   ) => {
-    const data = await requestJson<{ categories: Category[] }>(
-      `/api/financeiro/categories/${id}`,
-      {
-        method: 'PATCH',
-        body: JSON.stringify(updatedFields),
-      },
-    );
+    setIsProcessing(true);
+    try {
+      const data = await requestJson<{ categories: Category[] }>(
+        `/api/financeiro/categories/${id}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(updatedFields),
+        },
+      );
 
-    setCategories(
-      data.categories.map((cat) => ({
-        ...cat,
-        tone: sanitizeTone(String(cat.tone || 'default')),
-      })),
-    );
+      setCategories(
+        data.categories.map((cat) => ({
+          ...cat,
+          tone: sanitizeTone(String(cat.tone || 'default')),
+        })),
+      );
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const deleteCategory = async (id: string) => {
-    const categoriesData = await requestJson<{ categories: Category[] }>(
-      `/api/financeiro/categories/${id}`,
-      {
-        method: 'DELETE',
-      },
-    );
-    const financeiroData = await requestJson<{
-      entries: FinancialEntry[];
-      categories: Category[];
-    }>('/api/financeiro');
+    setIsProcessing(true);
+    try {
+      const categoriesData = await requestJson<{ categories: Category[] }>(
+        `/api/financeiro/categories/${id}`,
+        {
+          method: 'DELETE',
+        },
+      );
+      const financeiroData = await requestJson<{
+        entries: FinancialEntry[];
+        categories: Category[];
+      }>('/api/financeiro');
 
-    setCategories(
-      categoriesData.categories.map((cat) => ({
-        ...cat,
-        tone: sanitizeTone(String(cat.tone || 'default')),
-      })),
-    );
-    setEntries(financeiroData.entries);
+      setCategories(
+        categoriesData.categories.map((cat) => ({
+          ...cat,
+          tone: sanitizeTone(String(cat.tone || 'default')),
+        })),
+      );
+      setEntries(financeiroData.entries);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const stats = useMemo(() => {
-    const monthlyEntries = entries.filter((entry) => {
-      const d = new Date(entry.date + 'T12:00:00');
-      const mMatch =
-        filters.month === '' || d.getMonth().toString() === filters.month;
-      const yMatch =
-        filters.year === '' || d.getFullYear().toString() === filters.year;
-      return mMatch && yMatch;
-    });
+    const totalRevenueArr: number[] = [];
+    const totalExpenseArr: number[] = [];
+    const fixedExpensesArr: number[] = [];
+    const filtered: FinancialEntry[] = [];
 
-    const filtered = monthlyEntries.filter((entry) => {
-      const d = new Date(entry.date + 'T12:00:00');
-      const dMatch =
-        filters.day === '' || d.getDate().toString() === filters.day;
-      const cMatch =
-        filters.categoryId === 'all' || entry.categoryId === filters.categoryId;
-      const tMatch =
-        !filters.type || filters.type === 'all' || entry.type === filters.type;
-      return dMatch && cMatch && tMatch;
-    });
+    const fMonth = filters.month;
+    const fYear = filters.year;
+    const fDay = filters.day;
+    const fCategoryId = filters.categoryId;
+    const fType = filters.type;
 
-    const totalRevenue = monthlyEntries
-      .filter((e) => e.type === 'receita')
-      .reduce((acc, e) => acc + e.amount, 0);
+    for (const entry of entries) {
+      // entry.date is YYYY-MM-DD
+      const [year, month, day] = entry.date.split('-');
+      const entryMonth = (parseInt(month, 10) - 1).toString();
+      const entryYear = year;
+      const entryDay = parseInt(day, 10).toString();
 
-    const totalExpense = monthlyEntries
-      .filter((e) => e.type === 'despesa')
-      .reduce((acc, e) => acc + e.amount, 0);
+      const mMatch = fMonth === '' || entryMonth === fMonth;
+      const yMatch = fYear === '' || entryYear === fYear;
 
-    const fixedExpenses = monthlyEntries
-      .filter((e) => e.type === 'despesa' && e.isFixed)
-      .reduce((acc, e) => acc + e.amount, 0);
+      if (mMatch && yMatch) {
+        if (entry.type === 'receita') totalRevenueArr.push(entry.amount);
+        else {
+          totalExpenseArr.push(entry.amount);
+          if (entry.isFixed) fixedExpensesArr.push(entry.amount);
+        }
 
+        const dMatch = fDay === '' || entryDay === fDay;
+        const cMatch =
+          fCategoryId === 'all' || entry.categoryId === fCategoryId;
+        const tMatch = !fType || fType === 'all' || entry.type === fType;
+
+        if (dMatch && cMatch && tMatch) {
+          filtered.push(entry);
+        }
+      }
+    }
+
+    const totalRevenue = totalRevenueArr.reduce((acc, v) => acc + v, 0);
+    const totalExpense = totalExpenseArr.reduce((acc, v) => acc + v, 0);
+    const fixedExpenses = fixedExpensesArr.reduce((acc, v) => acc + v, 0);
     const balance = totalRevenue - totalExpense;
-    const forecast = balance;
 
     return {
       totalRevenue,
       totalExpense,
       balance,
       fixedExpenses,
-      forecast,
+      forecast: balance,
       filtered,
     };
   }, [entries, filters]);
@@ -287,6 +330,7 @@ export function FinanceiroProvider({
         updateCategory,
         deleteCategory,
         loading,
+        isProcessing,
         filters,
         setFilters,
         stats: computedStats,
