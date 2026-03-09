@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface FinanceiroConfirmDeleteModalProps {
@@ -20,7 +20,7 @@ export function FinanceiroConfirmDeleteModal({
   title,
   description,
   count = 1,
-  hasParent = false,
+  // hasParent = false,
 }: FinanceiroConfirmDeleteModalProps) {
   if (!isOpen) return null;
 
@@ -65,7 +65,7 @@ export function FinanceiroConfirmDeleteModal({
               </span>
             </p>
 
-            {hasParent && (
+            {/* {hasParent && (
               <div className="flex gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500">
                 <AlertTriangle size={18} className="shrink-0 mt-0.5" />
                 <div className="flex flex-col gap-0.5">
@@ -79,7 +79,7 @@ export function FinanceiroConfirmDeleteModal({
                   </p>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 px-5 pb-5">

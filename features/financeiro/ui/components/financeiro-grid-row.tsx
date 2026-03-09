@@ -41,22 +41,19 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
     <tr
       className={cn(
         'group transition-colors border-b border-border/10',
-        isSelected ? 'bg-blue-500/5' : 'hover:bg-white/5',
+        isSelected ? 'bg-black/5 dark:bg-white/5' : 'hover:bg-white/5',
       )}
     >
-      {/* Data */}
       <td className="px-4 py-2">
         <span className="text-xs font-medium tabular-nums">
           {format(new Date(`${entry.date}T12:00:00`), 'dd/MM/yyyy')}
         </span>
       </td>
 
-      {/* Descrição */}
       <td className="px-4 py-2">
         <span className="text-sm">{entry.description}</span>
       </td>
 
-      {/* Categoria */}
       <td className="px-4 py-2">
         <FinanceiroCategoryCell
           entry={entry}
@@ -65,7 +62,6 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
         />
       </td>
 
-      {/* Valor */}
       <td className="px-4 py-2 text-right">
         <span
           className={cn(
@@ -93,7 +89,6 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
         </div>
       </td>
 
-      {/* Fixo */}
       <td className="px-4 py-2 text-center">
         <div
           className="flex justify-center cursor-pointer"
@@ -120,7 +115,6 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
         </div>
       </td>
 
-      {/* Ações */}
       <td className="px-4 py-2">
         <div className="flex items-center justify-center gap-2">
           <Button

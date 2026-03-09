@@ -456,7 +456,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
 
       {selectedIds.size > 0 && (
         <div className="fixed bottom-20 sm:bottom-10 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm animate-in fade-in slide-in-from-bottom-6 duration-300">
-          <div className="flex items-center justify-between gap-4 px-4 py-2.5 rounded-xl bg-background/95 backdrop-blur-md border border-border/50 shadow-2xl overflow-hidden relative">
+          <div className="flex items-center justify-between gap-4 px-4 py-2.5 rounded-xl bg-background/80 backdrop-blur-md border border-border/40 shadow-xl overflow-hidden relative">
             <div
               className="absolute left-0 top-0 bottom-0 w-1"
               style={{ backgroundColor: 'var(--tone-color)' }}
