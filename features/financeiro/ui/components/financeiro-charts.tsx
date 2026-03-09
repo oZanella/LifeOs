@@ -192,7 +192,7 @@ export function FinanceiroCharts() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm p-4">
+      <div className="rounded-2xl border border-border bg-card p-4 shadow-md backdrop-blur-sm dark:border-border/40 dark:bg-card/30 dark:shadow-none">
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">
           Evolução Financeira ({new Date().getFullYear()})
         </p>
@@ -256,7 +256,7 @@ export function FinanceiroCharts() {
         </ResponsiveContainer>
       </div>
 
-      <div className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm p-4 flex flex-col items-center">
+      <div className="rounded-2xl border border-border bg-card p-4 shadow-md backdrop-blur-sm dark:border-border/40 dark:bg-card/30 dark:shadow-none flex flex-col items-center">
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 w-full">
           Receitas vs Despesas
         </p>

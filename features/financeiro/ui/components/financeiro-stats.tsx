@@ -93,7 +93,7 @@ function MobileStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
         ].map((item) => (
           <div
             key={item.title}
-            className="rounded-xl border border-border/40 bg-card/40 px-3 py-2.5 flex items-center gap-2.5"
+            className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-3 py-2.5 shadow-sm dark:border-border/40 dark:bg-card/40 dark:shadow-none"
           >
             <div
               className={cn(
@@ -163,7 +163,7 @@ function DesktopStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
       {items.map((item) => (
         <Card
           key={item.title}
-          className="overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors"
+          className="overflow-hidden border-border bg-card shadow-md backdrop-blur-sm transition-colors hover:bg-accent/50 dark:border-border/40 dark:bg-card/50 dark:hover:bg-card/80 dark:shadow-none"
         >
           <CardHeader className="p-4 pb-2">
             <div className="flex items-center justify-between">

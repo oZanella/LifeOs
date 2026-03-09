@@ -49,7 +49,7 @@ export function FinanceiroFilters({
   return (
     <div
       data-tone={tone}
-      className="flex flex-col gap-4 bg-muted/30 p-3 sm:p-4 rounded-xl border border-border/40"
+      className="flex flex-col gap-4 rounded-xl border border-border bg-muted/50 p-3 sm:p-4"
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="flex flex-col gap-1.5">

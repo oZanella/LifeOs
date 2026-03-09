@@ -160,7 +160,7 @@ export function FinanceiroCategories({
         <Button
           size="sm"
           variant="outline"
-          className="h-7 text-[10px] uppercase font-bold tracking-wider gap-1.5"
+          className="h-7 text-[10px] uppercase font-bold tracking-wider gap-1.5 cursor-pointer"
           disabled={isAdding || isSyncing}
           onClick={() => {
             setIsAdding(true);
@@ -200,7 +200,7 @@ export function FinanceiroCategories({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 text-emerald-500"
+                  className="h-7 w-7 text-emerald-500 cursor-pointer"
                   onClick={() => add()}
                 >
                   <Check size={14} />
@@ -209,7 +209,7 @@ export function FinanceiroCategories({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 text-red-500"
+                  className="h-7 w-7 text-red-500 cursor-pointer"
                   onClick={() => setIsAdding(false)}
                 >
                   <X size={14} />

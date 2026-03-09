@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { lab_itens, PageType } from '../tabs/home-config';
 import { useAuth } from '@/providers/auth-provider/auth.provider';
 import { useHomeUserConfig } from '../../home-user-config';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export function Home() {
   const [activePage, setActivePage] = useState<PageType>('dashboard');
@@ -35,14 +36,20 @@ export function Home() {
           </span>
         </div>
 
-        <Button
-          className="cursor-pointer absolute top-2 right-2 sm:static sm:top-auto sm:right-auto"
-          variant="link"
-          size="icon"
-          onClick={() => logout()}
-        >
-          <LogOut size={18} />
-        </Button>
+        <div className="flex items-center gap-1 absolute top-2 right-2 sm:static">
+          <Button className="sm:hidden" variant="link" size="icon">
+            <ThemeToggle />
+          </Button>
+
+          <Button
+            className="cursor-pointer"
+            variant="link"
+            size="icon"
+            onClick={() => logout()}
+          >
+            <LogOut size={18} />
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="flex flex-1 overflow-hidden relative">

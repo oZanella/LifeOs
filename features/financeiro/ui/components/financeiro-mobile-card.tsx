@@ -50,10 +50,10 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
   return (
     <div
       className={cn(
-        'relative rounded-2xl border backdrop-blur-sm overflow-hidden transition-all',
+        'relative rounded-2xl border backdrop-blur-sm overflow-hidden transition-all shadow-sm',
         isSelected
           ? 'bg-blue-500/10 border-blue-500/30'
-          : 'bg-card/40 border-border/10',
+          : 'bg-card border-border dark:bg-card/40 dark:border-border/10',
         !isSelected &&
           (isReceita
             ? 'border-emerald-500/20'

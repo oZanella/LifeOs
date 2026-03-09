@@ -151,13 +151,20 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     setIsSelectionMode((prev) => !prev);
   };
 
+  const monthName =
+    filters.month === 'all'
+      ? 'Todos os meses'
+      : new Date(2024, Number(filters.month) - 0)
+          .toLocaleString('pt-BR', { month: 'long' })
+          .replace(/^./, (c) => c.toUpperCase());
+
   return (
     <div className="flex flex-col gap-4">
       <ProcessingOverlay isOpen={isProcessing || loading} />
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 flex-wrap cursor-default">
           <h2 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
-            Movimentações Financeiras
+            Movimentações Financeiras - {monthName}
           </h2>
         </div>
 
@@ -251,7 +258,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
               formatCurrency={formatCurrency}
               isSelectionMode={isSelectionMode}
               onToggleFixed={(entryId, isFixed) => {
-                if (entry.parentId) return; // Locked if it's a child of recurring
+                if (entry.parentId) return;
 
                 if (!isFixed) {
                   setRecurringTarget(entry);
@@ -338,7 +345,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                     updateEntry(entryId, { categoryId })
                   }
                   onToggleFixed={(entryId, isFixed) => {
-                    if (entry.parentId) return; // Locked if it's a child of recurring
+                    if (entry.parentId) return;
 
                     if (!isFixed) {
                       setRecurringTarget(entry);

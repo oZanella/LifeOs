@@ -92,7 +92,7 @@ export function FinanceiroEntryModal({
       />
 
       <div className="relative z-10 flex min-h-full items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-2xl border border-border/50 bg-background shadow-2xl overflow-hidden">
+        <div className="w-full max-w-md rounded-2xl border border-border bg-background shadow-2xl overflow-hidden">
           <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border/30">
             <h3 className="text-sm font-bold text-foreground">
               {form.id ? 'Editar lançamento' : 'Novo lançamento'}
