@@ -17,9 +17,14 @@ import { FinanceiroEntryModal } from './financeiro-entry-modal';
 import { FinanceiroMobileCard } from './financeiro-mobile-card';
 import { FinanceiroStats } from './financeiro-stats';
 import { FinanceiroRecurringModal } from './financeiro-recurring-modal';
+import { FinanceiroConfirmDeleteModal } from './financeiro-confirm-delete-modal';
+import { CheckSquare } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ProcessingOverlay } from './processing-overlay';
 
 export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
   const {
+    entries,
     filteredEntries,
     categories,
     filters,
@@ -30,7 +35,20 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     updateEntry,
     deleteEntry,
     addRecurringEntries,
+    deleteEntries,
   } = useFinanceiroContext();
+
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    ids: string[];
+    hasParent: boolean;
+  }>({
+    isOpen: false,
+    ids: [],
+    hasParent: false,
+  });
 
   const [editingEntry, setEditingEntry] =
     useState<Partial<FinancialEntry> | null>(null);
@@ -68,6 +86,35 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     });
   };
 
+  const toggleOne = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const handleConfirmDelete = (ids: string[], hasParent: boolean) => {
+    setDeleteConfirm({
+      isOpen: true,
+      ids,
+      hasParent,
+    });
+  };
+
+  const executeDelete = async () => {
+    if (deleteConfirm.ids.length === 1) {
+      await deleteEntry(deleteConfirm.ids[0]);
+    } else if (deleteConfirm.ids.length > 1) {
+      await deleteEntries(deleteConfirm.ids);
+    }
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      deleteConfirm.ids.forEach((id) => next.delete(id));
+      return next;
+    });
+    setIsSelectionMode(false);
+  };
+
   const handleSave = async (
     data: Partial<FinancialEntry>,
     installments?: number,
@@ -87,8 +134,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       const createdId = await addEntry(entryData);
 
       if (createdId && (installments ?? 0) > 1) {
-        // Find the created entry to use as base (since addEntry added it to state)
-        // Actually, we can just construct a base entry object
         const baseEntry: FinancialEntry = {
           id: createdId,
           ...entryData,
@@ -99,8 +144,16 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     setEditingEntry(null);
   };
 
+  const handleToggleSelectionMode = () => {
+    if (isSelectionMode) {
+      setSelectedIds(new Set());
+    }
+    setIsSelectionMode((prev) => !prev);
+  };
+
   return (
     <div className="flex flex-col gap-4">
+      <ProcessingOverlay isOpen={isProcessing || loading} />
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 flex-wrap cursor-default">
           <h2 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
@@ -121,6 +174,20 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
           >
             <Filter size={14} />
             Filtros
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              'gap-2 cursor-pointer flex-1 sm:flex-none transition-all',
+              isSelectionMode && 'bg-blue-500/10 border-blue-500 text-blue-500',
+            )}
+            disabled={isProcessing}
+            onClick={handleToggleSelectionMode}
+          >
+            <CheckSquare size={14} />
+            {isSelectionMode ? 'Cancelar' : 'Selecionar'}
           </Button>
 
           <Button
@@ -182,6 +249,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
               entry={entry}
               categories={categories}
               formatCurrency={formatCurrency}
+              isSelectionMode={isSelectionMode}
               onToggleFixed={(entryId, isFixed) => {
                 if (entry.parentId) return; // Locked if it's a child of recurring
 
@@ -192,8 +260,15 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   updateEntry(entryId, { isFixed: false });
                 }
               }}
+              onToggleSelection={() => toggleOne(entry.id)}
+              isSelected={selectedIds.has(entry.id)}
               onStartEdit={() => handleOpenEdit(entry)}
-              onDelete={() => deleteEntry(entry.id)}
+              onDelete={() =>
+                handleConfirmDelete(
+                  [entry.id],
+                  entry.isFixed && !entry.parentId,
+                )
+              }
             />
           ))
         )}
@@ -254,6 +329,9 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                 <FinanceiroGridRow
                   key={entry.id}
                   entry={entry}
+                  isSelectionMode={isSelectionMode}
+                  isSelected={selectedIds.has(entry.id)}
+                  onToggleSelection={() => toggleOne(entry.id)}
                   categories={categories}
                   formatCurrency={formatCurrency}
                   onQuickCategoryChange={(entryId, categoryId) =>
@@ -270,7 +348,12 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                     }
                   }}
                   onStartEdit={() => handleOpenEdit(entry)}
-                  onDelete={() => deleteEntry(entry.id)}
+                  onDelete={() =>
+                    handleConfirmDelete(
+                      [entry.id],
+                      entry.isFixed && !entry.parentId,
+                    )
+                  }
                 />
               ))
             )}
@@ -362,6 +445,65 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
           description={recurringTarget.description}
           onConfirm={(months) => addRecurringEntries(recurringTarget, months)}
         />
+      )}
+      <FinanceiroConfirmDeleteModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={executeDelete}
+        count={deleteConfirm.ids.length}
+        hasParent={deleteConfirm.hasParent}
+      />
+
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-20 sm:bottom-10 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm animate-in fade-in slide-in-from-bottom-6 duration-300">
+          <div className="flex items-center justify-between gap-4 px-4 py-2.5 rounded-xl bg-background/95 backdrop-blur-md border border-border/50 shadow-2xl overflow-hidden relative">
+            <div
+              className="absolute left-0 top-0 bottom-0 w-1"
+              style={{ backgroundColor: 'var(--tone-color)' }}
+            />
+
+            <div className="flex items-center gap-3">
+              <div
+                className="flex items-center justify-center w-6 h-6 rounded-lg text-[10px] font-black tabular-nums border border-border/40"
+                style={{
+                  color: 'var(--tone-color)',
+                  backgroundColor:
+                    'color-mix(in srgb, var(--tone-color) 15%, transparent)',
+                }}
+              >
+                {selectedIds.size}
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+                Selecionados
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-3 text-[10px] uppercase font-bold tracking-wider cursor-pointer transition-colors"
+                onClick={() => setSelectedIds(new Set())}
+              >
+                Limpar
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-8 px-4 text-[10px] uppercase font-black tracking-wider cursor-pointer shadow-sm transition-all active:scale-95"
+                onClick={() => {
+                  const ids = Array.from(selectedIds);
+                  const hasParent = entries
+                    .filter((e) => ids.includes(e.id))
+                    .some((e) => e.isFixed && !e.parentId);
+                  handleConfirmDelete(ids, hasParent);
+                }}
+              >
+                Excluir
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

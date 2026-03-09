@@ -12,24 +12,32 @@ import {
   Category,
   FinancialEntry,
 } from '@/features/financeiro/application/context/financeiro-context';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 import { Badge, BadgeTone } from '@/components/ui/badge';
+import { memo } from 'react';
 
 interface FinanceiroMobileCardProps {
   entry: FinancialEntry;
   categories: Category[];
+  isSelected?: boolean;
+  isSelectionMode?: boolean;
+  onToggleSelection?: () => void;
   formatCurrency: (value: number) => string;
   onStartEdit: () => void;
   onDelete: () => void;
   onToggleFixed: (entryId: string, isFixed: boolean) => void;
 }
 
-export function FinanceiroMobileCard({
+export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
   entry,
   categories,
+  isSelected,
+  isSelectionMode,
+  onToggleSelection,
   formatCurrency,
   onStartEdit,
   onDelete,
@@ -42,12 +50,16 @@ export function FinanceiroMobileCard({
   return (
     <div
       className={cn(
-        'relative rounded-2xl border bg-card/40 backdrop-blur-sm overflow-hidden transition-all',
-        isReceita
-          ? 'border-emerald-500/20'
-          : isInvestimento
-            ? 'border-blue-700/20'
-            : 'border-red-500/10',
+        'relative rounded-2xl border backdrop-blur-sm overflow-hidden transition-all',
+        isSelected
+          ? 'bg-blue-500/10 border-blue-500/30'
+          : 'bg-card/40 border-border/10',
+        !isSelected &&
+          (isReceita
+            ? 'border-emerald-500/20'
+            : isInvestimento
+              ? 'border-blue-700/20'
+              : 'border-red-500/10'),
       )}
     >
       <div
@@ -185,17 +197,30 @@ export function FinanceiroMobileCard({
             >
               <Edit2 size={13} />
             </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7 text-muted-foreground hover:text-red-500 cursor-pointer"
-              onClick={onDelete}
-            >
-              <Trash2 size={13} />
-            </Button>
+
+            {!isSelectionMode && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-muted-foreground hover:text-red-500 cursor-pointer"
+                onClick={onDelete}
+              >
+                <Trash2 size={13} />
+              </Button>
+            )}
+
+            {isSelectionMode && (
+              <div className="h-7 w-7 flex items-center justify-center p-1">
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={onToggleSelection}
+                  className="h-4 w-4 rounded-lg cursor-pointer"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
-}
+});

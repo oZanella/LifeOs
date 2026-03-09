@@ -48,3 +48,32 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  const session = await getSessionFromRequest(request);
+
+  if (!session) {
+    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+  }
+
+  try {
+    const { ids } = (await request.json()) as { ids: string[] };
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ message: 'IDs inválidos.' }, { status: 400 });
+    }
+
+    const { deleteEntries, listEntries } = await import('@/lib/financeiro-db');
+    await deleteEntries(session.userId, ids);
+
+    return NextResponse.json({
+      entries: await listEntries(session.userId),
+    });
+  } catch (error) {
+    console.error('Bulk deletion error:', error);
+    return NextResponse.json(
+      { message: 'Erro ao excluir entradas em lote.' },
+      { status: 500 },
+    );
+  }
+}

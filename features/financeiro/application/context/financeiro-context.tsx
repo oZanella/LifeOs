@@ -48,6 +48,7 @@ interface FinanceiroContextData {
   addEntry: (entry: Omit<FinancialEntry, 'id'>) => Promise<string | null>;
   updateEntry: (id: string, entry: Partial<FinancialEntry>) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
+  deleteEntries: (ids: string[]) => Promise<void>;
   addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
   updateCategory: (id: string, category: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
@@ -182,6 +183,24 @@ export function FinanceiroProvider({
         `/api/financeiro/entries/${id}`,
         {
           method: 'DELETE',
+        },
+      );
+
+      setEntries(data.entries);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const deleteEntries = async (ids: string[]) => {
+    if (ids.length === 0) return;
+    setIsProcessing(true);
+    try {
+      const data = await requestJson<{ entries: FinancialEntry[] }>(
+        '/api/financeiro/entries/bulk',
+        {
+          method: 'DELETE',
+          body: JSON.stringify({ ids }),
         },
       );
 
@@ -329,10 +348,10 @@ export function FinanceiroProvider({
   };
 
   const stats = useMemo(() => {
-    const totalRevenueArr: number[] = [];
-    const totalExpenseArr: number[] = [];
-    const totalInvestmentArr: number[] = [];
-    const fixedExpensesArr: number[] = [];
+    let totalRevenue = 0;
+    let totalExpense = 0;
+    let totalInvestment = 0;
+    let fixedExpenses = 0;
     const filtered: FinancialEntry[] = [];
 
     const fMonth = filters.month;
@@ -341,8 +360,9 @@ export function FinanceiroProvider({
     const fCategoryId = filters.categoryId;
     const fType = filters.type;
 
-    for (const entry of entries) {
-      // entry.date is YYYY-MM-DD
+    // Single pass over entries for all calculations
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
       const [year, month, day] = entry.date.split('-');
       const entryMonth = (parseInt(month, 10) - 1).toString();
       const entryYear = year;
@@ -352,13 +372,14 @@ export function FinanceiroProvider({
       const yMatch = fYear === '' || entryYear === fYear;
 
       if (mMatch && yMatch) {
-        if (entry.type === 'receita') totalRevenueArr.push(entry.amount);
-        else if (entry.type === 'investimento') {
-          totalInvestmentArr.push(entry.amount);
-          if (entry.isFixed) fixedExpensesArr.push(entry.amount);
+        if (entry.type === 'receita') {
+          totalRevenue += entry.amount;
+        } else if (entry.type === 'investimento') {
+          totalInvestment += entry.amount;
+          if (entry.isFixed) fixedExpenses += entry.amount;
         } else {
-          totalExpenseArr.push(entry.amount);
-          if (entry.isFixed) fixedExpensesArr.push(entry.amount);
+          totalExpense += entry.amount;
+          if (entry.isFixed) fixedExpenses += entry.amount;
         }
 
         const dMatch = fDay === '' || entryDay === fDay;
@@ -372,10 +393,6 @@ export function FinanceiroProvider({
       }
     }
 
-    const totalRevenue = totalRevenueArr.reduce((acc, v) => acc + v, 0);
-    const totalExpense = totalExpenseArr.reduce((acc, v) => acc + v, 0);
-    const totalInvestment = totalInvestmentArr.reduce((acc, v) => acc + v, 0);
-    const fixedExpenses = fixedExpensesArr.reduce((acc, v) => acc + v, 0);
     const balance = totalRevenue - totalExpense - totalInvestment;
 
     return {
@@ -409,6 +426,7 @@ export function FinanceiroProvider({
         stats: computedStats,
         filteredEntries: filtered,
         addRecurringEntries,
+        deleteEntries,
       }}
     >
       {children}

@@ -9,10 +9,15 @@ import {
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { FinanceiroCategoryCell } from './financeiro-category-cell';
+import { Checkbox } from '@/components/ui/checkbox';
+import { memo } from 'react';
 
 interface FinanceiroGridRowProps {
   entry: FinancialEntry;
   categories: Category[];
+  isSelected?: boolean;
+  isSelectionMode?: boolean;
+  onToggleSelection?: () => void;
   formatCurrency: (value: number) => string;
   onQuickCategoryChange: (entryId: string, categoryId: string) => void;
   onToggleFixed: (entryId: string, isFixed: boolean) => void;
@@ -20,9 +25,12 @@ interface FinanceiroGridRowProps {
   onDelete: () => void;
 }
 
-export function FinanceiroGridRow({
+export const FinanceiroGridRow = memo(function FinanceiroGridRow({
   entry,
   categories,
+  isSelected,
+  isSelectionMode,
+  onToggleSelection,
   formatCurrency,
   onQuickCategoryChange,
   onToggleFixed,
@@ -30,7 +38,12 @@ export function FinanceiroGridRow({
   onDelete,
 }: FinanceiroGridRowProps) {
   return (
-    <tr className="group hover:bg-white/5 transition-colors">
+    <tr
+      className={cn(
+        'group transition-colors border-b border-border/10',
+        isSelected ? 'bg-blue-500/5' : 'hover:bg-white/5',
+      )}
+    >
       {/* Data */}
       <td className="px-4 py-2">
         <span className="text-xs font-medium tabular-nums">
@@ -126,16 +139,29 @@ export function FinanceiroGridRow({
           >
             <Edit2 size={14} />
           </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7 text-muted-foreground hover:text-red-500 cursor-pointer"
-            onClick={onDelete}
-          >
-            <Trash2 size={14} />
-          </Button>
+
+          {!isSelectionMode && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-muted-foreground hover:text-red-500 cursor-pointer"
+              onClick={onDelete}
+            >
+              <Trash2 size={14} />
+            </Button>
+          )}
+
+          {isSelectionMode && (
+            <div className="h-7 w-7 flex items-center justify-center">
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={onToggleSelection}
+                className="cursor-pointer"
+              />
+            </div>
+          )}
         </div>
       </td>
     </tr>
   );
-}
+});

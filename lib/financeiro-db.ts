@@ -227,6 +227,16 @@ export async function deleteEntry(userId: number, entryId: string) {
   );
 }
 
+export async function deleteEntries(userId: number, entryIds: string[]) {
+  if (entryIds.length === 0) return;
+
+  const placeholders = entryIds.map((_, i) => `$${i + 2}`).join(', ');
+  await dbExec(
+    `DELETE FROM financeiro_entries WHERE user_id = $1 AND id IN (${placeholders})`,
+    [userId, ...entryIds],
+  );
+}
+
 export async function createCategory(
   userId: number,
   data: Omit<FinanceiroCategory, 'id'>,
