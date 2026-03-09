@@ -17,6 +17,7 @@ export interface FinanceiroEntry {
   amount: number;
   type: EntryType;
   isFixed: boolean;
+  parentId?: string | null;
 }
 
 const DEFAULT_CATEGORIES: Array<{ name: string; tone: string }> = [
@@ -63,9 +64,10 @@ export async function listEntries(userId: number) {
     amount: number;
     type: EntryType;
     is_fixed: boolean;
+    parent_id: string | null;
   }>(
     `
-      SELECT id, date, description, category_id, amount, type, is_fixed
+      SELECT id, date, description, category_id, amount, type, is_fixed, parent_id
       FROM financeiro_entries
       WHERE user_id = $1
       ORDER BY date DESC, created_at DESC
@@ -73,14 +75,15 @@ export async function listEntries(userId: number) {
     [userId],
   );
 
-  return rows.map((row) => ({
+  return (rows as any[]).map((row) => ({
     id: row.id,
     date: row.date,
     description: row.description,
     categoryId: row.category_id,
     amount: row.amount,
-    type: row.type,
+    type: row.type as EntryType,
     isFixed: Boolean(row.is_fixed),
+    parentId: row.parent_id as string | null,
   }));
 }
 
@@ -93,8 +96,8 @@ export async function createEntry(
   await dbExec(
     `
       INSERT INTO financeiro_entries
-        (id, user_id, date, description, category_id, amount, type, is_fixed)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        (id, user_id, date, description, category_id, amount, type, is_fixed, parent_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     `,
     [
       id,
@@ -105,10 +108,51 @@ export async function createEntry(
       data.amount,
       data.type,
       data.isFixed,
+      data.parentId || null,
     ],
   );
 
   return id;
+}
+
+export async function createEntries(
+  userId: number,
+  entries: Omit<FinanceiroEntry, 'id'>[],
+) {
+  if (entries.length === 0) return [];
+
+  const values: Array<string | number | boolean | null> = [];
+  const placeholders: string[] = [];
+
+  entries.forEach((entry, i) => {
+    const id = crypto.randomUUID();
+    const offset = i * 9;
+    placeholders.push(
+      `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9})`,
+    );
+    values.push(
+      id,
+      userId,
+      entry.date,
+      entry.description,
+      entry.categoryId,
+      entry.amount,
+      entry.type,
+      entry.isFixed,
+      entry.parentId || null,
+    );
+  });
+
+  await dbExec(
+    `
+      INSERT INTO financeiro_entries
+        (id, user_id, date, description, category_id, amount, type, is_fixed, parent_id)
+      VALUES ${placeholders.join(', ')}
+    `,
+    values,
+  );
+
+  return values.filter((_, i) => i % 9 === 0).map(String);
 }
 
 export async function updateEntry(
@@ -117,7 +161,7 @@ export async function updateEntry(
   data: Partial<Omit<FinanceiroEntry, 'id'>>,
 ) {
   const updateParts: string[] = [];
-  const params: Array<string | number | boolean> = [];
+  const params: Array<string | number | boolean | null> = [];
 
   if (typeof data.date === 'string') {
     params.push(data.date);
@@ -151,6 +195,11 @@ export async function updateEntry(
   if (typeof data.isFixed === 'boolean') {
     params.push(data.isFixed);
     updateParts.push(`is_fixed = $${params.length}`);
+  }
+
+  if (data.parentId !== undefined) {
+    params.push(data.parentId);
+    updateParts.push(`parent_id = $${params.length}`);
   }
 
   if (updateParts.length === 0) {

@@ -75,17 +75,20 @@ async function runMigrations() {
         amount DOUBLE PRECISION NOT NULL,
         type TEXT NOT NULL CHECK(type IN ('receita', 'despesa', 'investimento')),
         is_fixed BOOLEAN NOT NULL DEFAULT FALSE,
+        parent_id TEXT REFERENCES financeiro_entries(id) ON DELETE CASCADE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
   
-      CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
-      CREATE INDEX IF NOT EXISTS idx_financeiro_entries_user_id ON financeiro_entries(user_id);
-      CREATE INDEX IF NOT EXISTS idx_financeiro_categories_user_id ON financeiro_categories(user_id);
-  
       -- Migrations
       DO $$ 
       BEGIN 
+        BEGIN
+          ALTER TABLE financeiro_entries ADD COLUMN parent_id TEXT REFERENCES financeiro_entries(id) ON DELETE CASCADE;
+        EXCEPTION
+          WHEN duplicate_column THEN NULL;
+        END;
+
         BEGIN
           ALTER TABLE financeiro_entries DROP CONSTRAINT financeiro_entries_type_check;
         EXCEPTION
@@ -93,6 +96,11 @@ async function runMigrations() {
         END;
         ALTER TABLE financeiro_entries ADD CONSTRAINT financeiro_entries_type_check CHECK (type IN ('receita', 'despesa', 'investimento'));
       END $$;
+
+      CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
+      CREATE INDEX IF NOT EXISTS idx_financeiro_entries_user_id ON financeiro_entries(user_id);
+      CREATE INDEX IF NOT EXISTS idx_financeiro_categories_user_id ON financeiro_categories(user_id);
+      CREATE INDEX IF NOT EXISTS idx_financeiro_entries_parent_id ON financeiro_entries(parent_id);
     `);
     console.log('Database migrations completed successfully.');
   } catch (error) {

@@ -117,8 +117,16 @@ export function FinanceiroMobileCard({
                 <span className="text-muted-foreground/40 text-[10px]">·</span>
                 <button
                   type="button"
-                  className="flex items-center gap-1 cursor-pointer"
-                  onClick={() => onToggleFixed(entry.id, entry.isFixed)}
+                  className={cn(
+                    'flex items-center gap-1',
+                    entry.parentId
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'cursor-pointer',
+                  )}
+                  onClick={() =>
+                    !entry.parentId && onToggleFixed(entry.id, entry.isFixed)
+                  }
+                  title={entry.parentId ? 'Replicação (bloqueada)' : undefined}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]" />
                   <span className="text-[11px] text-amber-500 font-medium">
@@ -164,8 +172,16 @@ export function FinanceiroMobileCard({
             <Button
               size="icon"
               variant="ghost"
-              className="h-7 w-7 text-muted-foreground hover:text-blue-500 cursor-pointer"
-              onClick={onStartEdit}
+              className={cn(
+                'h-7 w-7 text-muted-foreground hover:text-blue-500',
+                entry.parentId
+                  ? 'opacity-30 cursor-not-allowed'
+                  : 'cursor-pointer',
+              )}
+              onClick={() => !entry.parentId && onStartEdit()}
+              title={
+                entry.parentId ? 'Registro automático (não editável)' : 'Editar'
+              }
             >
               <Edit2 size={13} />
             </Button>

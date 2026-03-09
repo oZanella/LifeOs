@@ -35,7 +35,7 @@ import { ptBR } from 'date-fns/locale';
 interface FinanceiroEntryModalProps {
   entry: Partial<FinancialEntry> | null;
   categories: Category[];
-  onSave: (data: Partial<FinancialEntry>) => void;
+  onSave: (data: Partial<FinancialEntry>, installments?: number) => void;
   onClose: () => void;
 }
 
@@ -59,19 +59,21 @@ export function FinanceiroEntryModal({
   const { isProcessing } = useFinanceiroContext();
   const [form, setForm] = useState<Partial<FinancialEntry>>({});
   const [amountInput, setAmountInput] = useState('');
+  const [installments, setInstallments] = useState('1');
 
   useEffect(() => {
     if (entry) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm(entry);
       setAmountInput(formatCurrencyDisplay(entry.amount ?? 0));
+      setInstallments('1');
     }
   }, [entry]);
 
   if (!entry) return null;
 
   const handleSave = () => {
-    onSave(form);
+    onSave(form, parseInt(installments, 10));
   };
 
   const handleAmountChange = (raw: string) => {
@@ -264,33 +266,61 @@ export function FinanceiroEntryModal({
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border border-border/30 bg-muted/20 px-4 py-3">
-              <div>
-                <p className="text-sm font-medium">Lançamento fixo</p>
-                <p className="text-xs text-muted-foreground">
-                  Recorrente todo mês
-                </p>
-              </div>
-              <button
-                type="button"
-                className={cn(
-                  'relative h-6 w-11 rounded-full transition-all duration-200 cursor-pointer border-2',
-                  form.isFixed
-                    ? 'bg-amber-500 border-amber-500'
-                    : 'bg-muted border-border',
+            {!form.id && (
+              <>
+                <div className="flex items-center justify-between rounded-xl border border-border/30 bg-muted/20 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium">Lançamento fixo</p>
+                    <p className="text-xs text-muted-foreground">
+                      Recorrente todo mês
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className={cn(
+                      'relative h-6 w-11 rounded-full transition-all duration-200 cursor-pointer border-2',
+                      form.isFixed
+                        ? 'bg-amber-500 border-amber-500'
+                        : 'bg-muted border-border',
+                    )}
+                    onClick={() =>
+                      setForm((prev) => ({ ...prev, isFixed: !prev.isFixed }))
+                    }
+                  >
+                    <span
+                      className={cn(
+                        'absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200',
+                        form.isFixed ? 'left-5' : 'left-0.5',
+                      )}
+                    />
+                  </button>
+                </div>
+
+                {form.isFixed && (
+                  <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Nº de Parcelas (Meses totais)
+                    </Label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Ex: 12"
+                      className="h-9 text-sm bg-background border-border/40 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-amber-500"
+                      value={installments}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setInstallments(val);
+                      }}
+                    />
+                    <p className="text-[10px] text-muted-foreground italic leading-tight px-1">
+                      O sistema criará automaticamente{' '}
+                      {parseInt(installments || '1', 10) - 1} lançamentos para
+                      os meses seguintes.
+                    </p>
+                  </div>
                 )}
-                onClick={() =>
-                  setForm((prev) => ({ ...prev, isFixed: !prev.isFixed }))
-                }
-              >
-                <span
-                  className={cn(
-                    'absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200',
-                    form.isFixed ? 'left-5' : 'left-0.5',
-                  )}
-                />
-              </button>
-            </div>
+              </>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 px-5 pb-5">

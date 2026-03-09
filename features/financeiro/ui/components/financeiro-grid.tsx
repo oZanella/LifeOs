@@ -16,6 +16,7 @@ import { FinanceiroFilters } from './financeiro-filters';
 import { FinanceiroEntryModal } from './financeiro-entry-modal';
 import { FinanceiroMobileCard } from './financeiro-mobile-card';
 import { FinanceiroStats } from './financeiro-stats';
+import { FinanceiroRecurringModal } from './financeiro-recurring-modal';
 
 export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
   const {
@@ -28,12 +29,17 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     addEntry,
     updateEntry,
     deleteEntry,
+    addRecurringEntries,
   } = useFinanceiroContext();
 
   const [editingEntry, setEditingEntry] =
     useState<Partial<FinancialEntry> | null>(null);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
+  const [recurringTarget, setRecurringTarget] = useState<FinancialEntry | null>(
+    null,
+  );
   const [pendingFilters, setPendingFilters] = useState<FiltersType>(filters);
 
   const formatCurrency = (value: number) =>
@@ -62,18 +68,33 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     });
   };
 
-  const handleSave = async (data: Partial<FinancialEntry>) => {
+  const handleSave = async (
+    data: Partial<FinancialEntry>,
+    installments?: number,
+  ) => {
     if (data.id) {
       await updateEntry(data.id, data);
     } else {
-      await addEntry({
+      const entryData = {
         date: data.date ?? '',
         description: data.description ?? '',
         categoryId: data.categoryId ?? '',
         amount: data.amount ?? 0,
         type: data.type ?? 'despesa',
         isFixed: data.isFixed ?? false,
-      });
+      };
+
+      const createdId = await addEntry(entryData);
+
+      if (createdId && (installments ?? 0) > 1) {
+        // Find the created entry to use as base (since addEntry added it to state)
+        // Actually, we can just construct a base entry object
+        const baseEntry: FinancialEntry = {
+          id: createdId,
+          ...entryData,
+        };
+        await addRecurringEntries(baseEntry, installments!);
+      }
     }
     setEditingEntry(null);
   };
@@ -161,9 +182,16 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
               entry={entry}
               categories={categories}
               formatCurrency={formatCurrency}
-              onToggleFixed={(entryId, isFixed) =>
-                updateEntry(entryId, { isFixed: !isFixed })
-              }
+              onToggleFixed={(entryId, isFixed) => {
+                if (entry.parentId) return; // Locked if it's a child of recurring
+
+                if (!isFixed) {
+                  setRecurringTarget(entry);
+                  setIsRecurringModalOpen(true);
+                } else {
+                  updateEntry(entryId, { isFixed: false });
+                }
+              }}
               onStartEdit={() => handleOpenEdit(entry)}
               onDelete={() => deleteEntry(entry.id)}
             />
@@ -231,9 +259,16 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   onQuickCategoryChange={(entryId, categoryId) =>
                     updateEntry(entryId, { categoryId })
                   }
-                  onToggleFixed={(entryId, isFixed) =>
-                    updateEntry(entryId, { isFixed: !isFixed })
-                  }
+                  onToggleFixed={(entryId, isFixed) => {
+                    if (entry.parentId) return; // Locked if it's a child of recurring
+
+                    if (!isFixed) {
+                      setRecurringTarget(entry);
+                      setIsRecurringModalOpen(true);
+                    } else {
+                      updateEntry(entryId, { isFixed: false });
+                    }
+                  }}
                   onStartEdit={() => handleOpenEdit(entry)}
                   onDelete={() => deleteEntry(entry.id)}
                 />
@@ -247,7 +282,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         <FinanceiroEntryModal
           entry={editingEntry}
           categories={categories}
-          onSave={(data) => void handleSave(data)}
+          onSave={(data, inst) => void handleSave(data, inst)}
           onClose={() => setEditingEntry(null)}
         />
       )}
@@ -319,6 +354,14 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             </div>
           </div>
         </div>
+      )}
+      {isRecurringModalOpen && recurringTarget && (
+        <FinanceiroRecurringModal
+          isOpen={isRecurringModalOpen}
+          onClose={() => setIsRecurringModalOpen(false)}
+          description={recurringTarget.description}
+          onConfirm={(months) => addRecurringEntries(recurringTarget, months)}
+        />
       )}
     </div>
   );

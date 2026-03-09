@@ -92,7 +92,17 @@ export function FinanceiroGridRow({
               entry.isFixed
                 ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] scale-125'
                 : 'bg-gray-700 hover:bg-gray-600',
+              entry.parentId
+                ? 'cursor-not-allowed opacity-50'
+                : 'cursor-pointer',
             )}
+            title={
+              entry.parentId
+                ? 'Replicação (bloqueada)'
+                : entry.isFixed
+                  ? 'Remover fixo'
+                  : 'Marcar como fixo'
+            }
           />
         </div>
       </td>
@@ -103,8 +113,16 @@ export function FinanceiroGridRow({
           <Button
             size="icon"
             variant="ghost"
-            className="h-7 w-7 text-muted-foreground hover:text-blue-500 cursor-pointer"
-            onClick={onStartEdit}
+            className={cn(
+              'h-7 w-7 text-muted-foreground hover:text-blue-500',
+              entry.parentId
+                ? 'opacity-30 cursor-not-allowed'
+                : 'cursor-pointer',
+            )}
+            onClick={() => !entry.parentId && onStartEdit()}
+            title={
+              entry.parentId ? 'Registro automático (não editável)' : 'Editar'
+            }
           >
             <Edit2 size={14} />
           </Button>

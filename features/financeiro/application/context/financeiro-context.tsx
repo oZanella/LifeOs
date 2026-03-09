@@ -29,6 +29,7 @@ export interface FinancialEntry {
   amount: number;
   type: EntryType;
   isFixed: boolean;
+  parentId?: string | null;
 }
 
 export interface FiltersType {
@@ -70,6 +71,7 @@ interface FinanceiroContextData {
     fixedExpenses: number;
     forecast: number;
   };
+  addRecurringEntries: (entry: FinancialEntry, months: number) => Promise<void>;
 }
 
 const FinanceiroContext = createContext<FinanceiroContextData>(
@@ -262,6 +264,70 @@ export function FinanceiroProvider({
     }
   };
 
+  const addRecurringEntries = async (
+    baseEntry: FinancialEntry,
+    months: number,
+  ) => {
+    setIsProcessing(true);
+    try {
+      // 1. Mark current as fixed if not already
+      if (!baseEntry.isFixed) {
+        await updateEntry(baseEntry.id, { isFixed: true });
+      }
+
+      // 2. Build additional entries
+      const additionalEntries: Omit<FinancialEntry, 'id'>[] = [];
+      const baseDate = new Date(`${baseEntry.date}T12:00:00`);
+
+      for (let i = 1; i < months; i++) {
+        const nextDate = new Date(baseDate);
+        nextDate.setMonth(baseDate.getMonth() + i);
+
+        // Handle month overflow (e.g., Jan 31 -> Feb 28/29 instead of Mar 2)
+        if (nextDate.getDate() !== baseDate.getDate()) {
+          nextDate.setDate(0);
+        }
+
+        const year = nextDate.getFullYear();
+        const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+        const day = String(nextDate.getDate()).padStart(2, '0');
+
+        additionalEntries.push({
+          date: `${year}-${month}-${day}`,
+          description: baseEntry.description,
+          categoryId: baseEntry.categoryId,
+          amount: baseEntry.amount,
+          type: baseEntry.type,
+          isFixed: true,
+          parentId: baseEntry.id,
+        });
+      }
+
+      // 3. Save additional entries if any
+      if (additionalEntries.length > 0) {
+        const data = await requestJson<{ entries: FinancialEntry[] }>(
+          '/api/financeiro/entries/bulk',
+          {
+            method: 'POST',
+            body: JSON.stringify({ entries: additionalEntries }),
+          },
+        );
+        setEntries(data.entries);
+      } else {
+        // If only current month, refresh entries to show fixed state
+        const data = await requestJson<{
+          entries: FinancialEntry[];
+          categories: Category[];
+        }>('/api/financeiro');
+        setEntries(data.entries);
+      }
+    } catch (error) {
+      console.error('Failed to add recurring entries:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const stats = useMemo(() => {
     const totalRevenueArr: number[] = [];
     const totalExpenseArr: number[] = [];
@@ -342,6 +408,7 @@ export function FinanceiroProvider({
         setFilters,
         stats: computedStats,
         filteredEntries: filtered,
+        addRecurringEntries,
       }}
     >
       {children}
