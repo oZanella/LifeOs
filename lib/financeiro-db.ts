@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { dbExec, dbQuery, dbQueryOne } from '@/lib/db';
 
-export type EntryType = 'receita' | 'despesa';
+export type EntryType = 'receita' | 'despesa' | 'investimento';
 
 export interface FinanceiroCategory {
   id: string;
@@ -24,6 +24,7 @@ const DEFAULT_CATEGORIES: Array<{ name: string; tone: string }> = [
   { name: 'Saúde', tone: 'error' },
   { name: 'Lazer', tone: 'accent' },
   { name: 'Salário', tone: 'success' },
+  { name: 'Investimentos', tone: 'info' },
 ];
 
 export async function ensureDefaultCategories(userId: number) {
@@ -138,7 +139,11 @@ export async function updateEntry(
     updateParts.push(`amount = $${params.length}`);
   }
 
-  if (data.type === 'receita' || data.type === 'despesa') {
+  if (
+    data.type === 'receita' ||
+    data.type === 'investimento' ||
+    data.type === 'despesa'
+  ) {
     params.push(data.type);
     updateParts.push(`type = $${params.length}`);
   }

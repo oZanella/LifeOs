@@ -37,57 +37,74 @@ function getPool() {
 
 async function runMigrations() {
   const pool = getPool();
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id BIGSERIAL PRIMARY KEY,
-      username TEXT NOT NULL UNIQUE,
-      email TEXT UNIQUE,
-      avatar_url TEXT,
-      is_admin BOOLEAN NOT NULL DEFAULT FALSE,
-      password_hash TEXT NOT NULL,
-      password_salt TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-
-    CREATE TABLE IF NOT EXISTS sessions (
-      id BIGSERIAL PRIMARY KEY,
-      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      token TEXT NOT NULL UNIQUE,
-      expires_at TIMESTAMPTZ NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-
-    CREATE TABLE IF NOT EXISTS financeiro_categories (
-      id TEXT PRIMARY KEY,
-      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      name TEXT NOT NULL,
-      tone TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-
-    CREATE TABLE IF NOT EXISTS financeiro_entries (
-      id TEXT PRIMARY KEY,
-      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      date TEXT NOT NULL,
-      description TEXT NOT NULL,
-      category_id TEXT NOT NULL,
-      amount DOUBLE PRECISION NOT NULL,
-      type TEXT NOT NULL CHECK(type IN ('receita', 'despesa')),
-      is_fixed BOOLEAN NOT NULL DEFAULT FALSE,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
-    CREATE INDEX IF NOT EXISTS idx_financeiro_entries_user_id ON financeiro_entries(user_id);
-    CREATE INDEX IF NOT EXISTS idx_financeiro_categories_user_id ON financeiro_categories(user_id);
-  `);
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id BIGSERIAL PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT UNIQUE,
+        avatar_url TEXT,
+        is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+        password_hash TEXT NOT NULL,
+        password_salt TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+  
+      CREATE TABLE IF NOT EXISTS sessions (
+        id BIGSERIAL PRIMARY KEY,
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token TEXT NOT NULL UNIQUE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+  
+      CREATE TABLE IF NOT EXISTS financeiro_categories (
+        id TEXT PRIMARY KEY,
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        tone TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+  
+      CREATE TABLE IF NOT EXISTS financeiro_entries (
+        id TEXT PRIMARY KEY,
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        date TEXT NOT NULL,
+        description TEXT NOT NULL,
+        category_id TEXT NOT NULL,
+        amount DOUBLE PRECISION NOT NULL,
+        type TEXT NOT NULL CHECK(type IN ('receita', 'despesa', 'investimento')),
+        is_fixed BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+  
+      CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
+      CREATE INDEX IF NOT EXISTS idx_financeiro_entries_user_id ON financeiro_entries(user_id);
+      CREATE INDEX IF NOT EXISTS idx_financeiro_categories_user_id ON financeiro_categories(user_id);
+  
+      -- Migrations
+      DO $$ 
+      BEGIN 
+        BEGIN
+          ALTER TABLE financeiro_entries DROP CONSTRAINT financeiro_entries_type_check;
+        EXCEPTION
+          WHEN undefined_object THEN NULL;
+        END;
+        ALTER TABLE financeiro_entries ADD CONSTRAINT financeiro_entries_type_check CHECK (type IN ('receita', 'despesa', 'investimento'));
+      END $$;
+    `);
+    console.log('Database migrations completed successfully.');
+  } catch (error) {
+    console.error('Database migration failed:', error);
+    throw error;
+  }
 }
 
 export async function ensureDbReady() {
-  if (!globalThis.__lifeOsPgReady) {
-    globalThis.__lifeOsPgReady = runMigrations();
-  }
+  // if (!globalThis.__lifeOsPgReady) {
+  globalThis.__lifeOsPgReady = runMigrations();
+  // }
 
   await globalThis.__lifeOsPgReady;
 }

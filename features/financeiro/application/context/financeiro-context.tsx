@@ -13,7 +13,7 @@ import { requestJson } from '@/lib/request-json';
 import { AppBadgeTone, VALID_CATEGORY_TONES } from '@/lib/tone-options';
 import { useAuth } from '@/providers/auth-provider/auth.provider';
 
-export type EntryType = 'receita' | 'despesa';
+export type EntryType = 'receita' | 'despesa' | 'investimento';
 
 export interface Category {
   id: string;
@@ -65,6 +65,7 @@ interface FinanceiroContextData {
   stats: {
     totalRevenue: number;
     totalExpense: number;
+    totalInvestment: number;
     balance: number;
     fixedExpenses: number;
     forecast: number;
@@ -264,6 +265,7 @@ export function FinanceiroProvider({
   const stats = useMemo(() => {
     const totalRevenueArr: number[] = [];
     const totalExpenseArr: number[] = [];
+    const totalInvestmentArr: number[] = [];
     const fixedExpensesArr: number[] = [];
     const filtered: FinancialEntry[] = [];
 
@@ -285,7 +287,10 @@ export function FinanceiroProvider({
 
       if (mMatch && yMatch) {
         if (entry.type === 'receita') totalRevenueArr.push(entry.amount);
-        else {
+        else if (entry.type === 'investimento') {
+          totalInvestmentArr.push(entry.amount);
+          if (entry.isFixed) fixedExpensesArr.push(entry.amount);
+        } else {
           totalExpenseArr.push(entry.amount);
           if (entry.isFixed) fixedExpensesArr.push(entry.amount);
         }
@@ -303,12 +308,14 @@ export function FinanceiroProvider({
 
     const totalRevenue = totalRevenueArr.reduce((acc, v) => acc + v, 0);
     const totalExpense = totalExpenseArr.reduce((acc, v) => acc + v, 0);
+    const totalInvestment = totalInvestmentArr.reduce((acc, v) => acc + v, 0);
     const fixedExpenses = fixedExpensesArr.reduce((acc, v) => acc + v, 0);
-    const balance = totalRevenue - totalExpense;
+    const balance = totalRevenue - totalExpense - totalInvestment;
 
     return {
       totalRevenue,
       totalExpense,
+      totalInvestment,
       balance,
       fixedExpenses,
       forecast: balance,

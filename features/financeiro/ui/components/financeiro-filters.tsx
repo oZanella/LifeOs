@@ -109,7 +109,10 @@ export function FinanceiroFilters({
           <Select
             value={filters.categoryId}
             onValueChange={(v) =>
-              setFilters((prev: FiltersType) => ({ ...prev, categoryId: v }))
+              setFilters((prev: FiltersType) => ({
+                ...prev,
+                categoryId: v,
+              }))
             }
           >
             <SelectTrigger className="w-full bg-background cursor-pointer">
@@ -154,6 +157,9 @@ export function FinanceiroFilters({
               </SelectItem>
               <SelectItem value="despesa" className="cursor-pointer">
                 Despesa
+              </SelectItem>
+              <SelectItem value="investimento" className="cursor-pointer">
+                Investimento
               </SelectItem>
             </SelectContent>
           </Select>

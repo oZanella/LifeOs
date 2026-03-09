@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       description?: string;
       categoryId?: string;
       amount?: number;
-      type?: 'receita' | 'despesa';
+      type?: 'receita' | 'despesa' | 'investimento';
       isFixed?: boolean;
     };
 
@@ -24,9 +24,14 @@ export async function POST(request: NextRequest) {
       !body.description ||
       typeof body.categoryId !== 'string' ||
       typeof body.amount !== 'number' ||
-      (body.type !== 'receita' && body.type !== 'despesa')
+      (body.type !== 'receita' &&
+        body.type !== 'despesa' &&
+        body.type !== 'investimento')
     ) {
-      return NextResponse.json({ message: 'Dados invalidos.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Dados inválidos.' },
+        { status: 400 },
+      );
     }
 
     const createdEntryId = await createEntry(session.userId, {
@@ -43,6 +48,9 @@ export async function POST(request: NextRequest) {
       createdEntryId,
     });
   } catch {
-    return NextResponse.json({ message: 'Erro ao criar entrada.' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Erro ao criar entrada.' },
+      { status: 500 },
+    );
   }
 }

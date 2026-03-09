@@ -163,38 +163,41 @@ export function FinanceiroEntryModal({
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Categoria
-              </Label>
-              <Select
-                value={String(form.categoryId ?? '')}
-                onValueChange={(categoryId) =>
-                  setForm((prev) => ({ ...prev, categoryId }))
-                }
-              >
-                <SelectTrigger className="h-9 text-sm bg-background border-border/40 cursor-pointer w-full">
-                  <SelectValue placeholder="Selecionar categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem
-                      key={cat.id}
-                      value={cat.id}
-                      className="cursor-pointer text-sm"
-                    >
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-1.5 flex-1">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Categoria
+                </Label>
 
-            <div className="flex gap-3">
+                <Select
+                  value={String(form.categoryId ?? '')}
+                  onValueChange={(categoryId) =>
+                    setForm((prev) => ({ ...prev, categoryId }))
+                  }
+                >
+                  <SelectTrigger className="h-9 text-sm bg-background border-border/40 cursor-pointer w-full">
+                    <SelectValue placeholder="Selecionar categoria" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem
+                        key={cat.id}
+                        value={cat.id}
+                        className="cursor-pointer text-sm"
+                      >
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="flex flex-col gap-1.5 flex-1">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Valor
                 </Label>
+
                 <Input
                   type="text"
                   inputMode="decimal"
@@ -204,7 +207,9 @@ export function FinanceiroEntryModal({
                   onChange={(e) => handleAmountChange(e.target.value)}
                 />
               </div>
+            </div>
 
+            <div className="flex gap-3">
               <div className="flex flex-col gap-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Tipo
@@ -224,6 +229,21 @@ export function FinanceiroEntryModal({
                   >
                     <TrendingUp size={13} />
                     Receita
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      'flex items-center gap-1.5 px-3 h-9 rounded-lg text-xs font-medium transition-all cursor-pointer border',
+                      form.type === 'investimento'
+                        ? 'bg-blue-700/15 text-blue-700 border-blue-700/30'
+                        : 'text-muted-foreground border-border/40 hover:border-blue-700/30 hover:text-blue-700',
+                    )}
+                    onClick={() =>
+                      setForm((prev) => ({ ...prev, type: 'investimento' }))
+                    }
+                  >
+                    <TrendingUp size={13} />
+                    Investimento
                   </button>
                   <button
                     type="button"

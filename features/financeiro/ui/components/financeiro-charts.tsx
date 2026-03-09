@@ -33,6 +33,7 @@ const formatBRLShort = (v: number) => {
 const colorsEdit = {
   revenue: 'var(--receita)',
   expense: 'var(--despesa)',
+  investment: 'var(--investimento)',
   grid: 'var(--border)',
   text: 'var(--muted-foreground)',
   background: 'var(--background)',
@@ -76,26 +77,54 @@ const CustomTooltip = ({
 function buildDailyData(entries: FinancialEntry[]) {
   const map = new Map<
     string,
-    { label: string; receita: number; despesa: number; saldo: number }
+    {
+      label: string;
+      receita: number;
+      despesa: number;
+      investimento: number;
+      saldo: number;
+    }
   >();
 
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
 
   for (const entry of sorted) {
     const key = entry.date;
+
     if (!map.has(key)) {
       const [, month, day] = key.split('-');
-      const label = `${day}/${month}`;
-      map.set(key, { label, receita: 0, despesa: 0, saldo: 0 });
+
+      map.set(key, {
+        label: `${day}/${month}`,
+        receita: 0,
+        despesa: 0,
+        investimento: 0,
+        saldo: 0,
+      });
     }
+
     const row = map.get(key)!;
-    if (entry.type === 'receita') row.receita += entry.amount;
-    else row.despesa += entry.amount;
+
+    switch (entry.type) {
+      case 'receita':
+        row.receita += entry.amount;
+        break;
+
+      case 'despesa':
+        row.despesa += entry.amount;
+        break;
+
+      case 'investimento':
+        row.investimento += entry.amount;
+        break;
+    }
   }
 
   let accumulated = 0;
+
   return Array.from(map.values()).map((row) => {
-    accumulated += row.receita - row.despesa;
+    accumulated += row.receita + row.investimento - row.despesa;
+
     return { ...row, saldo: accumulated };
   });
 }
@@ -115,10 +144,18 @@ export function FinanceiroCharts() {
     const expense = filteredEntries
       .filter((e) => e.type === 'despesa')
       .reduce((acc, e) => acc + e.amount, 0);
+    const investment = filteredEntries
+      .filter((e) => e.type === 'investimento')
+      .reduce((acc, e) => acc + e.amount, 0);
 
     return [
       { name: 'Receita', value: revenue, color: colorsEdit.revenue },
       { name: 'Despesa', value: expense, color: colorsEdit.expense },
+      {
+        name: 'Investimento',
+        value: investment,
+        color: colorsEdit.investment,
+      },
     ].filter((item) => item.value > 0);
   }, [filteredEntries]);
 
@@ -196,7 +233,7 @@ export function FinanceiroCharts() {
 
       <div className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm p-4 flex flex-col items-center">
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 w-full">
-          Resumo: Receitas vs Despesas
+          Receitas vs Despesas
         </p>
         <div className="relative w-full h-45">
           <ResponsiveContainer width="100%" height="100%">

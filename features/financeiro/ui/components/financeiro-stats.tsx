@@ -3,13 +3,7 @@
 import { useFinanceiroContext } from '@/features/financeiro/application/context/financeiro-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  Calendar,
-  AlertCircle,
-} from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, AlertCircle } from 'lucide-react';
 import { BadgeTone } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -23,8 +17,8 @@ interface StatsData {
   balance: number;
   totalRevenue: number;
   totalExpense: number;
+  totalInvestment: number;
   fixedExpenses: number;
-  forecast: number;
 }
 
 function MobileStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
@@ -83,37 +77,37 @@ function MobileStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
             bg: 'bg-red-500/10',
           },
           {
+            title: 'Investimentos',
+            value: stats.totalInvestment,
+            icon: TrendingUp,
+            color: 'text-blue-700',
+            bg: 'bg-blue-700/10',
+          },
+          {
             title: 'Gastos Fixos',
             value: stats.fixedExpenses,
             icon: AlertCircle,
             color: 'text-amber-500',
             bg: 'bg-amber-500/10',
           },
-          {
-            title: 'Previsão',
-            value: stats.forecast,
-            icon: Calendar,
-            color: 'text-blue-500',
-            bg: 'bg-blue-500/10',
-          },
         ].map((item) => (
           <div
             key={item.title}
-            className="rounded-xl border border-border/40 bg-card/40 px-4 py-3 flex items-center gap-3"
+            className="rounded-xl border border-border/40 bg-card/40 px-3 py-2.5 flex items-center gap-2.5"
           >
             <div
               className={cn(
-                'h-8 w-8 rounded-lg flex items-center justify-center shrink-0',
+                'h-7 w-7 rounded-lg flex items-center justify-center shrink-0',
                 item.bg,
               )}
             >
-              <item.icon size={15} className={item.color} />
+              <item.icon size={14} className={item.color} />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider truncate">
+              <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider truncate">
                 {item.title}
               </p>
-              <p className={cn('text-sm font-black tabular-nums', item.color)}>
+              <p className={cn('text-xs font-black tabular-nums', item.color)}>
                 {formatCurrency(item.value)}
               </p>
             </div>
@@ -140,6 +134,7 @@ function DesktopStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
       icon: TrendingUp,
       color: 'text-emerald-500',
     },
+
     {
       title: 'Despesas',
       value: stats.totalExpense,
@@ -147,23 +142,23 @@ function DesktopStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
       color: 'text-red-500',
     },
     {
+      title: 'Investimentos',
+      value: stats.totalInvestment,
+      icon: TrendingUp,
+      color: 'text-blue-700',
+    },
+    {
       title: 'Gastos Fixos',
       value: stats.fixedExpenses,
       icon: AlertCircle,
       color: 'text-amber-500',
-    },
-    {
-      title: 'Previsão (Forecast)',
-      value: stats.forecast,
-      icon: Calendar,
-      color: 'text-blue-500',
     },
   ];
 
   return (
     <div
       data-tone={tone}
-      className="hidden sm:grid grid-cols-2 lg:grid-cols-5 gap-4"
+      className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
     >
       {items.map((item) => (
         <Card
@@ -200,9 +195,9 @@ function StatsSkeleton({}: { tone: BadgeTone }) {
           ))}
         </div>
       </div>
-      <div className="hidden sm:grid grid-cols-2 lg:grid-cols-5 gap-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-23 w-full rounded-2xl" />
+      <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 w-full rounded-2xl" />
         ))}
       </div>
     </>

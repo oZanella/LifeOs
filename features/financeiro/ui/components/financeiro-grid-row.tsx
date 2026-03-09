@@ -57,18 +57,23 @@ export function FinanceiroGridRow({
         <span
           className={cn(
             'text-sm font-black tabular-nums whitespace-nowrap',
-            entry.type === 'receita' ? 'text-emerald-500' : 'text-red-500',
+            entry.type === 'receita'
+              ? 'text-emerald-500'
+              : entry.type === 'investimento'
+                ? 'text-blue-700'
+                : 'text-red-500',
           )}
         >
           {formatCurrency(entry.amount)}
         </span>
       </td>
 
-      {/* Tipo */}
       <td className="px-4 py-2 text-center">
         <div className="flex justify-center">
           {entry.type === 'receita' ? (
             <TrendingUp size={14} className="text-emerald-500" />
+          ) : entry.type === 'investimento' ? (
+            <TrendingUp size={14} className="text-blue-700" />
           ) : (
             <TrendingDown size={14} className="text-red-500" />
           )}

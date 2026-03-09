@@ -1,6 +1,12 @@
 'use client';
 
-import { Edit2, TrendingDown, TrendingUp, Trash2 } from 'lucide-react';
+import {
+  Edit2,
+  TrendingDown,
+  TrendingUp,
+  Trash2,
+  TrendingUpDown,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Category,
@@ -29,18 +35,27 @@ export function FinanceiroMobileCard({
 }: FinanceiroMobileCardProps) {
   const category = categories.find((c) => c.id === entry.categoryId);
   const isReceita = entry.type === 'receita';
+  const isInvestimento = entry.type === 'investimento';
 
   return (
     <div
       className={cn(
         'relative rounded-2xl border bg-card/40 backdrop-blur-sm overflow-hidden transition-all',
-        isReceita ? 'border-emerald-500/20' : 'border-red-500/10',
+        isReceita
+          ? 'border-emerald-500/20'
+          : isInvestimento
+            ? 'border-blue-700/20'
+            : 'border-red-500/10',
       )}
     >
       <div
         className={cn(
           'absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl',
-          isReceita ? 'bg-emerald-500' : 'bg-red-500',
+          isReceita
+            ? 'bg-emerald-500'
+            : isInvestimento
+              ? 'bg-blue-700'
+              : 'bg-red-500',
         )}
       />
 
@@ -70,15 +85,25 @@ export function FinanceiroMobileCard({
             <span
               className={cn(
                 'flex items-center gap-1 text-[11px] font-medium',
-                isReceita ? 'text-emerald-500' : 'text-red-500',
+                isReceita
+                  ? 'text-emerald-500'
+                  : isInvestimento
+                    ? 'text-blue-700'
+                    : 'text-red-500',
               )}
             >
               {isReceita ? (
                 <TrendingUp size={11} />
+              ) : isInvestimento ? (
+                <TrendingUpDown size={11} />
               ) : (
                 <TrendingDown size={11} />
               )}
-              {isReceita ? 'Receita' : 'Despesa'}
+              {isReceita
+                ? 'Receita'
+                : isInvestimento
+                  ? 'Investimento'
+                  : 'Despesa'}
             </span>
 
             {entry.isFixed && (
@@ -116,10 +141,14 @@ export function FinanceiroMobileCard({
           <span
             className={cn(
               'text-base font-black tabular-nums leading-tight',
-              isReceita ? 'text-emerald-500' : 'text-red-500',
+              isReceita
+                ? 'text-emerald-500'
+                : isInvestimento
+                  ? 'text-blue-700'
+                  : 'text-red-500',
             )}
           >
-            {isReceita ? '+' : '-'}
+            {isReceita ? '+' : isInvestimento ? '+' : '-'}
             {formatCurrency(entry.amount)
               .replace('R$\u00a0', '')
               .replace('R$ ', '')}

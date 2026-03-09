@@ -9,7 +9,7 @@ export async function PATCH(
   const session = await getSessionFromRequest(request);
 
   if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
+    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
   }
 
   try {
@@ -19,7 +19,7 @@ export async function PATCH(
       description?: string;
       categoryId?: string;
       amount?: number;
-      type?: 'receita' | 'despesa';
+      type?: 'receita' | 'despesa' | 'investimento';
       isFixed?: boolean;
     };
 
@@ -27,7 +27,10 @@ export async function PATCH(
 
     return NextResponse.json({ entries: await listEntries(session.userId) });
   } catch {
-    return NextResponse.json({ message: 'Erro ao atualizar entrada.' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Erro ao atualizar entrada.' },
+      { status: 500 },
+    );
   }
 }
 
@@ -38,7 +41,7 @@ export async function DELETE(
   const session = await getSessionFromRequest(request);
 
   if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
+    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
   }
 
   const { id } = await context.params;
