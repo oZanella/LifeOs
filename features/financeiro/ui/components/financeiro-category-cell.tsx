@@ -7,7 +7,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Category, FinancialEntry } from '@/features/financeiro/application/context/financeiro-context';
+import {
+  Category,
+  FinancialEntry,
+} from '@/features/financeiro/application/context/financeiro-context';
 import { AppBadgeTone, TONE_DOT_CLASSNAME } from '@/lib/tone-options';
 import { cn } from '@/lib/utils';
 

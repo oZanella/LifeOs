@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Filter, Plus, Tags, X } from 'lucide-react';
+import { Filter, Plus, Tags } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BadgeTone } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -264,30 +264,30 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             <div className="w-full max-w-xl rounded-2xl border border-border/50 bg-background p-3 shadow-2xl">
               <div className="mb-2 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-foreground">Filtros</h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => setIsFiltersOpen(false)}
-                >
-                  <X size={16} />
-                </Button>
               </div>
               <FinanceiroFilters
                 tone={tone}
                 filters={pendingFilters}
                 setFilters={setPendingFilters}
               />
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full sm:w-auto px-6 cursor-pointer"
+                  onClick={() => setIsFiltersOpen(false)}
+                >
+                  Voltar
+                </Button>
                 <Button
                   size="sm"
-                  className="w-full sm:w-auto px-8 cursor-pointer"
+                  className="w-full sm:w-auto px-8 cursor-pointer font-bold"
                   onClick={() => {
                     setFilters(pendingFilters);
                     setIsFiltersOpen(false);
                   }}
                 >
-                  Aplicar Filtros
+                  Aplicar
                 </Button>
               </div>
             </div>
@@ -304,26 +304,18 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             onClick={() => setIsCategoriesOpen(false)}
           />
           <div className="relative z-10 flex min-h-full items-center justify-center p-4">
-            <div className="w-full max-w-lg rounded-2xl border border-border/50 bg-background p-0 shadow-2xl">
-              <div className="flex items-center justify-between px-3 pt-3">
+            <div className="w-full max-w-xl rounded-2xl border border-border/50 bg-background p-3 shadow-2xl">
+              <div className="mb-2 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-foreground">
                   Categorias
                 </h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => setIsCategoriesOpen(false)}
-                >
-                  <X size={16} />
-                </Button>
               </div>
-              <div className="px-3 pb-3">
-                <FinanceiroCategories
-                  tone={tone}
-                  className="mb-0 border-0 shadow-none"
-                />
-              </div>
+              <FinanceiroCategories
+                tone={tone}
+                onApplyAction={() => setIsCategoriesOpen(false)}
+                onCancelAction={() => setIsCategoriesOpen(false)}
+                className="border-0 shadow-none"
+              />
             </div>
           </div>
         </div>

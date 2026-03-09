@@ -10,7 +10,6 @@ import { Plus, Trash2, Check, X, Pencil } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge, BadgeTone } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ToneSelect } from '@/components/ui/tone-select';
@@ -28,12 +27,26 @@ const INITIAL_FORM: CategoryForm = {
 export function FinanceiroCategories({
   tone = 'success',
   className,
+  onApplyAction: onApply,
+  onCancelAction: onCancel,
 }: {
   tone?: BadgeTone;
   className?: string;
+  onApplyAction?: () => void;
+  onCancelAction?: () => void;
 }) {
   const { categories, addCategory, updateCategory, deleteCategory } =
     useFinanceiroContext();
+
+  const [localCategories, setLocalCategories] = useState<Category[]>([]);
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [deletedIds, setDeletedIds] = useState<string[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  if (!hasInitialized && categories.length > 0) {
+    setLocalCategories([...categories]);
+    setHasInitialized(true);
+  }
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<CategoryForm>(INITIAL_FORM);
@@ -53,60 +66,113 @@ export function FinanceiroCategories({
     setEditForm(INITIAL_FORM);
   }
 
-  async function saveEdit() {
+  function saveEdit() {
     if (!editingId || !editForm.name.trim()) return;
 
-    await updateCategory(editingId, editForm);
+    setLocalCategories((prev) =>
+      prev.map((cat) =>
+        cat.id === editingId
+          ? { ...cat, name: editForm.name, tone: editForm.tone }
+          : cat,
+      ),
+    );
 
     cancelEdit();
   }
 
-  async function add() {
+  function add() {
     if (!editForm.name.trim()) return;
 
-    await addCategory(editForm);
+    const newCat: Category = {
+      id: `temp-${Math.random().toString(36).substr(2, 9)}`,
+      name: editForm.name,
+      tone: editForm.tone,
+    };
 
+    setLocalCategories((prev) => [...prev, newCat]);
     setIsAdding(false);
     setEditForm(INITIAL_FORM);
   }
 
-  async function remove() {
+  function remove() {
     if (!editingId) return;
 
-    await deleteCategory(editingId);
+    if (!editingId.startsWith('temp-')) {
+      setDeletedIds((prev) => [...prev, editingId]);
+    }
 
+    setLocalCategories((prev) => prev.filter((cat) => cat.id !== editingId));
     cancelEdit();
   }
 
-  return (
-    <Card
-      data-tone={tone}
-      className={cn(
-        'border-border/40 bg-card/50 backdrop-blur-sm w-full',
-        className,
-      )}
-    >
-      <CardHeader className="flex items-center justify-between p-4 pb-2">
-        <CardTitle className="text-sm font-black text-muted-foreground uppercase tracking-widest">
-          Categorias
-        </CardTitle>
+  async function handleApply() {
+    // 1. Validate
+    const names = localCategories.map((c) => c.name.toLowerCase().trim());
+    const hasDuplicates = names.some(
+      (name, index) => names.indexOf(name) !== index,
+    );
 
+    if (hasDuplicates) {
+      alert('Existem categorias com nomes duplicados.');
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      for (const id of deletedIds) {
+        await deleteCategory(id);
+      }
+
+      for (const local of localCategories) {
+        const original = categories.find((c) => c.id === local.id);
+
+        if (local.id.startsWith('temp-')) {
+          await addCategory({
+            name: local.name,
+            tone: local.tone as BadgeTone,
+          });
+        } else if (
+          original &&
+          (original.name !== local.name || original.tone !== local.tone)
+        ) {
+          await updateCategory(local.id, {
+            name: local.name,
+            tone: local.tone as BadgeTone,
+          });
+        }
+      }
+
+      onApply?.();
+    } catch (error) {
+      console.error('Erro ao sincronizar categorias:', error);
+      alert('Erro ao salvar categorias. Tente novamente.');
+    } finally {
+      setIsSyncing(false);
+    }
+  }
+
+  return (
+    <div className={cn('space-y-4', className)} data-tone={tone}>
+      <div className="flex items-center justify-between">
+        <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+          Gerenciar Categorias
+        </h4>
         <Button
           size="sm"
           variant="outline"
-          className="h-7 gap-1"
-          disabled={isAdding}
+          className="h-7 text-[10px] uppercase font-bold tracking-wider gap-1.5"
+          disabled={isAdding || isSyncing}
           onClick={() => {
             setIsAdding(true);
             setEditingId(null);
           }}
         >
-          <Plus size={14} />
+          <Plus size={12} />
           Nova
         </Button>
-      </CardHeader>
+      </div>
 
-      <CardContent className="p-4 pt-0 space-y-3">
+      <div className="space-y-3">
         {isAdding && (
           <div className="rounded-lg border border-border/40 bg-muted/40 p-3 space-y-3 animate-in fade-in">
             <Input
@@ -135,7 +201,7 @@ export function FinanceiroCategories({
                   size="icon"
                   variant="ghost"
                   className="h-7 w-7 text-emerald-500"
-                  onClick={() => void add()}
+                  onClick={() => add()}
                 >
                   <Check size={14} />
                 </Button>
@@ -180,7 +246,7 @@ export function FinanceiroCategories({
                   size="icon"
                   variant="ghost"
                   className="h-7 w-7 text-emerald-500 cursor-pointer"
-                  onClick={() => void saveEdit()}
+                  onClick={() => saveEdit()}
                 >
                   <Check size={14} />
                 </Button>
@@ -189,7 +255,7 @@ export function FinanceiroCategories({
                   size="icon"
                   variant="ghost"
                   className="h-7 w-7 text-red-500 cursor-pointer"
-                  onClick={() => void remove()}
+                  onClick={() => remove()}
                 >
                   <Trash2 size={14} />
                 </Button>
@@ -206,11 +272,9 @@ export function FinanceiroCategories({
             </div>
           </div>
         )}
-        <p className="text-xs text-muted-foreground sm:hidden">
-          Selecione uma categoria para editar
-        </p>
+
         <div className="flex flex-wrap gap-2">
-          {categories.map((cat) => (
+          {localCategories.map((cat) => (
             <button
               key={cat.id}
               type="button"
@@ -232,7 +296,27 @@ export function FinanceiroCategories({
             </button>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      <div className="mt-6 pt-4 border-t border-border/20 flex flex-col sm:flex-row gap-2 justify-end">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full sm:w-auto px-6 cursor-pointer"
+          disabled={isSyncing}
+          onClick={onCancel}
+        >
+          Voltar
+        </Button>
+        <Button
+          size="sm"
+          className="w-full sm:w-auto px-8 cursor-pointer font-bold"
+          disabled={isSyncing}
+          onClick={() => void handleApply()}
+        >
+          {isSyncing ? 'Aplicando...' : 'Aplicar'}
+        </Button>
+      </div>
+    </div>
   );
 }

@@ -66,6 +66,9 @@ export function FinanceiroFilters({
               <SelectValue placeholder="Selecione o mês" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all" className="cursor-pointer font-bold">
+                Todos
+              </SelectItem>
               {months.map((m, i) => (
                 <SelectItem
                   key={m}
@@ -170,7 +173,10 @@ export function FinanceiroFilters({
         <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
           Filtrando por:{' '}
           <span style={{ color: 'var(--tone-color)' }}>
-            {months[Number(filters.month)]} / {filters.year}
+            {filters.month === 'all'
+              ? 'Todos os Meses'
+              : months[Number(filters.month)]}{' '}
+            / {filters.year}
           </span>
         </div>
       </div>

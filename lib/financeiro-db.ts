@@ -20,11 +20,11 @@ export interface FinanceiroEntry {
 }
 
 const DEFAULT_CATEGORIES: Array<{ name: string; tone: string }> = [
-  { name: 'Transporte', tone: 'info' },
-  { name: 'Saúde', tone: 'error' },
-  { name: 'Lazer', tone: 'accent' },
-  { name: 'Salário', tone: 'success' },
-  { name: 'Investimentos', tone: 'info' },
+  { name: 'Transporte', tone: 'laranja' },
+  { name: 'Saúde', tone: 'vermelho' },
+  { name: 'Lazer', tone: 'violeta' },
+  { name: 'Salário', tone: 'esmeralda' },
+  { name: 'Investimentos', tone: 'azul' },
 ];
 
 export async function ensureDefaultCategories(userId: number) {

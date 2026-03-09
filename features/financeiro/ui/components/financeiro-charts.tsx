@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import {
-  AreaChart,
-  Area,
+  ComposedChart,
+  Line,
   PieChart,
   Pie,
   Cell,
@@ -17,6 +17,7 @@ import {
   FinancialEntry,
   useFinanceiroContext,
 } from '@/features/financeiro/application/context/financeiro-context';
+import { cn } from '@/lib/utils';
 
 const formatBRL = (v: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -67,14 +68,23 @@ const CustomTooltip = ({
             style={{ backgroundColor: p.color || p.fill }}
           />
           <span className="text-muted-foreground">{p.name}:</span>
-          <span className="font-bold">{formatBRL(p.value)}</span>
+          <span
+            className={cn(
+              'font-bold',
+              p.name === 'Receita' && 'text-emerald-500',
+              p.name === 'Despesa' && 'text-red-500',
+              p.name === 'Investimento' && 'text-blue-500',
+            )}
+          >
+            {formatBRL(p.value)}
+          </span>
         </div>
       ))}
     </div>
   );
 };
 
-function buildDailyData(entries: FinancialEntry[]) {
+function buildMonthlyData(entries: FinancialEntry[]) {
   const map = new Map<
     string,
     {
@@ -82,24 +92,41 @@ function buildDailyData(entries: FinancialEntry[]) {
       receita: number;
       despesa: number;
       investimento: number;
-      saldo: number;
     }
   >();
+
+  // Helper to get month name from YYYY-MM
+  const getMonthName = (dateStr: string) => {
+    const [, month] = dateStr.split('-');
+    const months = [
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
+    ];
+    return months[parseInt(month) - 1];
+  };
 
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
 
   for (const entry of sorted) {
-    const key = entry.date;
+    const [year, month] = entry.date.split('-');
+    const key = `${year}-${month}`;
 
     if (!map.has(key)) {
-      const [, month, day] = key.split('-');
-
       map.set(key, {
-        label: `${day}/${month}`,
+        label: getMonthName(entry.date),
         receita: 0,
         despesa: 0,
         investimento: 0,
-        saldo: 0,
       });
     }
 
@@ -120,22 +147,17 @@ function buildDailyData(entries: FinancialEntry[]) {
     }
   }
 
-  let accumulated = 0;
-
-  return Array.from(map.values()).map((row) => {
-    accumulated += row.receita + row.investimento - row.despesa;
-
-    return { ...row, saldo: accumulated };
-  });
+  return Array.from(map.values());
 }
 
 export function FinanceiroCharts() {
-  const { filteredEntries } = useFinanceiroContext();
+  const { entries, filteredEntries } = useFinanceiroContext();
 
-  const dailyData = useMemo(
-    () => buildDailyData(filteredEntries),
-    [filteredEntries],
-  );
+  const monthlyData = useMemo(() => {
+    const currentYear = new Date().getFullYear().toString();
+    const yearEntries = entries.filter((e) => e.date.startsWith(currentYear));
+    return buildMonthlyData(yearEntries);
+  }, [entries]);
 
   const pieData = useMemo(() => {
     const revenue = filteredEntries
@@ -159,7 +181,7 @@ export function FinanceiroCharts() {
     ].filter((item) => item.value > 0);
   }, [filteredEntries]);
 
-  if (dailyData.length === 0) return null;
+  if (monthlyData.length === 0) return null;
 
   const axisStyle = {
     fontSize: 10,
@@ -172,27 +194,13 @@ export function FinanceiroCharts() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div className="rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm p-4">
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">
-          Evolução do saldo
+          Evolução Financeira ({new Date().getFullYear()})
         </p>
         <ResponsiveContainer width="100%" height={180}>
-          <AreaChart
-            data={dailyData}
+          <ComposedChart
+            data={monthlyData}
             margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
           >
-            <defs>
-              <linearGradient id="saldoGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor={colorsEdit.revenue}
-                  stopOpacity={0.3}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={colorsEdit.revenue}
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke={colorsEdit.grid}
@@ -207,7 +215,7 @@ export function FinanceiroCharts() {
               interval={0}
               minTickGap={10}
               height={30}
-              padding={{ left: 40, right: 20 }}
+              padding={{ left: 20, right: 20 }}
             />
             <YAxis
               tick={axisStyle}
@@ -217,17 +225,34 @@ export function FinanceiroCharts() {
               width={52}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Area
+            <Line
               type="monotone"
-              dataKey="saldo"
-              name="Saldo"
+              dataKey="receita"
+              name="Receita"
               stroke={colorsEdit.revenue}
-              strokeWidth={2}
-              fill="url(#saldoGrad)"
-              dot={false}
-              activeDot={{ r: 4, strokeWidth: 0 }}
+              strokeWidth={3}
+              dot={{ r: 4, fill: colorsEdit.revenue, strokeWidth: 0 }}
+              activeDot={{ r: 6, strokeWidth: 0 }}
             />
-          </AreaChart>
+            <Line
+              type="monotone"
+              dataKey="despesa"
+              name="Despesa"
+              stroke={colorsEdit.expense}
+              strokeWidth={3}
+              dot={{ r: 4, fill: colorsEdit.expense, strokeWidth: 0 }}
+              activeDot={{ r: 6, strokeWidth: 0 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="investimento"
+              name="Investimento"
+              stroke={colorsEdit.investment}
+              strokeWidth={3}
+              dot={{ r: 4, fill: colorsEdit.investment, strokeWidth: 0 }}
+              activeDot={{ r: 6, strokeWidth: 0 }}
+            />
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
 

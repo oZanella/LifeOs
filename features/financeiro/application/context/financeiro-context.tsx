@@ -282,7 +282,7 @@ export function FinanceiroProvider({
       const entryYear = year;
       const entryDay = parseInt(day, 10).toString();
 
-      const mMatch = fMonth === '' || entryMonth === fMonth;
+      const mMatch = fMonth === 'all' || fMonth === '' || entryMonth === fMonth;
       const yMatch = fYear === '' || entryYear === fYear;
 
       if (mMatch && yMatch) {

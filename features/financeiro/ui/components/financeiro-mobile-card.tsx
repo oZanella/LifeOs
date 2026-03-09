@@ -16,6 +16,8 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+import { Badge, BadgeTone } from '@/components/ui/badge';
+
 interface FinanceiroMobileCardProps {
   entry: FinancialEntry;
   categories: Category[];
@@ -75,9 +77,13 @@ export function FinanceiroMobileCard({
             {category && (
               <>
                 <span className="text-muted-foreground/40 text-[10px]">·</span>
-                <span className="text-[11px] text-muted-foreground truncate max-w-28">
+                <Badge
+                  tone={category.tone as BadgeTone}
+                  variant="subtle"
+                  className="text-[10px] uppercase font-bold tracking-tight border-none"
+                >
                   {category.name}
-                </span>
+                </Badge>
               </>
             )}
 

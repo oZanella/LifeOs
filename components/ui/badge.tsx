@@ -30,20 +30,33 @@ const badgeVariants = cva(
           'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400 [--tone-color:theme(colors.purple.500)]',
         indigo:
           'bg-indigo-500/10 text-indigo-700 border-indigo-500/25 dark:text-indigo-300 [--tone-color:theme(colors.indigo.500)]',
-        cyan:
-          'bg-cyan-500/10 text-cyan-700 border-cyan-500/25 dark:text-cyan-300 [--tone-color:theme(colors.cyan.500)]',
-        teal:
-          'bg-teal-500/10 text-teal-700 border-teal-500/25 dark:text-teal-300 [--tone-color:theme(colors.teal.500)]',
-        lime:
-          'bg-lime-500/10 text-lime-700 border-lime-500/25 dark:text-lime-300 [--tone-color:theme(colors.lime.500)]',
+        teal: 'bg-teal-500/10 text-teal-700 border-teal-500/25 dark:text-teal-300 [--tone-color:theme(colors.teal.500)]',
+        lime: 'bg-lime-500/10 text-lime-700 border-lime-500/25 dark:text-lime-300 [--tone-color:theme(colors.lime.500)]',
         amber:
           'bg-amber-500/10 text-amber-700 border-amber-500/25 dark:text-amber-300 [--tone-color:theme(colors.amber.500)]',
-        rose:
-          'bg-rose-500/10 text-rose-700 border-rose-500/25 dark:text-rose-300 [--tone-color:theme(colors.rose.500)]',
+        rose: 'bg-rose-500/10 text-rose-700 border-rose-500/25 dark:text-rose-300 [--tone-color:theme(colors.rose.500)]',
         online:
           'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 [--tone-color:theme(colors.emerald.400)]',
         neutral:
           'bg-gray-500/10 text-gray-500 border-gray-500/20 [--tone-color:theme(colors.gray.400)]',
+        azul: 'bg-sky-500/15 text-sky-700 border-sky-500 dark:text-sky-300 [--tone-color:theme(colors.sky.500)]',
+
+        violeta:
+          'bg-violet-500/15 text-violet-700 border-violet-500 dark:text-violet-300 [--tone-color:theme(colors.violet.500)]',
+
+        esmeralda:
+          'bg-emerald-500/15 text-emerald-700 border-emerald-500 dark:text-emerald-300 [--tone-color:theme(colors.emerald.500)]',
+
+        'azul-claro':
+          'bg-blue-500/15 text-blue-700 border-blue-500 dark:text-blue-300 [--tone-color:theme(colors.blue.500)]',
+
+        laranja:
+          'bg-orange-500/15 text-orange-700 border-orange-500 dark:text-orange-300 [--tone-color:theme(colors.orange.500)]',
+
+        vermelho:
+          'bg-red-500/15 text-red-700 border-red-500 dark:text-red-300 [--tone-color:theme(colors.red.500)]',
+
+        rosa: 'bg-fuchsia-500/15 text-fuchsia-700 border-fuchsia-500 dark:text-fuchsia-300 [--tone-color:theme(colors.fuchsia.500)]',
       },
     },
     compoundVariants: [
