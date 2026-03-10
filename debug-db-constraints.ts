@@ -1,4 +1,4 @@
-const { dbQuery } = require('./lib/db');
+import { dbQuery } from './lib/db';
 
 async function debugConstraints() {
   try {
@@ -34,7 +34,7 @@ async function debugConstraints() {
       ORDER BY ordinal_position;
     `);
     console.table(columns);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Debug failed:', error);
   } finally {
     process.exit();

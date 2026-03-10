@@ -75,15 +75,15 @@ export async function listEntries(userId: number) {
     [userId],
   );
 
-  return (rows as any[]).map((row) => ({
+  return rows.map((row) => ({
     id: row.id,
     date: row.date,
     description: row.description,
     categoryId: row.category_id,
     amount: row.amount,
-    type: row.type as EntryType,
+    type: row.type,
     isFixed: Boolean(row.is_fixed),
-    parentId: row.parent_id as string | null,
+    parentId: row.parent_id,
   }));
 }
 
@@ -222,8 +222,12 @@ export async function updateEntry(
 
 export async function deleteEntry(userId: number, entryId: string) {
   await dbExec(
-    'DELETE FROM financeiro_entries WHERE id = $1 AND user_id = $2',
-    [entryId, userId],
+    `
+      DELETE FROM financeiro_entries
+      WHERE user_id = $1
+        AND (id = $2 OR parent_id = $2)
+    `,
+    [userId, entryId],
   );
 }
 
@@ -232,7 +236,11 @@ export async function deleteEntries(userId: number, entryIds: string[]) {
 
   const placeholders = entryIds.map((_, i) => `$${i + 2}`).join(', ');
   await dbExec(
-    `DELETE FROM financeiro_entries WHERE user_id = $1 AND id IN (${placeholders})`,
+    `
+      DELETE FROM financeiro_entries
+      WHERE user_id = $1
+        AND (id IN (${placeholders}) OR parent_id IN (${placeholders}))
+    `,
     [userId, ...entryIds],
   );
 }

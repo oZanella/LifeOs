@@ -82,11 +82,44 @@ async function runMigrations() {
   
       -- Migrations
       DO $$ 
-      BEGIN 
+      DECLARE
+        fk_name TEXT;
+      BEGIN
+        -- Ensure parent_id exists (older DBs may already have it without FK).
         BEGIN
-          ALTER TABLE financeiro_entries ADD COLUMN parent_id TEXT REFERENCES financeiro_entries(id) ON DELETE CASCADE;
+          ALTER TABLE financeiro_entries ADD COLUMN parent_id TEXT;
         EXCEPTION
           WHEN duplicate_column THEN NULL;
+        END;
+
+        -- Remove orphan rows (from DBs where FK wasn't enforced previously).
+        DELETE FROM financeiro_entries e
+        WHERE e.parent_id IS NOT NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM financeiro_entries p WHERE p.id = e.parent_id
+          );
+
+        -- Ensure FK exists and cascades: drop any FK on parent_id and re-add.
+        FOR fk_name IN
+          SELECT c.conname
+          FROM pg_constraint c
+          JOIN pg_attribute a
+            ON a.attnum = ANY (c.conkey) AND a.attrelid = c.conrelid
+          WHERE c.conrelid = 'financeiro_entries'::regclass
+            AND c.contype = 'f'
+            AND a.attname = 'parent_id'
+        LOOP
+          EXECUTE format('ALTER TABLE financeiro_entries DROP CONSTRAINT %I', fk_name);
+        END LOOP;
+
+        BEGIN
+          ALTER TABLE financeiro_entries
+            ADD CONSTRAINT financeiro_entries_parent_id_fkey
+            FOREIGN KEY (parent_id)
+            REFERENCES financeiro_entries(id)
+            ON DELETE CASCADE;
+        EXCEPTION
+          WHEN duplicate_object THEN NULL;
         END;
 
         BEGIN
