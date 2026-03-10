@@ -37,9 +37,7 @@ export function Home() {
         </div>
 
         <div className="flex items-center gap-1 absolute top-2 right-2 sm:static">
-          <Button className="sm:hidden" variant="link" size="icon">
-            <ThemeToggle />
-          </Button>
+          <ThemeToggle />
 
           <Button
             className="cursor-pointer"
