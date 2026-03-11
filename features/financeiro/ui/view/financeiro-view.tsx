@@ -12,8 +12,8 @@ interface FinanceiroProps {
 export function Financeiro({ tone = 'success' }: FinanceiroProps) {
   return (
     <FinanceiroProvider>
-      <div data-tone={tone}>
-        <PageContainer className="bg-background gap-2 pb-4">
+      <div data-tone={tone} className="flex flex-col h-full max-h-full min-h-0">
+        <PageContainer className="bg-background gap-2 pb-4 flex-1 min-h-0 overflow-hidden">
           <FinanceiroGrid tone={tone} />
         </PageContainer>
       </div>

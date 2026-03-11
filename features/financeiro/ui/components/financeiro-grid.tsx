@@ -159,7 +159,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
           .replace(/^./, (c) => c.toUpperCase());
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 flex-1 min-h-0 h-full overflow-hidden">
       <ProcessingOverlay isOpen={isProcessing || loading} />
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 flex-wrap cursor-default">
@@ -227,145 +227,147 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
 
       <FinanceiroStats tone={tone} />
 
-      <div className="flex sm:hidden flex-col gap-2">
-        {loading ? (
-          Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-2xl border border-border/40 bg-card/30 p-4 space-y-3"
-            >
-              <div className="flex justify-between">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-16" />
+      <div className="flex-1 h-full overflow-auto min-h-0">
+        <div className="flex sm:hidden flex-col gap-2 h-full min-h-0 overflow-y-auto pr-1 custom-scrollbar overscroll-contain">
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-border/40 bg-card/30 p-4 space-y-3"
+              >
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <Skeleton className="h-6 w-full" />
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
               </div>
-              <Skeleton className="h-6 w-full" />
-              <div className="flex justify-between">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-8 w-8 rounded-full" />
-              </div>
+            ))
+          ) : filteredEntries.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground italic text-sm">
+              Nenhuma transação encontrada para este período.
             </div>
-          ))
-        ) : filteredEntries.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground italic text-sm">
-            Nenhuma transação encontrada para este período.
-          </div>
-        ) : (
-          filteredEntries.map((entry) => (
-            <FinanceiroMobileCard
-              key={entry.id}
-              entry={entry}
-              categories={categories}
-              formatCurrency={formatCurrency}
-              isSelectionMode={isSelectionMode}
-              onToggleFixed={(entryId, isFixed) => {
-                if (entry.parentId) return;
+          ) : (
+            filteredEntries.map((entry) => (
+              <FinanceiroMobileCard
+                key={entry.id}
+                entry={entry}
+                categories={categories}
+                formatCurrency={formatCurrency}
+                isSelectionMode={isSelectionMode}
+                onToggleFixed={(entryId, isFixed) => {
+                  if (entry.parentId) return;
 
-                if (!isFixed) {
-                  setRecurringTarget(entry);
-                  setIsRecurringModalOpen(true);
-                } else {
-                  updateEntry(entryId, { isFixed: false });
+                  if (!isFixed) {
+                    setRecurringTarget(entry);
+                    setIsRecurringModalOpen(true);
+                  } else {
+                    updateEntry(entryId, { isFixed: false });
+                  }
+                }}
+                onToggleSelection={() => toggleOne(entry.id)}
+                isSelected={selectedIds.has(entry.id)}
+                onStartEdit={() => handleOpenEdit(entry)}
+                onDelete={() =>
+                  handleConfirmDelete(
+                    [entry.id],
+                    entry.isFixed && !entry.parentId,
+                  )
                 }
-              }}
-              onToggleSelection={() => toggleOne(entry.id)}
-              isSelected={selectedIds.has(entry.id)}
-              onStartEdit={() => handleOpenEdit(entry)}
-              onDelete={() =>
-                handleConfirmDelete(
-                  [entry.id],
-                  entry.isFixed && !entry.parentId,
-                )
-              }
-            />
-          ))
-        )}
-      </div>
+              />
+            ))
+          )}
+        </div>
 
-      <div className="hidden sm:block rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-hidden overflow-x-auto custom-scrollbar min-h-65">
-        <table className="w-full text-left border-collapse min-w-230 cursor-default">
-          <thead>
-            <tr className="bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
-              <th className="px-4 py-3 w-40">Data</th>
-              <th className="px-4 py-3">Descrição</th>
-              <th className="px-4 py-3 w-40">Categoria</th>
-              <th className="px-4 py-3 w-32">Valor</th>
-              <th className="px-4 py-3 w-24 text-center">Tipo</th>
-              <th className="px-4 py-3 w-20 text-center">Fixo</th>
-              <th className="px-4 py-3 w-32 text-center">Ações</th>
-            </tr>
-          </thead>
+        <div className="hidden sm:block h-full min-h-0 rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-auto custom-scrollbar overscroll-contain">
+          <table className="w-full text-left border-collapse min-w-230 cursor-default">
+            <thead>
+              <tr className="bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                <th className="px-4 py-3 w-40">Data</th>
+                <th className="px-4 py-3">Descrição</th>
+                <th className="px-4 py-3 w-40">Categoria</th>
+                <th className="px-4 py-3 w-32">Valor</th>
+                <th className="px-4 py-3 w-24 text-center">Tipo</th>
+                <th className="px-4 py-3 w-20 text-center">Fixo</th>
+                <th className="px-4 py-3 w-32 text-center">Ações</th>
+              </tr>
+            </thead>
 
-          <tbody className="divide-y divide-border/20">
-            {loading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i}>
-                  <td className="px-4 py-4">
-                    <Skeleton className="h-4 w-24" />
-                  </td>
-                  <td className="px-4 py-4">
-                    <Skeleton className="h-4 w-48" />
-                  </td>
-                  <td className="px-4 py-4">
-                    <Skeleton className="h-4 w-32" />
-                  </td>
-                  <td className="px-4 py-4">
-                    <Skeleton className="h-4 w-20" />
-                  </td>
-                  <td className="px-4 py-4 flex justify-center">
-                    <Skeleton className="h-4 w-12" />
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <Skeleton className="h-4 w-8 mx-auto" />
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <Skeleton className="h-8 w-24 mx-auto" />
+            <tbody className="divide-y divide-border/20">
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i}>
+                    <td className="px-4 py-4">
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <Skeleton className="h-4 w-48" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <Skeleton className="h-4 w-32" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <Skeleton className="h-4 w-20" />
+                    </td>
+                    <td className="px-4 py-4 flex justify-center">
+                      <Skeleton className="h-4 w-12" />
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      <Skeleton className="h-4 w-8 mx-auto" />
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      <Skeleton className="h-8 w-24 mx-auto" />
+                    </td>
+                  </tr>
+                ))
+              ) : filteredEntries.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-12 text-center text-muted-foreground italic text-sm"
+                  >
+                    Nenhuma transação encontrada para este período.
                   </td>
                 </tr>
-              ))
-            ) : filteredEntries.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="px-4 py-12 text-center text-muted-foreground italic text-sm"
-                >
-                  Nenhuma transação encontrada para este período.
-                </td>
-              </tr>
-            ) : (
-              filteredEntries.map((entry) => (
-                <FinanceiroGridRow
-                  key={entry.id}
-                  entry={entry}
-                  isSelectionMode={isSelectionMode}
-                  isSelected={selectedIds.has(entry.id)}
-                  onToggleSelection={() => toggleOne(entry.id)}
-                  categories={categories}
-                  formatCurrency={formatCurrency}
-                  onQuickCategoryChange={(entryId, categoryId) =>
-                    updateEntry(entryId, { categoryId })
-                  }
-                  onToggleFixed={(entryId, isFixed) => {
-                    if (entry.parentId) return;
-
-                    if (!isFixed) {
-                      setRecurringTarget(entry);
-                      setIsRecurringModalOpen(true);
-                    } else {
-                      updateEntry(entryId, { isFixed: false });
+              ) : (
+                filteredEntries.map((entry) => (
+                  <FinanceiroGridRow
+                    key={entry.id}
+                    entry={entry}
+                    isSelectionMode={isSelectionMode}
+                    isSelected={selectedIds.has(entry.id)}
+                    onToggleSelection={() => toggleOne(entry.id)}
+                    categories={categories}
+                    formatCurrency={formatCurrency}
+                    onQuickCategoryChange={(entryId, categoryId) =>
+                      updateEntry(entryId, { categoryId })
                     }
-                  }}
-                  onStartEdit={() => handleOpenEdit(entry)}
-                  onDelete={() =>
-                    handleConfirmDelete(
-                      [entry.id],
-                      entry.isFixed && !entry.parentId,
-                    )
-                  }
-                />
-              ))
-            )}
-          </tbody>
-        </table>
+                    onToggleFixed={(entryId, isFixed) => {
+                      if (entry.parentId) return;
+
+                      if (!isFixed) {
+                        setRecurringTarget(entry);
+                        setIsRecurringModalOpen(true);
+                      } else {
+                        updateEntry(entryId, { isFixed: false });
+                      }
+                    }}
+                    onStartEdit={() => handleOpenEdit(entry)}
+                    onDelete={() =>
+                      handleConfirmDelete(
+                        [entry.id],
+                        entry.isFixed && !entry.parentId,
+                      )
+                    }
+                  />
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {editingEntry !== null && (

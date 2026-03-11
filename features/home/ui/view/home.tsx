@@ -22,7 +22,7 @@ export function Home() {
   const Content = currentPage.component;
 
   return (
-    <div className="flex flex-col min-h-dvh w-full bg-background text-foreground overflow-x-hidden font-sans">
+    <div className="flex flex-col h-dvh w-full bg-background text-foreground overflow-hidden font-sans">
       <PageHeader
         title="LIFE"
         highlightText="OS"
@@ -59,8 +59,8 @@ export function Home() {
         />
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          <main className="flex-1 overflow-y-auto px-3 sm:px-6 pt-3 sm:pt-5 pb-20 sm:pb-6 custom-scrollbar">
-            <div className="max-w-7xl mx-auto w-full">
+          <main className="flex-1 min-h-0 overflow-hidden px-3 sm:px-6 pt-3 sm:pt-5 pb-20 sm:pb-6">
+            <div className="max-w-7xl mx-auto w-full h-full min-h-0">
               <Content tone={currentPage.tone} />
             </div>
           </main>
