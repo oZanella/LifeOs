@@ -22,7 +22,7 @@ export function Home() {
   const Content = currentPage.component;
 
   return (
-    <div className="flex flex-col h-dvh w-full bg-background text-foreground overflow-hidden font-sans">
+    <div className="flex flex-col min-h-dvh sm:h-dvh w-full bg-background text-foreground overflow-y-auto sm:overflow-hidden font-sans">
       <PageHeader
         title="LIFE"
         highlightText="OS"
@@ -50,7 +50,7 @@ export function Home() {
         </div>
       </PageHeader>
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-visible sm:overflow-hidden relative">
         <HomeSidebar
           activePage={activePage}
           onPageChange={(page) => setActivePage(page)}
@@ -58,8 +58,8 @@ export function Home() {
           onCloseMobile={() => setMobileSidebarOpen(false)}
         />
 
-        <div className="flex-1 flex flex-col overflow-hidden relative">
-          <main className="flex-1 min-h-0 overflow-hidden px-3 sm:px-6 pt-3 sm:pt-5 pb-20 sm:pb-6">
+        <div className="flex-1 flex flex-col overflow-visible sm:overflow-hidden relative">
+          <main className="flex-1 min-h-0 overflow-visible sm:overflow-hidden px-3 sm:px-6 pt-3 sm:pt-5 pb-20 sm:pb-6">
             <div className="max-w-7xl mx-auto w-full h-full min-h-0">
               <Content tone={currentPage.tone} />
             </div>

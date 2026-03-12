@@ -159,7 +159,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
           .replace(/^./, (c) => c.toUpperCase());
 
   return (
-    <div className="flex flex-col gap-4 flex-1 min-h-0 h-full overflow-hidden">
+    <div className="flex flex-col gap-4 flex-1 sm:min-h-0 sm:h-full sm:overflow-hidden">
       <ProcessingOverlay isOpen={isProcessing || loading} />
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 flex-wrap cursor-default">
@@ -187,7 +187,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             variant="outline"
             size="sm"
             className={cn(
-              'gap-2 cursor-pointer flex-1 sm:flex-none transition-all',
+              'hidden sm:flex gap-2 cursor-pointer transition-all',
               isSelectionMode && 'bg-blue-500/10 border-blue-500 text-blue-500',
             )}
             disabled={isProcessing}
@@ -227,8 +227,8 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
 
       <FinanceiroStats tone={tone} />
 
-      <div className="flex-1 h-full overflow-auto min-h-0">
-        <div className="flex sm:hidden flex-col gap-2 h-full min-h-0 overflow-y-auto pr-1 custom-scrollbar overscroll-contain">
+      <div className="flex-1 sm:h-full sm:overflow-auto sm:min-h-0">
+        <div className="flex sm:hidden flex-col gap-2 pr-1 custom-scrollbar">
           {loading ? (
             Array.from({ length: 5 }).map((_, i) => (
               <div
@@ -257,7 +257,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                 entry={entry}
                 categories={categories}
                 formatCurrency={formatCurrency}
-                isSelectionMode={isSelectionMode}
                 onToggleFixed={(entryId, isFixed) => {
                   if (entry.parentId) return;
 
@@ -268,8 +267,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                     updateEntry(entryId, { isFixed: false });
                   }
                 }}
-                onToggleSelection={() => toggleOne(entry.id)}
-                isSelected={selectedIds.has(entry.id)}
                 onStartEdit={() => handleOpenEdit(entry)}
                 onDelete={() =>
                   handleConfirmDelete(
