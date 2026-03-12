@@ -12,8 +12,6 @@ export function HomeMobileNav({
   activePage,
   onPageChange,
 }: HomeMobileNavProps) {
-  // Filtramos apenas os itens não desabilitados para a navegação móvel rápida
-  // Limitamos aos principais: Dashboard, Financeiro e Configuracoes
   const mainItems = lab_itens.filter(
     (item) =>
       !item.disabled &&

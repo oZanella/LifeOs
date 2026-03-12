@@ -18,7 +18,7 @@ import {
 } from './home-configuracoes.utils';
 
 export function useAdminUserManagement() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const dragStateRef = useRef<{
     userId: number;
@@ -259,6 +259,12 @@ export function useAdminUserManagement() {
       applyUsers(data.users);
       setEditingUserId(null);
       setAvatarCrop(null);
+
+      if (user && targetUserId === user.id) {
+        await logout();
+        return;
+      }
+
       setAdminSuccess('Usuário atualizado.');
     } catch (err) {
       setAdminError(
@@ -269,8 +275,15 @@ export function useAdminUserManagement() {
     }
   };
 
-  const deleteUser = async (targetUserId: number) => {
-    if (!window.confirm('Excluir este usuario?')) {
+  const deleteUser = async (targetUserId: number, password?: string) => {
+    const isSelf = user?.id === targetUserId;
+
+    if (!isSelf && !window.confirm('Excluir este usuario?')) {
+      return;
+    }
+
+    if (isSelf && !password) {
+      setAdminError('Informe sua senha para excluir sua conta.');
       return;
     }
 
@@ -279,15 +292,24 @@ export function useAdminUserManagement() {
     setAdminSuccess('');
 
     try {
+      const init: RequestInit = {
+        method: 'DELETE',
+        body: password ? JSON.stringify({ password }) : undefined,
+      };
+
       const data = await requestJson<{ users: AdminUser[] }>(
         `/api/admin/users/${targetUserId}`,
-        {
-          method: 'DELETE',
-        },
+        init,
       );
       applyUsers(data.users);
       setEditingUserId((prev) => (prev === targetUserId ? null : prev));
       setAvatarCrop((prev) => (prev?.userId === targetUserId ? null : prev));
+
+      if (isSelf) {
+        await logout();
+        return;
+      }
+
       setAdminSuccess('Usuario excluido.');
     } catch (err) {
       setAdminError(

@@ -8,6 +8,7 @@ import {
   getSessionFromRequest,
   listUsersForAdmin,
   updateUserByAdmin,
+  verifyPassword,
 } from '@/lib/auth';
 
 export async function PATCH(
@@ -17,11 +18,14 @@ export async function PATCH(
   const session = await getSessionFromRequest(request);
 
   if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
+    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
   }
 
   if (!session.isAdmin) {
-    return NextResponse.json({ message: 'Acesso permitido apenas para ADM.' }, { status: 403 });
+    return NextResponse.json(
+      { message: 'Acesso permitido apenas para ADM.' },
+      { status: 403 },
+    );
   }
 
   try {
@@ -29,12 +33,18 @@ export async function PATCH(
     const targetId = Number(id);
 
     if (!Number.isFinite(targetId)) {
-      return NextResponse.json({ message: 'Usuario invalido.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Usuário inválido.' },
+        { status: 400 },
+      );
     }
 
     const target = await findUserById(targetId);
     if (!target) {
-      return NextResponse.json({ message: 'Usuario nao encontrado.' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Usuário não encontrado.' },
+        { status: 404 },
+      );
     }
 
     const body = (await request.json()) as {
@@ -54,12 +64,12 @@ export async function PATCH(
     const nextAvatarUrl = hasAvatarField ? avatarInput.trim() : undefined;
 
     if (nextEmail && !nextEmail.includes('@')) {
-      return NextResponse.json({ message: 'Email invalido.' }, { status: 400 });
+      return NextResponse.json({ message: 'Email inválido.' }, { status: 400 });
     }
 
     if (nextUsername && nextUsername.length < 3) {
       return NextResponse.json(
-        { message: 'Nome de usuario precisa ter 3+ caracteres.' },
+        { message: 'Nome de usuário precisa ter 3+ caracteres.' },
         { status: 400 },
       );
     }
@@ -72,13 +82,19 @@ export async function PATCH(
     }
 
     if (typeof nextAvatarUrl === 'string' && nextAvatarUrl.length > 2_000_000) {
-      return NextResponse.json({ message: 'Avatar muito grande.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Avatar muito grande.' },
+        { status: 400 },
+      );
     }
 
     if (nextEmail) {
       const existing = await findUserByEmail(nextEmail);
       if (existing && existing.id !== targetId) {
-        return NextResponse.json({ message: 'Este email ja esta em uso.' }, { status: 409 });
+        return NextResponse.json(
+          { message: 'Este email já esta em uso.' },
+          { status: 409 },
+        );
       }
     }
 
@@ -86,7 +102,7 @@ export async function PATCH(
       const existing = await findUserByUsername(nextUsername);
       if (existing && existing.id !== targetId) {
         return NextResponse.json(
-          { message: 'Este nome de usuario ja existe.' },
+          { message: 'Este nome de usuário já existe.' },
           { status: 409 },
         );
       }
@@ -96,7 +112,7 @@ export async function PATCH(
       const admins = await countAdmins();
       if (admins <= 1) {
         return NextResponse.json(
-          { message: 'Nao e permitido remover o ultimo usuario ADM.' },
+          { message: 'Não e permitido remover o último usuário ADM.' },
           { status: 400 },
         );
       }
@@ -111,12 +127,18 @@ export async function PATCH(
     });
 
     if (!updated) {
-      return NextResponse.json({ message: 'Nada para atualizar.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Nada para atualizar.' },
+        { status: 400 },
+      );
     }
 
     return NextResponse.json({ users: await listUsersForAdmin() });
   } catch {
-    return NextResponse.json({ message: 'Erro ao atualizar usuario.' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Erro ao atualizar usuário.' },
+      { status: 500 },
+    );
   }
 }
 
@@ -127,11 +149,14 @@ export async function DELETE(
   const session = await getSessionFromRequest(request);
 
   if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
+    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
   }
 
   if (!session.isAdmin) {
-    return NextResponse.json({ message: 'Acesso permitido apenas para ADM.' }, { status: 403 });
+    return NextResponse.json(
+      { message: 'Acesso permitido apenas para ADM.' },
+      { status: 403 },
+    );
   }
 
   const { id } = await context.params;
@@ -143,12 +168,33 @@ export async function DELETE(
 
   const target = await findUserById(targetId);
   if (!target) {
-    return NextResponse.json({ message: 'Usuario nao encontrado.' }, { status: 404 });
+    return NextResponse.json(
+      { message: 'Usuario nao encontrado.' },
+      { status: 404 },
+    );
+  }
+
+  if (session.userId === targetId) {
+    const body = (await request.json().catch(() => null)) as {
+      password?: string;
+    } | null;
+    const password = body?.password?.trim();
+
+    if (!password) {
+      return NextResponse.json(
+        { message: 'Senha obrigatória para excluir sua conta.' },
+        { status: 400 },
+      );
+    }
+
+    if (!verifyPassword(password, target)) {
+      return NextResponse.json({ message: 'Senha inválida.' }, { status: 401 });
+    }
   }
 
   if (target.is_admin && (await countAdmins()) <= 1) {
     return NextResponse.json(
-      { message: 'Nao e permitido remover o ultimo usuario ADM.' },
+      { message: 'Não e permitido remover o último usuário ADM.' },
       { status: 400 },
     );
   }

@@ -2,7 +2,9 @@
 import { BadgeTone } from '@/components/ui/badge';
 import { AdminUserCard } from '../components/admin-user-card';
 import { AdminUserEditModal } from '../components/admin-user-edit-modal';
+import { AdminUserDeleteModal } from '../components/admin-user-delete-modal';
 import { useAdminUserManagement } from './use-admin-user-management';
+import { useState } from 'react';
 
 export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
   const {
@@ -32,15 +34,17 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
     updateUser,
     deleteUser,
   } = useAdminUserManagement();
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const totalUsers = adminUsers.length;
   const adminCount = adminUsers.filter((item) => item.isAdmin).length;
   const editingUser = adminUsers.find((item) => item.id === editingUserId);
   const editingDraft = editingUser ? adminDrafts[editingUser.id] : null;
+  const deleteTargetUser = adminUsers.find((item) => item.id === deleteTargetId);
 
   if (!user?.isAdmin) {
     return (
       <section className="mb-4 rounded-2xl border border-border/60 bg-background/80 p-6 shadow-[0_16px_40px_-28px_rgba(0,0,0,0.6)]">
-        <h3 className="text-lg font-semibold text-foreground">Configuracoes</h3>
+        <h3 className="text-lg font-semibold text-foreground">Configurações</h3>
         <p className="mt-2 text-sm text-muted-foreground">
           Apenas usuários administradores podem controlar os usuários
           cadastrados.
@@ -58,7 +62,7 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
       <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            Configuracoes
+            Configurações
           </div>
           <div>
             <h3 className="text-xl font-semibold text-foreground">
@@ -123,7 +127,13 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
                     prev === item.id ? null : item.id,
                   );
                 }}
-                onDelete={() => void deleteUser(item.id)}
+                onDelete={() => {
+                  if (user?.id === item.id) {
+                    setDeleteTargetId(item.id);
+                    return;
+                  }
+                  void deleteUser(item.id);
+                }}
               />
             );
           })}
@@ -181,6 +191,19 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
           onCropReset={resetCrop}
           onApplyCrop={() => void applyAvatarCrop()}
           onCancelCrop={() => setAvatarCrop(null)}
+        />
+      )}
+
+      {deleteTargetUser && (
+        <AdminUserDeleteModal
+          item={deleteTargetUser}
+          isOpen={Boolean(deleteTargetId)}
+          isSubmitting={adminSubmittingId === deleteTargetUser.id}
+          error={adminError}
+          onClose={() => setDeleteTargetId(null)}
+          onConfirm={(password) =>
+            void deleteUser(deleteTargetUser.id, password)
+          }
         />
       )}
     </section>

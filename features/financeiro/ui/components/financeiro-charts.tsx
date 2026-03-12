@@ -181,7 +181,18 @@ export function FinanceiroCharts() {
     ].filter((item) => item.value > 0);
   }, [filteredEntries]);
 
-  if (monthlyData.length === 0) return null;
+  if (monthlyData.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-md backdrop-blur-sm dark:border-border/40 dark:bg-card/30 dark:shadow-none">
+        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">
+          Graficos
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Nenhuma informação disponível para exibir os gráficos ainda.
+        </p>
+      </div>
+    );
+  }
 
   const axisStyle = {
     fontSize: 10,
