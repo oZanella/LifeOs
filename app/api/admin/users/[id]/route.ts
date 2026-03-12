@@ -166,30 +166,33 @@ export async function DELETE(
     return NextResponse.json({ message: 'Usuario invalido.' }, { status: 400 });
   }
 
+  const body = (await request.json().catch(() => null)) as {
+    password?: string;
+  } | null;
+  const password = body?.password?.trim();
+
+  if (!password) {
+    return NextResponse.json(
+      { message: 'Senha obrigatória para excluir.' },
+      { status: 400 },
+    );
+  }
+
+  const sessionUser = await findUserById(session.userId);
+  if (!sessionUser) {
+    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+  }
+
+  if (!verifyPassword(password, sessionUser)) {
+    return NextResponse.json({ message: 'Senha inválida.' }, { status: 401 });
+  }
+
   const target = await findUserById(targetId);
   if (!target) {
     return NextResponse.json(
       { message: 'Usuario nao encontrado.' },
       { status: 404 },
     );
-  }
-
-  if (session.userId === targetId) {
-    const body = (await request.json().catch(() => null)) as {
-      password?: string;
-    } | null;
-    const password = body?.password?.trim();
-
-    if (!password) {
-      return NextResponse.json(
-        { message: 'Senha obrigatória para excluir sua conta.' },
-        { status: 400 },
-      );
-    }
-
-    if (!verifyPassword(password, target)) {
-      return NextResponse.json({ message: 'Senha inválida.' }, { status: 401 });
-    }
   }
 
   if (target.is_admin && (await countAdmins()) <= 1) {

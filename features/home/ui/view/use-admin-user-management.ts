@@ -278,12 +278,8 @@ export function useAdminUserManagement() {
   const deleteUser = async (targetUserId: number, password?: string) => {
     const isSelf = user?.id === targetUserId;
 
-    if (!isSelf && !window.confirm('Excluir este usuario?')) {
-      return;
-    }
-
-    if (isSelf && !password) {
-      setAdminError('Informe sua senha para excluir sua conta.');
+    if (!password) {
+      setAdminError('Informe sua senha para excluir.');
       return;
     }
 

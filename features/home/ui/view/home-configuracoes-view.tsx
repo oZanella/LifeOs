@@ -128,11 +128,9 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
                   );
                 }}
                 onDelete={() => {
-                  if (user?.id === item.id) {
-                    setDeleteTargetId(item.id);
-                    return;
-                  }
-                  void deleteUser(item.id);
+                  setAdminError('');
+                  setAdminSuccess('');
+                  setDeleteTargetId(item.id);
                 }}
               />
             );
