@@ -134,6 +134,30 @@ async function runMigrations() {
       CREATE INDEX IF NOT EXISTS idx_financeiro_entries_user_id ON financeiro_entries(user_id);
       CREATE INDEX IF NOT EXISTS idx_financeiro_categories_user_id ON financeiro_categories(user_id);
       CREATE INDEX IF NOT EXISTS idx_financeiro_entries_parent_id ON financeiro_entries(parent_id);
+  
+      CREATE TABLE IF NOT EXISTS metas (
+        id TEXT PRIMARY KEY,
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        description TEXT,
+        tone TEXT NOT NULL DEFAULT 'warning',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS meta_tasks (
+        id TEXT PRIMARY KEY,
+        meta_id TEXT NOT NULL REFERENCES metas(id) ON DELETE CASCADE,
+        description TEXT NOT NULL,
+        completed BOOLEAN NOT NULL DEFAULT FALSE,
+        is_highlighted BOOLEAN NOT NULL DEFAULT FALSE,
+        order_index INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_metas_user_id ON metas(user_id);
+      CREATE INDEX IF NOT EXISTS idx_meta_tasks_meta_id ON meta_tasks(meta_id);
     `);
     console.log('Database migrations completed successfully.');
   } catch (error) {

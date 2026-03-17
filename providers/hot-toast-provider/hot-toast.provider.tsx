@@ -38,7 +38,6 @@ export const ToastContext = createContext<ToastContextActions | undefined>(
   undefined,
 );
 
-/* ================= Variants ================= */
 const toastVariants = cva(
   'relative max-w-md w-full rounded-md shadow-md border overflow-hidden transition-all duration-300 ease-out',
   {

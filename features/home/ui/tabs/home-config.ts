@@ -37,7 +37,7 @@ export const lab_itens: labelItem[] = [
     id: 'dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
-    tone: 'primary',
+    tone: 'info',
     component: Dashboard,
   },
   {
@@ -49,11 +49,10 @@ export const lab_itens: labelItem[] = [
   },
   {
     id: 'meta',
-    label: 'Metas - em desenvolvimento',
+    label: 'Metas',
     icon: Target,
-    tone: 'warning',
+    tone: 'indigo',
     component: Meta,
-    disabled: true,
   },
   {
     id: 'tarefa',
@@ -75,7 +74,7 @@ export const lab_itens: labelItem[] = [
     id: 'configuracoes',
     label: 'Configurações',
     icon: Settings,
-    tone: 'neutral',
+    tone: 'lime',
     component: HomeConfiguracoesView,
   },
 ];
