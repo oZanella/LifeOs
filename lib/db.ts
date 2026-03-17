@@ -99,35 +99,22 @@ async function runMigrations() {
             SELECT 1 FROM financeiro_entries p WHERE p.id = e.parent_id
           );
 
-        -- Ensure FK exists and cascades: drop any FK on parent_id and re-add.
-        FOR fk_name IN
-          SELECT c.conname
-          FROM pg_constraint c
-          JOIN pg_attribute a
-            ON a.attnum = ANY (c.conkey) AND a.attrelid = c.conrelid
-          WHERE c.conrelid = 'financeiro_entries'::regclass
-            AND c.contype = 'f'
-            AND a.attname = 'parent_id'
-        LOOP
-          EXECUTE format('ALTER TABLE financeiro_entries DROP CONSTRAINT %I', fk_name);
-        END LOOP;
-
-        BEGIN
+        -- Ensure FK exists and cascades: add if not exists.
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'financeiro_entries_parent_id_fkey'
+        ) THEN
           ALTER TABLE financeiro_entries
             ADD CONSTRAINT financeiro_entries_parent_id_fkey
             FOREIGN KEY (parent_id)
             REFERENCES financeiro_entries(id)
             ON DELETE CASCADE;
-        EXCEPTION
-          WHEN duplicate_object THEN NULL;
-        END;
+        END IF;
 
-        BEGIN
-          ALTER TABLE financeiro_entries DROP CONSTRAINT financeiro_entries_type_check;
-        EXCEPTION
-          WHEN undefined_object THEN NULL;
-        END;
-        ALTER TABLE financeiro_entries ADD CONSTRAINT financeiro_entries_type_check CHECK (type IN ('receita', 'despesa', 'investimento'));
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'financeiro_entries_type_check'
+        ) THEN
+          ALTER TABLE financeiro_entries ADD CONSTRAINT financeiro_entries_type_check CHECK (type IN ('receita', 'despesa', 'investimento'));
+        END IF;
       END $$;
 
       CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
@@ -167,9 +154,9 @@ async function runMigrations() {
 }
 
 export async function ensureDbReady() {
-  // if (!globalThis.__lifeOsPgReady) {
-  globalThis.__lifeOsPgReady = runMigrations();
-  // }
+  if (!globalThis.__lifeOsPgReady) {
+    globalThis.__lifeOsPgReady = runMigrations();
+  }
 
   await globalThis.__lifeOsPgReady;
 }
