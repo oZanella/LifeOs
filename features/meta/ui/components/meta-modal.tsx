@@ -17,11 +17,11 @@ interface MetaModalProps {
 }
 
 const TONES: { label: string; value: BadgeTone }[] = [
-  { label: 'Tarefa', value: 'primary' },
-  { label: 'Aviso', value: 'warning' },
   { label: 'Conquista', value: 'success' },
-  { label: 'Informação', value: 'info' },
   { label: 'Urgente', value: 'error' },
+  { label: 'Informação', value: 'info' },
+  { label: 'Aviso', value: 'warning' },
+  { label: 'Tarefa', value: 'primary' },
 ];
 
 export function MetaModal({ meta, onClose }: MetaModalProps) {

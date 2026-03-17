@@ -4,13 +4,13 @@ import { useState } from 'react';
 import {
   Plus,
   Trash2,
-  Pencil,
   CheckCircle2,
   Circle,
   Star,
   ChevronDown,
   ChevronUp,
   X,
+  Edit2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,9 +103,9 @@ export function MetaCard({ meta, onEdit }: MetaCardProps) {
             variant="ghost"
             size="icon"
             onClick={() => onEdit(meta)}
-            className="h-8 w-8 cursor-pointer"
+            className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-blue-500"
           >
-            <Pencil size={14} />
+            <Edit2 size={14} />
           </Button>
           <Button
             variant="ghost"
@@ -254,7 +254,7 @@ function TaskItem({ task, metaId }: { task: MetaTask; metaId: string }) {
         className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors shrink-0"
       >
         {task.completed ? (
-          <CheckCircle2 size={18} className="text-success fill-success/10" />
+          <CheckCircle2 size={18} className="text-success fill-success/10 " />
         ) : (
           <Circle size={18} />
         )}
@@ -278,7 +278,7 @@ function TaskItem({ task, metaId }: { task: MetaTask; metaId: string }) {
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={handleSave}
-              className="p-1 rounded- hover:bg-success/10 text-success cursor-pointer transition-colors"
+              className="p-1 rounded- hover:bg-success/10 text-success cursor-pointer transition-colors text-green-500 hover:text-green-700"
               title="Salvar"
             >
               <CheckCircle2 size={16} />
@@ -288,7 +288,7 @@ function TaskItem({ task, metaId }: { task: MetaTask; metaId: string }) {
                 setDescription(task.description);
                 setIsEditing(false);
               }}
-              className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+              className="p-1 rounded-md hover:bg-muted cursor-pointer transition-colors text-red-500 hover:text-red-700"
               title="Cancelar"
             >
               <X size={16} />
@@ -313,9 +313,9 @@ function TaskItem({ task, metaId }: { task: MetaTask; metaId: string }) {
           {!isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              className="p-1 rounded-md hover:bg-muted text-muted-foreground transition-colors cursor-pointer hover:text-blue-500"
             >
-              <Pencil size={14} />
+              <Edit2 size={14} />
             </button>
           )}
           <button
@@ -325,7 +325,7 @@ function TaskItem({ task, metaId }: { task: MetaTask; metaId: string }) {
               })
             }
             className={cn(
-              'p-1 rounded-md hover:bg-muted transition-colors cursor-pointer',
+              'p-1 rounded-md hover:bg-muted transition-colors cursor-pointer hover:text-amber-500',
               task.isHighlighted ? 'text-amber-500' : 'text-muted-foreground',
             )}
           >
