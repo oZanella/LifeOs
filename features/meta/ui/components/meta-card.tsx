@@ -98,7 +98,7 @@ export function MetaCard({ meta, onEdit }: MetaCardProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 transition-opacity opacity-100">
           <Button
             variant="ghost"
             size="icon"
