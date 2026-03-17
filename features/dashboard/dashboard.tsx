@@ -31,7 +31,6 @@ export function Dashboard({}: DashboardProps) {
           </section>
 
           <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-10 pb-10 custom-scrollbar">
-            {/* Seção Financeira */}
             <section className="space-y-4 shrink-0">
               <div className="flex items-center gap-3 px-1 border-b border-border/40 pb-3">
                 <div className="p-2 rounded-xl bg-(--receita)/10 text-(--receita)">
@@ -52,10 +51,9 @@ export function Dashboard({}: DashboardProps) {
               </div>
             </section>
 
-            {/* Seção de Metas */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 px-1 border-b border-border/40 pb-3">
-                <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
+                <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 ">
                   <Target size={18} />
                 </div>
                 <div>

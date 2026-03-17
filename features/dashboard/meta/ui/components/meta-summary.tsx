@@ -41,8 +41,8 @@ export function MetaSummary() {
       label: 'Metas Ativas',
       value: totalMetas,
       icon: Target,
-      color: 'text-indigo-500',
-      bg: 'bg-indigo-500/10',
+      color: 'text-amber-500',
+      bg: 'bg-amber-500/10',
     },
     {
       label: 'Concluídas',
@@ -55,8 +55,8 @@ export function MetaSummary() {
       label: 'Progresso Geral',
       value: `${overallProgress}%`,
       icon: ArrowUpRight,
-      color: 'text-amber-500',
-      bg: 'bg-amber-500/10',
+      color: 'text-blue-500',
+      bg: 'bg-blue-500/10',
     },
   ];
 
