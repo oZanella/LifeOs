@@ -4,7 +4,7 @@ import { AdminUserCard } from '../components/admin-user-card';
 import { AdminUserEditModal } from '../components/admin-user-edit-modal';
 import { AdminUserDeleteModal } from '../components/admin-user-delete-modal';
 import { useAdminUserManagement } from './use-admin-user-management';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
@@ -36,23 +36,23 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
     deleteUser,
   } = useAdminUserManagement();
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const totalUsers = adminUsers.length;
-  const adminCount = adminUsers.filter((item) => item.isAdmin).length;
-  const editingUser = adminUsers.find((item) => item.id === editingUserId);
+  const canManageUsers = Boolean(user?.isAdmin);
+  const visibleUsers = useMemo(() => {
+    if (!user) {
+      return [];
+    }
+    if (canManageUsers) {
+      return adminUsers;
+    }
+    return adminUsers.filter((item) => item.id === user.id);
+  }, [adminUsers, canManageUsers, user]);
+  const totalUsers = visibleUsers.length;
+  const adminCount = canManageUsers
+    ? visibleUsers.filter((item) => item.isAdmin).length
+    : 0;
+  const editingUser = visibleUsers.find((item) => item.id === editingUserId);
   const editingDraft = editingUser ? adminDrafts[editingUser.id] : null;
-  const deleteTargetUser = adminUsers.find((item) => item.id === deleteTargetId);
-
-  if (!user?.isAdmin) {
-    return (
-      <section className="mb-4 rounded-2xl border border-border/60 bg-background/80 p-6 shadow-[0_16px_40px_-28px_rgba(0,0,0,0.6)]">
-        <h3 className="text-lg font-semibold text-foreground">Configurações</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Apenas usuários administradores podem controlar os usuários
-          cadastrados.
-        </p>
-      </section>
-    );
-  }
+  const deleteTargetUser = visibleUsers.find((item) => item.id === deleteTargetId);
 
   return (
     <section className="relative mb-4 overflow-hidden rounded-2xl border border-border/60 bg-linear-to-br from-background via-background to-muted/30 p-6 sm:p-8 shadow-[0_26px_70px_-40px_rgba(0,0,0,0.7)]">
@@ -70,7 +70,9 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
               Controle de Usuarios
             </h3>
             <p className="text-sm text-muted-foreground">
-              Gerencie usuarios, permissoes e avatar com recorte responsivo.
+              {canManageUsers
+                ? 'Gerencie usuarios, permissoes e avatar com recorte responsivo.'
+                : 'Edite apenas seus dados e avatar.'}
             </p>
           </div>
         </div>
@@ -79,9 +81,11 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
           <div className="rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs text-muted-foreground">
             Total: <span className="text-foreground">{totalUsers}</span>
           </div>
-          <div className="rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs text-muted-foreground">
-            Admins: <span className="text-foreground">{adminCount}</span>
-          </div>
+          {canManageUsers && (
+            <div className="rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs text-muted-foreground">
+              Admins: <span className="text-foreground">{adminCount}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -124,13 +128,13 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
             ))}
           </div>
         )}
-        {!adminLoading && adminUsers.length === 0 && (
+        {!adminLoading && visibleUsers.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-10">
             Nenhum usuário cadastrado.
           </p>
         )}
         {!adminLoading &&
-          adminUsers.map((item) => {
+          visibleUsers.map((item) => {
             const draft = adminDrafts[item.id];
             if (!draft) return null;
 
@@ -141,6 +145,7 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
                 draft={draft}
                 isEditing={editingUserId === item.id}
                 isSubmitting={adminSubmittingId === item.id}
+                canDelete={canManageUsers}
                 // Props de ação
                 onToggleEdit={() => {
                   setAdminError('');
@@ -166,6 +171,7 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
           isOpen={Boolean(editingUserId)}
           isSubmitting={adminSubmittingId === editingUser.id}
           avatarCrop={avatarCrop}
+          canEditAdmin={canManageUsers}
           onClose={() => {
             setAvatarCrop(null);
             setEditingUserId(null);
@@ -225,7 +231,7 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
         />
       )}
 
-      {deleteTargetUser && (
+      {canManageUsers && deleteTargetUser && (
         <AdminUserDeleteModal
           item={deleteTargetUser}
           isOpen={Boolean(deleteTargetId)}

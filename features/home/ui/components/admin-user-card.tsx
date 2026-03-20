@@ -11,6 +11,7 @@ interface AdminUserCardProps {
   draft: AdminDraft;
   isEditing: boolean;
   isSubmitting: boolean;
+  canDelete: boolean;
   onToggleEdit: () => void;
   onDelete: () => void;
 }
@@ -20,6 +21,7 @@ export function AdminUserCard({
   draft,
   isEditing,
   isSubmitting,
+  canDelete,
   onToggleEdit,
   onDelete,
 }: AdminUserCardProps) {
@@ -62,15 +64,17 @@ export function AdminUserCard({
           >
             {isEditing ? 'Fechar' : 'Editar'}
           </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={onDelete}
-            disabled={isSubmitting}
-            className="cursor-pointer"
-          >
-            Excluir
-          </Button>
+          {canDelete && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={onDelete}
+              disabled={isSubmitting}
+              className="cursor-pointer"
+            >
+              Excluir
+            </Button>
+          )}
         </div>
       </div>
     </div>

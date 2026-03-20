@@ -7,6 +7,7 @@ import {
   findUserByUsername,
   getSessionFromRequest,
   listUsersForAdmin,
+  updateUserAccount,
   updateUserByAdmin,
   verifyPassword,
 } from '@/lib/auth';
@@ -21,13 +22,6 @@ export async function PATCH(
     return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
   }
 
-  if (!session.isAdmin) {
-    return NextResponse.json(
-      { message: 'Acesso permitido apenas para ADM.' },
-      { status: 403 },
-    );
-  }
-
   try {
     const { id } = await context.params;
     const targetId = Number(id);
@@ -36,6 +30,13 @@ export async function PATCH(
       return NextResponse.json(
         { message: 'Usuário inválido.' },
         { status: 400 },
+      );
+    }
+
+    if (!session.isAdmin && targetId !== session.userId) {
+      return NextResponse.json(
+        { message: 'Acesso permitido apenas ao próprio usuário.' },
+        { status: 403 },
       );
     }
 
@@ -62,6 +63,13 @@ export async function PATCH(
     const avatarInput = body.avatarUrl;
     const hasAvatarField = typeof avatarInput === 'string';
     const nextAvatarUrl = hasAvatarField ? avatarInput.trim() : undefined;
+
+    if (!session.isAdmin && typeof nextIsAdmin === 'boolean') {
+      return NextResponse.json(
+        { message: 'Apenas administradores podem alterar permissão.' },
+        { status: 403 },
+      );
+    }
 
     if (nextEmail && !nextEmail.includes('@')) {
       return NextResponse.json({ message: 'Email inválido.' }, { status: 400 });
@@ -108,7 +116,12 @@ export async function PATCH(
       }
     }
 
-    if (typeof nextIsAdmin === 'boolean' && !nextIsAdmin && target.is_admin) {
+    if (
+      session.isAdmin &&
+      typeof nextIsAdmin === 'boolean' &&
+      !nextIsAdmin &&
+      target.is_admin
+    ) {
       const admins = await countAdmins();
       if (admins <= 1) {
         return NextResponse.json(
@@ -118,13 +131,20 @@ export async function PATCH(
       }
     }
 
-    const updated = await updateUserByAdmin(targetId, {
-      email: nextEmail,
-      username: nextUsername,
-      password: nextPassword,
-      avatarUrl: hasAvatarField ? nextAvatarUrl : undefined,
-      isAdmin: nextIsAdmin,
-    });
+    const updated = session.isAdmin
+      ? await updateUserByAdmin(targetId, {
+          email: nextEmail,
+          username: nextUsername,
+          password: nextPassword,
+          avatarUrl: hasAvatarField ? nextAvatarUrl : undefined,
+          isAdmin: nextIsAdmin,
+        })
+      : await updateUserAccount(targetId, {
+          email: nextEmail,
+          username: nextUsername,
+          password: nextPassword,
+          avatarUrl: hasAvatarField ? nextAvatarUrl : undefined,
+        });
 
     if (!updated) {
       return NextResponse.json(
@@ -133,7 +153,12 @@ export async function PATCH(
       );
     }
 
-    return NextResponse.json({ users: await listUsersForAdmin() });
+    const users = await listUsersForAdmin();
+    return NextResponse.json({
+      users: session.isAdmin
+        ? users
+        : users.filter((item) => item.id === session.userId),
+    });
   } catch {
     return NextResponse.json(
       { message: 'Erro ao atualizar usuário.' },

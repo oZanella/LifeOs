@@ -18,7 +18,7 @@ import {
 } from './home-configuracoes.utils';
 
 export function useAdminUserManagement() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshSession } = useAuth();
   const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const dragStateRef = useRef<{
     userId: number;
@@ -66,10 +66,10 @@ export function useAdminUserManagement() {
   }, [applyUsers]);
 
   useEffect(() => {
-    if (user?.isAdmin) {
+    if (user) {
       void loadAdminUsers();
     }
-  }, [loadAdminUsers, user?.isAdmin]);
+  }, [loadAdminUsers, user]);
 
   const updateCropZoom = useCallback((userId: number, nextZoom: number) => {
     setAvatarCrop((prev) => {
@@ -252,17 +252,22 @@ export function useAdminUserManagement() {
     setAdminSuccess('');
 
     try {
+      const payload: Record<string, unknown> = {
+        email: draft.email,
+        username: draft.username,
+        password: draft.password || undefined,
+        avatarUrl: draft.avatarUrl,
+      };
+
+      if (user?.isAdmin) {
+        payload.isAdmin = draft.isAdmin;
+      }
+
       const data = await requestJson<{ users: AdminUser[] }>(
         `/api/admin/users/${targetUserId}`,
         {
           method: 'PATCH',
-          body: JSON.stringify({
-            email: draft.email,
-            username: draft.username,
-            password: draft.password || undefined,
-            avatarUrl: draft.avatarUrl,
-            isAdmin: draft.isAdmin,
-          }),
+          body: JSON.stringify(payload),
         },
       );
 
@@ -271,8 +276,7 @@ export function useAdminUserManagement() {
       setAvatarCrop(null);
 
       if (user && targetUserId === user.id) {
-        await logout();
-        return;
+        await refreshSession();
       }
 
       setAdminSuccess('Usuário atualizado.');

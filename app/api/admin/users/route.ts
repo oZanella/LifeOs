@@ -8,9 +8,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
   }
 
+  const users = await listUsersForAdmin();
+
   if (!session.isAdmin) {
-    return NextResponse.json({ message: 'Acesso permitido apenas para ADM.' }, { status: 403 });
+    return NextResponse.json({
+      users: users.filter((item) => item.id === session.userId),
+    });
   }
 
-  return NextResponse.json({ users: await listUsersForAdmin() });
+  return NextResponse.json({ users });
 }

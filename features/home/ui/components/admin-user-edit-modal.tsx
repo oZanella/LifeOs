@@ -19,6 +19,7 @@ interface AdminUserEditModalProps {
   isOpen: boolean;
   isSubmitting: boolean;
   avatarCrop: AvatarCropState | null;
+  canEditAdmin: boolean;
   onClose: () => void;
   onSave: () => void;
   onCancel: () => void;
@@ -55,6 +56,7 @@ export function AdminUserEditModal({
   isOpen,
   isSubmitting,
   avatarCrop,
+  canEditAdmin,
   onClose,
   onSave,
   onCancel,
@@ -162,15 +164,17 @@ export function AdminUserEditModal({
                     }
                   />
 
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground px-2 rounded-md border border-border/50 bg-background/70">
-                    <Switch
-                      checked={draft.isAdmin}
-                      onCheckedChange={(checked) =>
-                        onDraftChange({ ...draft, isAdmin: checked })
-                      }
-                    />
-                    <span>Usuario Administrador</span>
-                  </div>
+                  {canEditAdmin && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground px-2 rounded-md border border-border/50 bg-background/70">
+                      <Switch
+                        checked={draft.isAdmin}
+                        onCheckedChange={(checked) =>
+                          onDraftChange({ ...draft, isAdmin: checked })
+                        }
+                      />
+                      <span>Usuario Administrador</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
