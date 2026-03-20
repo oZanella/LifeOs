@@ -78,12 +78,14 @@ export function MetaGrid() {
         </Button>
       </div>
 
-      {isProcessing && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Loader2 className="h-3 w-3 animate-spin" />
-          Salvando alterações...
-        </div>
-      )}
+      <div className="h-4">
+        {isProcessing && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Salvando alterações...
+          </div>
+        )}
+      </div>
 
       {filteredMetas.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
