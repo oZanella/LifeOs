@@ -3,7 +3,7 @@
 ## Ideia resumida
 
 **Dashboard da Sua Vida:**  
-Um painel central com Finanças, Estudos, Treino, Tarefas, Metas do ano...  
+Um painel central com Finanças, Estudos, Metas do ano...
 Tipo um "Life OS".
 
 ---
@@ -14,7 +14,6 @@ Um sistema central onde você gerencia sua vida como se fosse uma empresa com te
 
 - Financeiro
 - Indicadores
-- Metas
 - Performance
 - Planejamento
 - Operação
@@ -29,8 +28,7 @@ Painel com:
 
 - Saldo atual
 - Gastos do mês
-- Treinos feitos
-- Tarefas pendentes
+- Tarefas pendentes/concluídas
 - Progresso do ano
 
 ---
@@ -49,35 +47,11 @@ Painel com:
 
 ---
 
-### 3° - Módulo Treino
-
-- Registro de treino
-- Carga por exercício
-- Evolução por mês
-- Medidas corporais
-- Meta física
-
----
-
-### 4° - Módulo Tarefas
+### 3° - Módulo Metas
 
 - Tarefas diárias
 - Prioridade
 - Status
-- Data limite
-- Recorrência
-- Kanban (avançado)
-
----
-
-### 5° - Metas do Ano
-
-- Meta
-- Área
-- Percentual concluído
-- Prazo
-- Subtarefas
-- Score geral anual
 
 ---
 

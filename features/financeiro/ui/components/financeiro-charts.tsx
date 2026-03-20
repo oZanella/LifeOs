@@ -18,6 +18,7 @@ import {
   useFinanceiroContext,
 } from '@/features/financeiro/application/context/financeiro-context';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formatBRL = (v: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -151,7 +152,7 @@ function buildMonthlyData(entries: FinancialEntry[]) {
 }
 
 export function FinanceiroCharts() {
-  const { entries, filteredEntries } = useFinanceiroContext();
+  const { entries, filteredEntries, loading } = useFinanceiroContext();
 
   const monthlyData = useMemo(() => {
     const currentYear = new Date().getFullYear().toString();
@@ -180,6 +181,28 @@ export function FinanceiroCharts() {
       },
     ].filter((item) => item.value > 0);
   }, [filteredEntries]);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-md backdrop-blur-sm dark:border-border/40 dark:bg-card/30 dark:shadow-none">
+          <Skeleton className="h-3 w-48 mb-4" />
+          <Skeleton className="h-44 w-full" />
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-md backdrop-blur-sm dark:border-border/40 dark:bg-card/30 dark:shadow-none flex flex-col items-center">
+          <Skeleton className="h-3 w-40 mb-4 self-start" />
+          <div className="flex items-center justify-center w-full">
+            <Skeleton className="h-40 w-40 rounded-full" />
+          </div>
+          <div className="flex items-center justify-center gap-6 mt-4 w-full">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (monthlyData.length === 0) {
     return (

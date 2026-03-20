@@ -90,7 +90,7 @@ export function MetaModal({ meta, onClose }: MetaModalProps) {
               <Label htmlFor="description">Descrição (opcional)</Label>
               <Input
                 id="description"
-                placeholder="Ex: Um livro por mês em 2024"
+                placeholder="Ex: Um livro por mês até o fim do ano"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />

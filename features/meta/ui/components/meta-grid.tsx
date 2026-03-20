@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Target, Search } from 'lucide-react';
+import { Plus, Target, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,7 +13,7 @@ import { MetaCard } from './meta-card';
 import { MetaModal } from './meta-modal';
 
 export function MetaGrid() {
-  const { metas, loading } = useMetaContext();
+  const { metas, loading, isProcessing } = useMetaContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMeta, setEditingMeta] = useState<Meta | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,6 +77,13 @@ export function MetaGrid() {
           Nova Meta
         </Button>
       </div>
+
+      {isProcessing && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Salvando alterações...
+        </div>
+      )}
 
       {filteredMetas.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">

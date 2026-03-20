@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Meta,
   useMetaContext,
@@ -41,6 +42,7 @@ export function MetaCard({ meta, onEdit }: MetaCardProps) {
   const [newTaskDescription, setNewTaskDescription] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [isSavingTask, setIsSavingTask] = useState(false);
 
   const saveTask = async (description: string) => {
     const trimmed = description.trim();
@@ -49,7 +51,12 @@ export function MetaCard({ meta, onEdit }: MetaCardProps) {
     setIsAddingTask(false);
     setNewTaskDescription('');
 
-    await addTask(meta.id, { description: trimmed });
+    setIsSavingTask(true);
+    try {
+      await addTask(meta.id, { description: trimmed });
+    } finally {
+      setIsSavingTask(false);
+    }
   };
 
   const handleAddTask = async (e: React.FormEvent) => {
@@ -134,6 +141,12 @@ export function MetaCard({ meta, onEdit }: MetaCardProps) {
       </div>
 
       <div className="mt-2 flex flex-col gap-1 p-2 flex-1">
+        {isSavingTask && (
+          <div className="px-2 py-1">
+            <Skeleton className="h-4 w-4/5" />
+          </div>
+        )}
+
         {pendingTasks.map((task) => (
           <TaskItem key={task.id} task={task} metaId={meta.id} />
         ))}

@@ -71,7 +71,7 @@ export function LoginView() {
                 em um só lugar
               </h1>
               <p className="mt-4 text-sm text-primary-foreground/85">
-                Organize financeiro, tarefas, metas e rotina com acesso seguro.
+                Organize financeiro, metas e rotina com acesso seguro.
               </p>
             </div>
             <div className="space-y-3">

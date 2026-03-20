@@ -5,6 +5,7 @@ import { AdminUserEditModal } from '../components/admin-user-edit-modal';
 import { AdminUserDeleteModal } from '../components/admin-user-delete-modal';
 import { useAdminUserManagement } from './use-admin-user-management';
 import { useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
   const {
@@ -98,9 +99,30 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
 
       <div className="relative z-10 mt-6 space-y-3">
         {adminLoading && (
-          <p className="text-sm text-zinc-400 animate-pulse">
-            Carregando usuários...
-          </p>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-border/60 bg-background/70 p-4 sm:p-5 shadow-[0_12px_30px_-20px_rgba(0,0,0,0.6)]"
+              >
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-56" />
+                  </div>
+                  <Skeleton className="h-8 w-20 rounded-full" />
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <Skeleton className="h-3 w-24" />
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-24 rounded-full" />
+                    <Skeleton className="h-8 w-24 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
         {!adminLoading && adminUsers.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-10">
