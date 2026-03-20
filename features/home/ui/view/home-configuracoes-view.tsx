@@ -170,7 +170,18 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
             setAvatarCrop(null);
             setEditingUserId(null);
           }}
-          onSave={() => void updateUser(editingUser.id)}
+          onSave={async () => {
+            if (avatarCrop?.userId === editingUser.id) {
+              const cropped = await applyAvatarCrop();
+              if (!cropped) {
+                return;
+              }
+              await updateUser(editingUser.id, { avatarUrl: cropped });
+              return;
+            }
+
+            await updateUser(editingUser.id);
+          }}
           onCancel={() => {
             setAdminDrafts((prev) => ({
               ...prev,

@@ -210,7 +210,7 @@ export function useAdminUserManagement() {
 
   const applyAvatarCrop = async () => {
     if (!avatarCrop) {
-      return;
+      return null;
     }
 
     try {
@@ -224,15 +224,25 @@ export function useAdminUserManagement() {
       }));
       setAvatarCrop(null);
       setAdminError('');
+      return croppedAvatar;
     } catch (err) {
       setAdminError(
         err instanceof Error ? err.message : 'Erro ao recortar avatar.',
       );
+      return null;
     }
   };
 
-  const updateUser = async (targetUserId: number) => {
-    const draft = adminDrafts[targetUserId];
+  const updateUser = async (
+    targetUserId: number,
+    draftOverride?: Partial<AdminDraft>,
+  ) => {
+    const baseDraft = adminDrafts[targetUserId];
+    if (!baseDraft) {
+      return;
+    }
+
+    const draft = draftOverride ? { ...baseDraft, ...draftOverride } : baseDraft;
     if (!draft) {
       return;
     }
