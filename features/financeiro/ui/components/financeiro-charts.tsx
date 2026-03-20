@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useEffect, useState } from 'react';
+import { BarChart3 } from 'lucide-react';
 import {
   ComposedChart,
   Line,
@@ -232,13 +233,26 @@ export function FinanceiroCharts() {
 
   if (monthlyData.length === 0) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-md backdrop-blur-sm dark:border-border/40 dark:bg-card/30 dark:shadow-none">
-        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">
-          Graficos
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Nenhuma informação disponível para exibir os gráficos ainda.
-        </p>
+      <div className="rounded-2xl border border-border/40 bg-card/30 p-6 shadow-sm backdrop-blur-sm relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none">
+          <BarChart3 size={120} />
+        </div>
+        <div className="flex items-center justify-between mb-6 relative z-10">
+          <div className="flex flex-col">
+            <h3 className="text-base font-black tracking-tight text-foreground/90">
+              Gráficos Financeiros
+            </h3>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">
+              Resumo mensal das movimentações
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center py-8 text-center relative z-10">
+          <BarChart3 size={32} className="text-muted-foreground/20 mb-2" />
+          <p className="text-sm text-muted-foreground font-medium">
+            Nenhuma informação disponível para exibir os gráficos ainda.
+          </p>
+        </div>
       </div>
     );
   }
