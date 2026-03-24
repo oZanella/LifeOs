@@ -354,24 +354,27 @@ export function FinanceiroProvider({
     let fixedExpenses = 0;
     const filtered: FinancialEntry[] = [];
 
-    const fMonth = filters.month;
-    const fYear = filters.year;
-    const fDay = filters.day;
-    const fCategoryId = filters.categoryId;
-    const fType = filters.type;
+    const { month, year, day, categoryId, type } = filters;
 
-    // Single pass over entries for all calculations
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
-      const [year, month, day] = entry.date.split('-');
-      const entryMonth = (parseInt(month, 10) - 1).toString();
-      const entryYear = year;
-      const entryDay = parseInt(day, 10).toString();
 
-      const mMatch = fMonth === 'all' || fMonth === '' || entryMonth === fMonth;
-      const yMatch = fYear === '' || entryYear === fYear;
+      const [y, m, d] = entry.date.split('-');
+      const entryMonth = (parseInt(m, 10) - 1).toString();
+      const entryYear = y;
+      const entryDay = parseInt(d, 10).toString();
 
-      if (mMatch && yMatch) {
+      const mMatch = month === 'all' || month === '' || entryMonth === month;
+      const yMatch = year === '' || entryYear === year;
+      const dMatch = day === '' || entryDay === day;
+      const cMatch = categoryId === 'all' || entry.categoryId === categoryId;
+      const tMatch = type === 'all' || entry.type === type;
+
+      const matches = mMatch && yMatch && dMatch && cMatch && tMatch;
+
+      if (matches) {
+        filtered.push(entry);
+
         if (entry.type === 'receita') {
           totalRevenue += entry.amount;
         } else if (entry.type === 'investimento') {
@@ -380,15 +383,6 @@ export function FinanceiroProvider({
         } else {
           totalExpense += entry.amount;
           if (entry.isFixed) fixedExpenses += entry.amount;
-        }
-
-        const dMatch = fDay === '' || entryDay === fDay;
-        const cMatch =
-          fCategoryId === 'all' || entry.categoryId === fCategoryId;
-        const tMatch = !fType || fType === 'all' || entry.type === fType;
-
-        if (dMatch && cMatch && tMatch) {
-          filtered.push(entry);
         }
       }
     }
