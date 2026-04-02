@@ -130,7 +130,7 @@ export async function createUser(
   const normalizedEmail = normalizeEmail(email);
   const normalizedUsername = normalizeUsername(username);
   const { salt, hash } = createPasswordRecord(password);
-  const isAdminByDefault = true;
+  const isAdminByDefault = false;
 
   const created = await dbQueryOne<{ id: number }>(
     `

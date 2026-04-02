@@ -55,7 +55,7 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
   const deleteTargetUser = visibleUsers.find((item) => item.id === deleteTargetId);
 
   return (
-    <section className="relative mb-4 overflow-hidden rounded-2xl border border-border/60 bg-linear-to-br from-background via-background to-muted/30 p-6 sm:p-8 shadow-[0_26px_70px_-40px_rgba(0,0,0,0.7)]">
+    <section className="relative mb-4 flex flex-col min-h-0 h-full overflow-hidden rounded-2xl border border-border/60 bg-linear-to-br from-background via-background to-muted/30 p-6 sm:p-8 shadow-[0_26px_70px_-40px_rgba(0,0,0,0.7)]">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 -right-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
       </div>
@@ -89,79 +89,81 @@ export function HomeConfiguracoesView({}: { tone?: BadgeTone }) {
         </div>
       </div>
 
-      {adminError && (
-        <div className="relative z-10 mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-500">
-          {adminError}
-        </div>
-      )}
-
-      {adminSuccess && (
-        <div className="relative z-10 mt-5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-500">
-          {adminSuccess}
-        </div>
-      )}
-
-      <div className="relative z-10 mt-6 space-y-3">
-        {adminLoading && (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="rounded-2xl border border-border/60 bg-background/70 p-4 sm:p-5 shadow-[0_12px_30px_-20px_rgba(0,0,0,0.6)]"
-              >
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-12 w-12 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-40" />
-                    <Skeleton className="h-3 w-56" />
-                  </div>
-                  <Skeleton className="h-8 w-20 rounded-full" />
-                </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <Skeleton className="h-3 w-24" />
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-8 w-24 rounded-full" />
-                    <Skeleton className="h-8 w-24 rounded-full" />
-                  </div>
-                </div>
-              </div>
-            ))}
+      <div className="relative z-10 mt-5 flex-1 overflow-visible sm:min-h-0 sm:overflow-auto pr-1 custom-scrollbar">
+        {adminError && (
+          <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-500">
+            {adminError}
           </div>
         )}
-        {!adminLoading && visibleUsers.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-10">
-            Nenhum usuário cadastrado.
-          </p>
-        )}
-        {!adminLoading &&
-          visibleUsers.map((item) => {
-            const draft = adminDrafts[item.id];
-            if (!draft) return null;
 
-            return (
-              <AdminUserCard
-                key={item.id}
-                item={item}
-                draft={draft}
-                isEditing={editingUserId === item.id}
-                isSubmitting={adminSubmittingId === item.id}
-                canDelete={canManageUsers}
-                // Props de ação
-                onToggleEdit={() => {
-                  setAdminError('');
-                  setAdminSuccess('');
-                  setEditingUserId((prev) =>
-                    prev === item.id ? null : item.id,
-                  );
-                }}
-                onDelete={() => {
-                  setAdminError('');
-                  setAdminSuccess('');
-                  setDeleteTargetId(item.id);
-                }}
-              />
-            );
-          })}
+        {adminSuccess && (
+          <div className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-500">
+            {adminSuccess}
+          </div>
+        )}
+
+        <div className="mt-6 space-y-3">
+          {adminLoading && (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl border border-border/60 bg-background/70 p-4 sm:p-5 shadow-[0_12px_30px_-20px_rgba(0,0,0,0.6)]"
+                >
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-3 w-56" />
+                    </div>
+                    <Skeleton className="h-8 w-20 rounded-full" />
+                  </div>
+                  <div className="mt-4 flex items-center justify-between">
+                    <Skeleton className="h-3 w-24" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-8 w-24 rounded-full" />
+                      <Skeleton className="h-8 w-24 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {!adminLoading && visibleUsers.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-10">
+              Nenhum usuário cadastrado.
+            </p>
+          )}
+          {!adminLoading &&
+            visibleUsers.map((item) => {
+              const draft = adminDrafts[item.id];
+              if (!draft) return null;
+
+              return (
+                <AdminUserCard
+                  key={item.id}
+                  item={item}
+                  draft={draft}
+                  isEditing={editingUserId === item.id}
+                  isSubmitting={adminSubmittingId === item.id}
+                  canDelete={canManageUsers}
+                  // Props de ação
+                  onToggleEdit={() => {
+                    setAdminError('');
+                    setAdminSuccess('');
+                    setEditingUserId((prev) =>
+                      prev === item.id ? null : item.id,
+                    );
+                  }}
+                  onDelete={() => {
+                    setAdminError('');
+                    setAdminSuccess('');
+                    setDeleteTargetId(item.id);
+                  }}
+                />
+              );
+            })}
+        </div>
       </div>
 
       {editingUser && editingDraft && (
