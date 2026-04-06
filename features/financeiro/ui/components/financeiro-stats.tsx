@@ -3,7 +3,13 @@
 import { useFinanceiroContext } from '@/features/financeiro/application/context/financeiro-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TrendingUp, TrendingDown, Wallet, AlertCircle } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  AlertCircle,
+  CheckCircle2,
+} from 'lucide-react';
 import { BadgeTone } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +25,7 @@ interface StatsData {
   totalExpense: number;
   totalInvestment: number;
   fixedExpenses: number;
+  paidTotal: number;
 }
 
 function MobileStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
@@ -82,6 +89,13 @@ function MobileStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
             icon: TrendingUp,
             color: 'text-blue-700',
             bg: 'bg-blue-700/10',
+          },
+          {
+            title: 'Pagos',
+            value: stats.paidTotal,
+            icon: CheckCircle2,
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-600/10',
           },
           {
             title: 'Gastos Fixos',
@@ -148,6 +162,12 @@ function DesktopStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
       color: 'text-blue-700',
     },
     {
+      title: 'Pagos',
+      value: stats.paidTotal,
+      icon: CheckCircle2,
+      color: 'text-emerald-600',
+    },
+    {
       title: 'Gastos Fixos',
       value: stats.fixedExpenses,
       icon: AlertCircle,
@@ -158,7 +178,7 @@ function DesktopStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
   return (
     <div
       data-tone={tone}
-      className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
+      className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"
     >
       {items.map((item) => (
         <Card
@@ -190,7 +210,7 @@ function StatsSkeleton({}: { tone: BadgeTone }) {
       <div className="flex sm:hidden flex-col gap-3">
         <Skeleton className="h-21 w-full rounded-2xl" />
         <div className="grid grid-cols-2 gap-2">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-15 w-full rounded-xl" />
           ))}
         </div>

@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
         amount: number;
         type: 'receita' | 'despesa' | 'investimento';
         isFixed: boolean;
+        isPaid: boolean;
         parentId?: string | null;
       }>;
     };

@@ -83,6 +83,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       amount: 0,
       type: 'despesa',
       isFixed: false,
+      isPaid: false,
     });
   };
 
@@ -129,6 +130,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         amount: data.amount ?? 0,
         type: data.type ?? 'despesa',
         isFixed: data.isFixed ?? false,
+        isPaid: data.isPaid ?? false,
       };
 
       const createdId = await addEntry(entryData);
@@ -267,6 +269,9 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                     updateEntry(entryId, { isFixed: false });
                   }
                 }}
+                onTogglePaid={(entryId, isPaid) =>
+                  updateEntry(entryId, { isPaid })
+                }
                 onStartEdit={() => handleOpenEdit(entry)}
                 onDelete={() =>
                   handleConfirmDelete(
@@ -289,6 +294,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                 <th className="px-4 py-3 w-32">Valor</th>
                 <th className="px-4 py-3 w-24 text-center">Tipo</th>
                 <th className="px-4 py-3 w-20 text-center">Fixo</th>
+                <th className="px-4 py-3 w-24 text-center">Pago</th>
                 <th className="px-4 py-3 w-32 text-center">Ações</th>
               </tr>
             </thead>
@@ -316,6 +322,9 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                       <Skeleton className="h-4 w-8 mx-auto" />
                     </td>
                     <td className="px-4 py-4 text-center">
+                      <Skeleton className="h-4 w-8 mx-auto" />
+                    </td>
+                    <td className="px-4 py-4 text-center">
                       <Skeleton className="h-8 w-24 mx-auto" />
                     </td>
                   </tr>
@@ -323,7 +332,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
               ) : filteredEntries.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-12 text-center text-muted-foreground italic text-sm"
                   >
                     Nenhuma transação encontrada para este período.
@@ -352,6 +361,9 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                         updateEntry(entryId, { isFixed: false });
                       }
                     }}
+                    onTogglePaid={(entryId, isPaid) =>
+                      updateEntry(entryId, { isPaid })
+                    }
                     onStartEdit={() => handleOpenEdit(entry)}
                     onDelete={() =>
                       handleConfirmDelete(

@@ -29,6 +29,7 @@ export interface FinancialEntry {
   amount: number;
   type: EntryType;
   isFixed: boolean;
+  isPaid: boolean;
   parentId?: string | null;
 }
 
@@ -70,6 +71,7 @@ interface FinanceiroContextData {
     totalInvestment: number;
     balance: number;
     fixedExpenses: number;
+    paidTotal: number;
     forecast: number;
   };
   addRecurringEntries: (entry: FinancialEntry, months: number) => Promise<void>;
@@ -318,6 +320,7 @@ export function FinanceiroProvider({
           amount: baseEntry.amount,
           type: baseEntry.type,
           isFixed: true,
+          isPaid: false,
           parentId: baseEntry.id,
         });
       }
@@ -352,6 +355,7 @@ export function FinanceiroProvider({
     let totalExpense = 0;
     let totalInvestment = 0;
     let fixedExpenses = 0;
+    let paidTotal = 0;
     const filtered: FinancialEntry[] = [];
 
     const { month, year, day, categoryId, type } = filters;
@@ -384,6 +388,10 @@ export function FinanceiroProvider({
           totalExpense += entry.amount;
           if (entry.isFixed) fixedExpenses += entry.amount;
         }
+
+        if (entry.isPaid && entry.type !== 'receita') {
+          paidTotal += entry.amount;
+        }
       }
     }
 
@@ -395,6 +403,7 @@ export function FinanceiroProvider({
       totalInvestment,
       balance,
       fixedExpenses,
+      paidTotal,
       forecast: balance,
       filtered,
     };

@@ -75,6 +75,7 @@ async function runMigrations() {
         amount DOUBLE PRECISION NOT NULL,
         type TEXT NOT NULL CHECK(type IN ('receita', 'despesa', 'investimento')),
         is_fixed BOOLEAN NOT NULL DEFAULT FALSE,
+        is_paid BOOLEAN NOT NULL DEFAULT FALSE,
         parent_id TEXT REFERENCES financeiro_entries(id) ON DELETE CASCADE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -88,6 +89,13 @@ async function runMigrations() {
         -- Ensure parent_id exists (older DBs may already have it without FK).
         BEGIN
           ALTER TABLE financeiro_entries ADD COLUMN parent_id TEXT;
+        EXCEPTION
+          WHEN duplicate_column THEN NULL;
+        END;
+
+        -- Ensure is_paid exists for legacy DBs.
+        BEGIN
+          ALTER TABLE financeiro_entries ADD COLUMN is_paid BOOLEAN NOT NULL DEFAULT FALSE;
         EXCEPTION
           WHEN duplicate_column THEN NULL;
         END;

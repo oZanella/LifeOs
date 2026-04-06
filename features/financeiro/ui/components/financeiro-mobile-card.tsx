@@ -30,6 +30,7 @@ interface FinanceiroMobileCardProps {
   onStartEdit: () => void;
   onDelete: () => void;
   onToggleFixed: (entryId: string, isFixed: boolean) => void;
+  onTogglePaid: (entryId: string, isPaid: boolean) => void;
 }
 
 export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
@@ -42,6 +43,7 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
   onStartEdit,
   onDelete,
   onToggleFixed,
+  onTogglePaid,
 }: FinanceiroMobileCardProps) {
   const category = categories.find((c) => c.id === entry.categoryId);
   const isReceita = entry.type === 'receita';
@@ -131,12 +133,14 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
                   type="button"
                   className={cn(
                     'flex items-center gap-1',
-                    entry.parentId
+                    isSelectionMode || entry.parentId
                       ? 'cursor-not-allowed opacity-50'
                       : 'cursor-pointer',
                   )}
                   onClick={() =>
-                    !entry.parentId && onToggleFixed(entry.id, entry.isFixed)
+                    !isSelectionMode &&
+                    !entry.parentId &&
+                    onToggleFixed(entry.id, entry.isFixed)
                   }
                   title={entry.parentId ? 'Replicação (bloqueada)' : undefined}
                 >
@@ -153,8 +157,13 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
                 <span className="text-muted-foreground/40 text-[10px]">·</span>
                 <button
                   type="button"
-                  className="flex items-center gap-1 cursor-pointer"
-                  onClick={() => onToggleFixed(entry.id, entry.isFixed)}
+                  className={cn(
+                    'flex items-center gap-1',
+                    isSelectionMode ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+                  )}
+                  onClick={() =>
+                    !isSelectionMode && onToggleFixed(entry.id, entry.isFixed)
+                  }
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 hover:bg-amber-500/50 transition-colors" />
                 </button>
@@ -180,17 +189,34 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
               .replace('R$ ', '')}
           </span>
 
+          {!isSelectionMode && entry.type !== 'receita' && (
+            <div className="flex items-center gap-1.5">
+              <Checkbox
+                checked={entry.isPaid}
+                onCheckedChange={(checked) =>
+                  onTogglePaid(entry.id, Boolean(checked))
+                }
+                className="h-4 w-4 rounded-md cursor-pointer"
+              />
+              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                Pago
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center gap-1">
             <Button
               size="icon"
               variant="ghost"
               className={cn(
                 'h-7 w-7 text-muted-foreground hover:text-blue-500',
-                entry.parentId
+                isSelectionMode || entry.parentId
                   ? 'opacity-30 cursor-not-allowed'
                   : 'cursor-pointer',
               )}
-              onClick={() => !entry.parentId && onStartEdit()}
+              onClick={() =>
+                !isSelectionMode && !entry.parentId && onStartEdit()
+              }
               title={
                 entry.parentId ? 'Registro automático (não editável)' : 'Editar'
               }

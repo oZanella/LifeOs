@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
       amount?: number;
       type?: 'receita' | 'despesa' | 'investimento';
       isFixed?: boolean;
+      isPaid?: boolean;
     };
 
     if (
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest) {
       amount: body.amount,
       type: body.type,
       isFixed: Boolean(body.isFixed),
+      isPaid: Boolean(body.isPaid),
     });
 
     return NextResponse.json({

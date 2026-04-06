@@ -21,6 +21,7 @@ export async function PATCH(
       amount?: number;
       type?: 'receita' | 'despesa' | 'investimento';
       isFixed?: boolean;
+      isPaid?: boolean;
     };
 
     await updateEntry(session.userId, id, body);

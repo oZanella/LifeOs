@@ -21,6 +21,7 @@ interface FinanceiroGridRowProps {
   formatCurrency: (value: number) => string;
   onQuickCategoryChange: (entryId: string, categoryId: string) => void;
   onToggleFixed: (entryId: string, isFixed: boolean) => void;
+  onTogglePaid: (entryId: string, isPaid: boolean) => void;
   onStartEdit: () => void;
   onDelete: () => void;
 }
@@ -34,6 +35,7 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
   formatCurrency,
   onQuickCategoryChange,
   onToggleFixed,
+  onTogglePaid,
   onStartEdit,
   onDelete,
 }: FinanceiroGridRowProps) {
@@ -55,11 +57,18 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
       </td>
 
       <td className="px-4 py-2">
-        <FinanceiroCategoryCell
-          entry={entry}
-          categories={categories}
-          onQuickCategoryChange={onQuickCategoryChange}
-        />
+        {isSelectionMode ? (
+          <span className="text-[10px] uppercase font-bold tracking-tight text-muted-foreground">
+            {categories.find((item) => item.id === entry.categoryId)?.name ??
+              'Sem Categoria'}
+          </span>
+        ) : (
+          <FinanceiroCategoryCell
+            entry={entry}
+            categories={categories}
+            onQuickCategoryChange={onQuickCategoryChange}
+          />
+        )}
       </td>
 
       <td className="px-4 py-2 text-right">
@@ -91,8 +100,13 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
 
       <td className="px-4 py-2 text-center">
         <div
-          className="flex justify-center cursor-pointer"
-          onClick={() => onToggleFixed(entry.id, entry.isFixed)}
+          className={cn(
+            'flex justify-center',
+            isSelectionMode ? 'cursor-not-allowed opacity-40' : 'cursor-pointer',
+          )}
+          onClick={() =>
+            !isSelectionMode && onToggleFixed(entry.id, entry.isFixed)
+          }
         >
           <div
             className={cn(
@@ -115,6 +129,20 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
         </div>
       </td>
 
+      <td className="px-4 py-2 text-center">
+        <div className="flex justify-center">
+          {!isSelectionMode && entry.type !== 'receita' && (
+            <Checkbox
+              checked={entry.isPaid}
+              onCheckedChange={(checked) =>
+                onTogglePaid(entry.id, Boolean(checked))
+              }
+              className="cursor-pointer"
+            />
+          )}
+        </div>
+      </td>
+
       <td className="px-4 py-2">
         <div className="flex items-center justify-center gap-2">
           <Button
@@ -122,11 +150,13 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
             variant="ghost"
             className={cn(
               'h-7 w-7 text-muted-foreground hover:text-blue-500',
-              entry.parentId
+              isSelectionMode || entry.parentId
                 ? 'opacity-30 cursor-not-allowed'
                 : 'cursor-pointer',
             )}
-            onClick={() => !entry.parentId && onStartEdit()}
+            onClick={() =>
+              !isSelectionMode && !entry.parentId && onStartEdit()
+            }
             title={
               entry.parentId ? 'Registro automático (não editável)' : 'Editar'
             }
