@@ -107,7 +107,7 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
           <div className="flex flex-col items-end shrink-0 max-w-[40%]">
             <span
               className={cn(
-                'text-lg font-black tabular-nums leading-none tracking-tighter italic truncate w-full text-right',
+                'text-lg font-black tabular-nums leading-none tracking-tighter italic truncate w-full text-right pr-0.5',
                 isReceita
                   ? 'text-emerald-500 underline decoration-emerald-500/30 decoration-2 underline-offset-4'
                   : isInvestimento
