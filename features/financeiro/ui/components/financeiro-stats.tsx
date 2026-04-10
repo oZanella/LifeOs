@@ -32,42 +32,55 @@ function MobileStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
   const balancePositive = stats.balance >= 0;
 
   return (
-    <div className="flex sm:hidden flex-col gap-3" data-tone={tone}>
+    <div
+      className="flex sm:hidden flex-col gap-4 w-full max-w-full overflow-hidden min-w-0"
+      data-tone={tone}
+    >
+      {/* Principal: Saldo Atual */}
       <div
         className={cn(
-          'rounded-2xl border px-5 py-4 flex items-center justify-between',
+          'relative overflow-hidden rounded-3xl border px-5 py-5 flex items-center justify-between shadow-lg transition-all w-full min-w-0',
           balancePositive
-            ? 'bg-emerald-500/10 border-emerald-500/25'
-            : 'bg-red-500/10 border-red-500/25',
+            ? 'bg-emerald-500/10 border-emerald-500/25 dark:bg-emerald-500/5'
+            : 'bg-red-500/10 border-red-500/25 dark:bg-red-500/5',
         )}
       >
-        <div>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">
-            Saldo Atual
+        <div
+          className="absolute inset-0 z-0 opacity-10 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at top right, ${balancePositive ? 'var(--esmeralda)' : 'var(--vermelho)'} 0%, transparent 70%)`,
+          }}
+        />
+
+        <div className="relative z-10 flex-1 min-w-0">
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1 opacity-80 truncate">
+            Saldo Disponível
           </p>
           <p
             className={cn(
-              'text-2xl font-black tabular-nums tracking-tight',
+              'text-2xl font-black tabular-nums tracking-tighter italic truncate',
               balancePositive ? 'text-emerald-500' : 'text-red-500',
             )}
           >
             {formatCurrency(stats.balance)}
           </p>
         </div>
+
         <div
           className={cn(
-            'h-11 w-11 rounded-xl flex items-center justify-center',
+            'relative z-10 h-11 w-11 rounded-2xl flex items-center justify-center shadow-inner blur-[0.5px] shrink-0',
             balancePositive ? 'bg-emerald-500/20' : 'bg-red-500/20',
           )}
         >
           <Wallet
-            size={20}
+            size={22}
             className={balancePositive ? 'text-emerald-500' : 'text-red-500'}
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      {/* Grid de Stats Secundários */}
+      <div className="grid grid-cols-2 gap-2.5 w-full min-w-0">
         {[
           {
             title: 'Receitas',
@@ -75,6 +88,7 @@ function MobileStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
             icon: TrendingUp,
             color: 'text-emerald-500',
             bg: 'bg-emerald-500/10',
+            tone: 'success',
           },
           {
             title: 'Despesas',
@@ -82,13 +96,15 @@ function MobileStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
             icon: TrendingDown,
             color: 'text-red-500',
             bg: 'bg-red-500/10',
+            tone: 'error',
           },
           {
-            title: 'Investimentos',
+            title: 'Investido',
             value: stats.totalInvestment,
             icon: TrendingUp,
             color: 'text-blue-700',
             bg: 'bg-blue-700/10',
+            tone: 'info',
           },
           {
             title: 'Pagos',
@@ -96,35 +112,46 @@ function MobileStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
             icon: CheckCircle2,
             color: 'text-emerald-600',
             bg: 'bg-emerald-600/10',
+            tone: 'success',
           },
           {
-            title: 'Gastos Fixos',
+            title: 'Fixo',
             value: stats.fixedExpenses,
             icon: AlertCircle,
             color: 'text-amber-500',
             bg: 'bg-amber-500/10',
+            tone: 'warning',
           },
-        ].map((item) => (
+        ].map((item, idx) => (
           <div
             key={item.title}
-            className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-3 py-2.5 shadow-sm dark:border-border/40 dark:bg-card/40 dark:shadow-none"
+            className={cn(
+              'flex flex-col gap-2 rounded-2xl border border-border/40 bg-card/40 p-3 shadow-sm backdrop-blur-sm transition-all active:scale-[0.98] min-w-0',
+              idx === 0 && 'col-span-1',
+            )}
           >
-            <div
-              className={cn(
-                'h-7 w-7 rounded-lg flex items-center justify-center shrink-0',
-                item.bg,
-              )}
-            >
-              <item.icon size={14} className={item.color} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider truncate">
+            <div className="flex items-center justify-between gap-1">
+              <div
+                className={cn(
+                  'h-7 w-7 rounded-xl flex items-center justify-center shrink-0 shadow-sm',
+                  item.bg,
+                )}
+              >
+                <item.icon size={14} className={item.color} />
+              </div>
+              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest leading-none truncate opacity-80">
                 {item.title}
               </p>
-              <p className={cn('text-xs font-black tabular-nums', item.color)}>
-                {formatCurrency(item.value)}
-              </p>
             </div>
+
+            <p
+              className={cn(
+                'text-xs font-black tabular-nums tracking-tight mt-1 truncate',
+                item.color,
+              )}
+            >
+              {formatCurrency(item.value)}
+            </p>
           </div>
         ))}
       </div>
@@ -178,7 +205,7 @@ function DesktopStats({ stats, tone }: { stats: StatsData; tone: BadgeTone }) {
   return (
     <div
       data-tone={tone}
-      className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"
+      className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6"
     >
       {items.map((item) => (
         <Card
@@ -209,13 +236,13 @@ function StatsSkeleton({}: { tone: BadgeTone }) {
     <>
       <div className="flex sm:hidden flex-col gap-3">
         <Skeleton className="h-21 w-full rounded-2xl" />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-6">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-15 w-full rounded-xl" />
           ))}
         </div>
       </div>
-      <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
         {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-20 w-full rounded-2xl" />
         ))}

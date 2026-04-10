@@ -52,21 +52,21 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
   return (
     <div
       className={cn(
-        'relative rounded-2xl border backdrop-blur-sm overflow-hidden transition-all shadow-sm',
+        'relative rounded-3xl border backdrop-blur-md overflow-hidden transition-all duration-300 w-full max-w-full min-w-0',
         isSelected
-          ? 'bg-blue-500/10 border-blue-500/30'
-          : 'bg-card border-border dark:bg-card/40 dark:border-border/10',
+          ? 'bg-blue-500/15 border-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.15)] scale-[1.01]'
+          : 'bg-card/50 border-border/40 dark:bg-card/30 dark:border-border/10 shadow-sm hover:shadow-md',
         !isSelected &&
           (isReceita
-            ? 'border-emerald-500/20'
+            ? 'hover:border-emerald-500/30'
             : isInvestimento
-              ? 'border-blue-700/20'
-              : 'border-red-500/10'),
+              ? 'hover:border-blue-700/30'
+              : 'hover:border-red-500/20'),
       )}
     >
       <div
         className={cn(
-          'absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl',
+          'absolute left-0 top-0 bottom-0 w-1.5 rounded-l-3xl',
           isReceita
             ? 'bg-emerald-500'
             : isInvestimento
@@ -75,36 +75,59 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
         )}
       />
 
-      <div className="pl-4 pr-3 py-3 flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <span className="text-sm font-semibold truncate leading-tight">
-            {entry.description}
-          </span>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] text-muted-foreground tabular-nums">
-              {format(new Date(`${entry.date}T12:00:00`), "dd 'de' MMM", {
-                locale: ptBR,
-              })}
+      <div className="pl-5 pr-4 py-4 flex flex-col gap-3 min-w-0 w-full">
+        <div className="flex items-start justify-between gap-3 min-w-0 w-full">
+          <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+            <span className="text-sm font-black truncate leading-tight tracking-tight uppercase opacity-90 block w-full">
+              {entry.description}
             </span>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest tabular-nums opacity-60 shrink-0">
+                {format(new Date(`${entry.date}T12:00:00`), "dd 'de' MMM", {
+                  locale: ptBR,
+                })}
+              </span>
+              {category && (
+                <>
+                  <span className="text-muted-foreground/30 text-[10px] shrink-0">
+                    ·
+                  </span>
+                  <Badge
+                    tone={category.tone as BadgeTone}
+                    variant="subtle"
+                    className="text-[9px] uppercase font-black tracking-widest border-none px-1.5 h-4 min-w-0 truncate"
+                  >
+                    {category.name}
+                  </Badge>
+                </>
+              )}
+            </div>
+          </div>
 
-            {category && (
-              <>
-                <span className="text-muted-foreground/40 text-[10px]">·</span>
-                <Badge
-                  tone={category.tone as BadgeTone}
-                  variant="subtle"
-                  className="text-[10px] uppercase font-bold tracking-tight border-none"
-                >
-                  {category.name}
-                </Badge>
-              </>
-            )}
-
-            <span className="text-muted-foreground/40 text-[10px]">·</span>
+          <div className="flex flex-col items-end shrink-0 max-w-[40%]">
             <span
               className={cn(
-                'flex items-center gap-1 text-[11px] font-medium',
+                'text-lg font-black tabular-nums leading-none tracking-tighter italic truncate w-full text-right',
+                isReceita
+                  ? 'text-emerald-500 underline decoration-emerald-500/30 decoration-2 underline-offset-4'
+                  : isInvestimento
+                    ? 'text-blue-700'
+                    : 'text-red-500',
+              )}
+            >
+              {isReceita ? '+' : isInvestimento ? '+' : '-'}
+              {formatCurrency(entry.amount)
+                .replace('R$\u00a0', '')
+                .replace('R$ ', '')}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/10 w-full min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span
+              className={cn(
+                'flex items-center gap-1 text-[10px] font-black uppercase tracking-widest truncate',
                 isReceita
                   ? 'text-emerald-500'
                   : isInvestimento
@@ -113,134 +136,97 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
               )}
             >
               {isReceita ? (
-                <TrendingUp size={11} />
+                <TrendingUp size={12} strokeWidth={3} className="shrink-0" />
               ) : isInvestimento ? (
-                <TrendingUpDown size={11} />
+                <TrendingUpDown
+                  size={12}
+                  strokeWidth={3}
+                  className="shrink-0"
+                />
               ) : (
-                <TrendingDown size={11} />
+                <TrendingDown size={12} strokeWidth={3} className="shrink-0" />
               )}
-              {isReceita
-                ? 'Receita'
-                : isInvestimento
-                  ? 'Investimento'
-                  : 'Despesa'}
+              <span className="truncate">
+                {isReceita
+                  ? 'Receita'
+                  : isInvestimento
+                    ? 'Investimento'
+                    : 'Despesa'}
+              </span>
             </span>
 
             {entry.isFixed && (
-              <>
-                <span className="text-muted-foreground/40 text-[10px]">·</span>
-                <button
-                  type="button"
-                  className={cn(
-                    'flex items-center gap-1',
-                    isSelectionMode || entry.parentId
-                      ? 'cursor-not-allowed opacity-50'
-                      : 'cursor-pointer',
-                  )}
-                  onClick={() =>
-                    !isSelectionMode &&
-                    !entry.parentId &&
-                    onToggleFixed(entry.id, entry.isFixed)
-                  }
-                  title={entry.parentId ? 'Replicação (bloqueada)' : undefined}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]" />
-                  <span className="text-[11px] text-amber-500 font-medium">
-                    Fixo
-                  </span>
-                </button>
-              </>
-            )}
-
-            {!entry.isFixed && (
-              <>
-                <span className="text-muted-foreground/40 text-[10px]">·</span>
-                <button
-                  type="button"
-                  className={cn(
-                    'flex items-center gap-1',
-                    isSelectionMode ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-                  )}
-                  onClick={() =>
-                    !isSelectionMode && onToggleFixed(entry.id, entry.isFixed)
-                  }
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 hover:bg-amber-500/50 transition-colors" />
-                </button>
-              </>
+              <button
+                type="button"
+                className={cn(
+                  'flex items-center gap-1 shrink-0',
+                  isSelectionMode || entry.parentId
+                    ? 'cursor-not-allowed opacity-40'
+                    : 'cursor-pointer active:scale-95 transition-transform',
+                )}
+                onClick={() =>
+                  !isSelectionMode &&
+                  !entry.parentId &&
+                  onToggleFixed(entry.id, entry.isFixed)
+                }
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse shrink-0" />
+                <span className="text-[9px] text-amber-500 font-black uppercase tracking-widest">
+                  Fixo
+                </span>
+              </button>
             )}
           </div>
-        </div>
 
-        <div className="flex flex-col items-end gap-1.5 shrink-0">
-          <span
-            className={cn(
-              'text-base font-black tabular-nums leading-tight',
-              isReceita
-                ? 'text-emerald-500'
-                : isInvestimento
-                  ? 'text-blue-700'
-                  : 'text-red-500',
+          <div className="flex items-center gap-1 shrink-0">
+            {!isSelectionMode && entry.type !== 'receita' && (
+              <div className="flex items-center gap-1.5 mr-1 px-1.5 py-0.5 rounded-lg bg-muted/30 border border-border/10">
+                <Checkbox
+                  checked={entry.isPaid}
+                  onCheckedChange={(checked) =>
+                    onTogglePaid(entry.id, Boolean(checked))
+                  }
+                  className="h-3 w-3 rounded-md cursor-pointer border-muted-foreground/30 accent-emerald-500"
+                />
+                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/80">
+                  Pago
+                </span>
+              </div>
             )}
-          >
-            {isReceita ? '+' : isInvestimento ? '+' : '-'}
-            {formatCurrency(entry.amount)
-              .replace('R$\u00a0', '')
-              .replace('R$ ', '')}
-          </span>
 
-          {!isSelectionMode && entry.type !== 'receita' && (
-            <div className="flex items-center gap-1.5">
-              <Checkbox
-                checked={entry.isPaid}
-                onCheckedChange={(checked) =>
-                  onTogglePaid(entry.id, Boolean(checked))
-                }
-                className="h-4 w-4 rounded-md cursor-pointer"
-              />
-              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-                Pago
-              </span>
-            </div>
-          )}
-
-          <div className="flex items-center gap-1">
             <Button
               size="icon"
               variant="ghost"
               className={cn(
-                'h-7 w-7 text-muted-foreground hover:text-blue-500',
+                'h-7 w-7 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-xl',
                 isSelectionMode || entry.parentId
-                  ? 'opacity-30 cursor-not-allowed'
-                  : 'cursor-pointer',
+                  ? 'opacity-20 cursor-not-allowed'
+                  : 'cursor-pointer active:scale-90 transition-all',
               )}
               onClick={() =>
                 !isSelectionMode && !entry.parentId && onStartEdit()
               }
-              title={
-                entry.parentId ? 'Registro automático (não editável)' : 'Editar'
-              }
             >
-              <Edit2 size={13} />
+              <Edit2 size={12} strokeWidth={2.5} />
             </Button>
 
             {!isSelectionMode && (
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-7 w-7 text-muted-foreground hover:text-red-500 cursor-pointer"
+                className="h-7 w-7 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl cursor-pointer active:scale-90 transition-all"
                 onClick={onDelete}
               >
-                <Trash2 size={13} />
+                <Trash2 size={12} strokeWidth={2.5} />
               </Button>
             )}
 
             {isSelectionMode && (
-              <div className="h-7 w-7 flex items-center justify-center p-1">
+              <div className="h-7 w-7 flex items-center justify-center">
                 <Checkbox
                   checked={isSelected}
                   onCheckedChange={onToggleSelection}
-                  className="h-4 w-4 rounded-lg cursor-pointer"
+                  className="h-4 w-4 rounded-lg cursor-pointer border-2"
                 />
               </div>
             )}

@@ -14,10 +14,12 @@ export function Financeiro({ tone = 'success' }: FinanceiroProps) {
     <FinanceiroProvider>
       <div
         data-tone={tone}
-        className="flex flex-col sm:h-full sm:max-h-full sm:min-h-0"
+        className="flex flex-col sm:h-full sm:max-h-full sm:min-h-0 w-full max-w-full overflow-x-hidden"
       >
-        <PageContainer className="bg-background gap-2 pb-4 flex-1 sm:min-h-0 sm:overflow-hidden">
-          <FinanceiroGrid tone={tone} />
+        <PageContainer className="bg-background gap-2 pb-4 flex-1 sm:min-h-0 sm:overflow-hidden overflow-x-hidden">
+          <div className="flex-1 sm:min-h-0 sm:overflow-auto pr-1 custom-scrollbar overflow-x-hidden">
+            <FinanceiroGrid tone={tone} />
+          </div>
         </PageContainer>
       </div>
     </FinanceiroProvider>

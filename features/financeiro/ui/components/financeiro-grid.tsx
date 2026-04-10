@@ -161,221 +161,314 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
           .replace(/^./, (c) => c.toUpperCase());
 
   return (
-    <div className="flex flex-col gap-4 flex-1 sm:min-h-0 sm:h-full sm:overflow-hidden">
+    <div className="flex flex-col gap-6 flex-1 sm:min-h-0 sm:h-full sm:overflow-hidden w-full max-w-full min-w-0 overflow-hidden">
       <ProcessingOverlay isOpen={isProcessing || loading} />
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 flex-wrap cursor-default">
-          <h2 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
-            Movimentações Financeiras - {monthName}
-          </h2>
+
+      {/* VIEWPORT < 1280px: CARD GRID (Meta-style) */}
+      <div className="xl:hidden w-full max-w-full mx-auto px-3 space-y-6 overflow-x-hidden pb-10 min-w-0">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1 cursor-default pt-2">
+            <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] opacity-70">
+              Gestão Financeira
+            </h2>
+            <h1 className="text-2xl font-black tracking-tighter italic uppercase">
+              {monthName}{' '}
+              <span style={{ color: 'var(--tone-color)' }}>{filters.year}</span>
+            </h1>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex gap-2 flex-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 h-10 rounded-xl border-border/40 bg-card/40 backdrop-blur-sm cursor-pointer shadow-sm active:scale-95 transition-all text-xs font-bold flex-1 sm:flex-none"
+                disabled={isProcessing}
+                onClick={() => {
+                  setPendingFilters(filters);
+                  setIsFiltersOpen(true);
+                }}
+              >
+                <Filter size={14} strokeWidth={2.5} />
+                Filtros
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 h-10 rounded-xl border-border/40 bg-card/40 backdrop-blur-sm cursor-pointer shadow-sm active:scale-95 transition-all text-xs font-bold flex-1 sm:flex-none"
+                disabled={isProcessing}
+                onClick={() => setIsCategoriesOpen(true)}
+              >
+                <Tags size={14} strokeWidth={2.5} />
+                Categorias
+              </Button>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenNew}
+              disabled={isProcessing}
+              className="h-11 gap-2 rounded-xl border-dashed hover:border-solid transition-all cursor-pointer shadow-lg flex items-center justify-center font-black uppercase tracking-widest text-xs sm:flex-1 md:max-w-xs"
+              style={{
+                borderColor: 'var(--tone-color)',
+                color: 'var(--tone-color)',
+                backgroundColor:
+                  'color-mix(in srgb, var(--tone-color) 5%, transparent)',
+              }}
+            >
+              <Plus size={16} strokeWidth={3} />
+              Novo lançamento
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 cursor-pointer flex-1 sm:flex-none"
-            disabled={isProcessing}
-            onClick={() => {
-              setPendingFilters(filters);
-              setIsFiltersOpen(true);
-            }}
-          >
-            <Filter size={14} />
-            Filtros
-          </Button>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+              Resumo Operacional
+            </h3>
+          </div>
+          <FinanceiroStats tone={tone} />
+        </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className={cn(
-              'hidden sm:flex gap-2 cursor-pointer transition-all',
-              isSelectionMode && 'bg-blue-500/10 border-blue-500 text-blue-500',
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+              Histórico de Lançamentos
+            </h3>
+            <span className="text-[9px] font-bold text-muted-foreground uppercase bg-muted/50 px-2 py-0.5 rounded-full">
+              {filteredEntries.length} Itens
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-full min-w-0">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-3xl border border-border/20 bg-card/20 p-5 space-y-4 animate-pulse"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <Skeleton className="h-3 w-32 rounded-full" />
+                      <Skeleton className="h-4 w-48 rounded-full" />
+                    </div>
+                    <Skeleton className="h-6 w-20 rounded-xl" />
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-border/10">
+                    <Skeleton className="h-3 w-24 rounded-full" />
+                    <Skeleton className="h-8 w-20 rounded-xl" />
+                  </div>
+                </div>
+              ))
+            ) : filteredEntries.length === 0 ? (
+              <div className="col-span-1 md:col-span-2 lg:col-span-3 py-16 text-center space-y-2 rounded-3xl border border-dashed border-border/40 bg-muted/5">
+                <p className="text-muted-foreground italic text-sm">
+                  Vazio por aqui.
+                </p>
+                <p className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-widest">
+                  Nenhuma transação encontrada.
+                </p>
+              </div>
+            ) : (
+              filteredEntries.map((entry) => (
+                <FinanceiroMobileCard
+                  key={entry.id}
+                  entry={entry}
+                  categories={categories}
+                  formatCurrency={formatCurrency}
+                  onToggleFixed={(entryId, isFixed) => {
+                    if (entry.parentId) return;
+
+                    if (!isFixed) {
+                      setRecurringTarget(entry);
+                      setIsRecurringModalOpen(true);
+                    } else {
+                      updateEntry(entryId, { isFixed: false });
+                    }
+                  }}
+                  onTogglePaid={(entryId, isPaid) =>
+                    updateEntry(entryId, { isPaid })
+                  }
+                  onStartEdit={() => handleOpenEdit(entry)}
+                  onDelete={() =>
+                    handleConfirmDelete(
+                      [entry.id],
+                      entry.isFixed && !entry.parentId,
+                    )
+                  }
+                />
+              ))
             )}
-            disabled={isProcessing}
-            onClick={handleToggleSelectionMode}
-          >
-            <CheckSquare size={14} />
-            {isSelectionMode ? 'Cancelar' : 'Selecionar'}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 cursor-pointer flex-1 sm:flex-none"
-            disabled={isProcessing}
-            onClick={() => setIsCategoriesOpen(true)}
-          >
-            <Tags size={14} />
-            Categorias
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleOpenNew}
-            disabled={isProcessing}
-            className="basis-full sm:basis-auto w-full sm:w-auto gap-2 border-dashed hover:border-solid transition-all cursor-pointer"
-            style={{
-              borderColor: 'var(--tone-color)',
-              color: 'var(--tone-color)',
-            }}
-          >
-            <Plus size={14} />
-            Novo lançamento
-          </Button>
+          </div>
         </div>
       </div>
 
-      <FinanceiroStats tone={tone} />
+      {/* VIEWPORT >= 1280px: DESKTOP TABLE */}
+      <div className="hidden xl:flex flex-col gap-6 flex-1 sm:min-h-0 sm:h-full sm:overflow-hidden w-full min-w-0">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 flex-wrap cursor-default">
+            <h2 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
+              Movimentações Financeiras - {monthName}
+            </h2>
+          </div>
 
-      <div className="flex-1 sm:h-full sm:overflow-auto sm:min-h-0">
-        <div className="flex sm:hidden flex-col gap-2 pr-1 custom-scrollbar">
-          {loading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className="rounded-2xl border border-border/40 bg-card/30 p-4 space-y-3"
-              >
-                <div className="flex justify-between">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <Skeleton className="h-6 w-full" />
-                <div className="flex justify-between">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                </div>
-              </div>
-            ))
-          ) : filteredEntries.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground italic text-sm">
-              Nenhuma transação encontrada para este período.
-            </div>
-          ) : (
-            filteredEntries.map((entry) => (
-              <FinanceiroMobileCard
-                key={entry.id}
-                entry={entry}
-                categories={categories}
-                formatCurrency={formatCurrency}
-                onToggleFixed={(entryId, isFixed) => {
-                  if (entry.parentId) return;
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 cursor-pointer flex-1 sm:flex-none"
+              disabled={isProcessing}
+              onClick={() => {
+                setPendingFilters(filters);
+                setIsFiltersOpen(true);
+              }}
+            >
+              <Filter size={14} />
+              Filtros
+            </Button>
 
-                  if (!isFixed) {
-                    setRecurringTarget(entry);
-                    setIsRecurringModalOpen(true);
-                  } else {
-                    updateEntry(entryId, { isFixed: false });
-                  }
-                }}
-                onTogglePaid={(entryId, isPaid) =>
-                  updateEntry(entryId, { isPaid })
-                }
-                onStartEdit={() => handleOpenEdit(entry)}
-                onDelete={() =>
-                  handleConfirmDelete(
-                    [entry.id],
-                    entry.isFixed && !entry.parentId,
-                  )
-                }
-              />
-            ))
-          )}
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                'hidden sm:flex gap-2 cursor-pointer transition-all',
+                isSelectionMode &&
+                  'bg-blue-500/10 border-blue-500 text-blue-500',
+              )}
+              disabled={isProcessing}
+              onClick={handleToggleSelectionMode}
+            >
+              <CheckSquare size={14} />
+              {isSelectionMode ? 'Cancelar' : 'Selecionar'}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 cursor-pointer flex-1 sm:flex-none"
+              disabled={isProcessing}
+              onClick={() => setIsCategoriesOpen(true)}
+            >
+              <Tags size={14} />
+              Categorias
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenNew}
+              disabled={isProcessing}
+              className="basis-full sm:basis-auto w-full sm:w-auto gap-2 border-dashed hover:border-solid transition-all cursor-pointer"
+              style={{
+                borderColor: 'var(--tone-color)',
+                color: 'var(--tone-color)',
+              }}
+            >
+              <Plus size={14} />
+              Novo lançamento
+            </Button>
+          </div>
         </div>
 
-        <div className="hidden sm:block h-full min-h-0 rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-auto custom-scrollbar overscroll-contain">
-          <table className="w-full text-left border-collapse min-w-230 cursor-default">
-            <thead>
-              <tr className="bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
-                <th className="px-4 py-3 w-40">Data</th>
-                <th className="px-4 py-3">Descrição</th>
-                <th className="px-4 py-3 w-40">Categoria</th>
-                <th className="px-4 py-3 w-32">Valor</th>
-                <th className="px-4 py-3 w-24 text-center">Tipo</th>
-                <th className="px-4 py-3 w-20 text-center">Fixo</th>
-                <th className="px-4 py-3 w-24 text-center">Pago</th>
-                <th className="px-4 py-3 w-32 text-center">Ações</th>
-              </tr>
-            </thead>
+        <FinanceiroStats tone={tone} />
 
-            <tbody className="divide-y divide-border/20">
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    <td className="px-4 py-4">
-                      <Skeleton className="h-4 w-24" />
-                    </td>
-                    <td className="px-4 py-4">
-                      <Skeleton className="h-4 w-48" />
-                    </td>
-                    <td className="px-4 py-4">
-                      <Skeleton className="h-4 w-32" />
-                    </td>
-                    <td className="px-4 py-4">
-                      <Skeleton className="h-4 w-20" />
-                    </td>
-                    <td className="px-4 py-4 flex justify-center">
-                      <Skeleton className="h-4 w-12" />
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <Skeleton className="h-4 w-8 mx-auto" />
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <Skeleton className="h-4 w-8 mx-auto" />
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <Skeleton className="h-8 w-24 mx-auto" />
+        <div className="flex-1 sm:h-full sm:overflow-auto sm:min-h-0 w-full min-w-0 overflow-hidden">
+          <div className="hidden sm:block h-full min-h-0 rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-auto custom-scrollbar overscroll-contain">
+            <table className="w-full text-left border-collapse min-w-230 cursor-default">
+              <thead>
+                <tr className="bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                  <th className="px-4 py-3 w-40">Data</th>
+                  <th className="px-4 py-3">Descrição</th>
+                  <th className="px-4 py-3 w-40">Categoria</th>
+                  <th className="px-4 py-3 w-32">Valor</th>
+                  <th className="px-4 py-3 w-24 text-center">Tipo</th>
+                  <th className="px-4 py-3 w-20 text-center">Fixo</th>
+                  <th className="px-4 py-3 w-24 text-center">Pago</th>
+                  <th className="px-4 py-3 w-32 text-center">Ações</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-border/20">
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i}>
+                      <td className="px-4 py-4">
+                        <Skeleton className="h-4 w-24" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <Skeleton className="h-4 w-48" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <Skeleton className="h-4 w-32" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <Skeleton className="h-4 w-20" />
+                      </td>
+                      <td className="px-4 py-4 flex justify-center">
+                        <Skeleton className="h-4 w-12" />
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <Skeleton className="h-4 w-8 mx-auto" />
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <Skeleton className="h-4 w-8 mx-auto" />
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <Skeleton className="h-8 w-24 mx-auto" />
+                      </td>
+                    </tr>
+                  ))
+                ) : filteredEntries.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-4 py-12 text-center text-muted-foreground italic text-sm"
+                    >
+                      Nenhuma transação encontrada para este período.
                     </td>
                   </tr>
-                ))
-              ) : filteredEntries.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-12 text-center text-muted-foreground italic text-sm"
-                  >
-                    Nenhuma transação encontrada para este período.
-                  </td>
-                </tr>
-              ) : (
-                filteredEntries.map((entry) => (
-                  <FinanceiroGridRow
-                    key={entry.id}
-                    entry={entry}
-                    isSelectionMode={isSelectionMode}
-                    isSelected={selectedIds.has(entry.id)}
-                    onToggleSelection={() => toggleOne(entry.id)}
-                    categories={categories}
-                    formatCurrency={formatCurrency}
-                    onQuickCategoryChange={(entryId, categoryId) =>
-                      updateEntry(entryId, { categoryId })
-                    }
-                    onToggleFixed={(entryId, isFixed) => {
-                      if (entry.parentId) return;
-
-                      if (!isFixed) {
-                        setRecurringTarget(entry);
-                        setIsRecurringModalOpen(true);
-                      } else {
-                        updateEntry(entryId, { isFixed: false });
+                ) : (
+                  filteredEntries.map((entry) => (
+                    <FinanceiroGridRow
+                      key={entry.id}
+                      entry={entry}
+                      isSelectionMode={isSelectionMode}
+                      isSelected={selectedIds.has(entry.id)}
+                      onToggleSelection={() => toggleOne(entry.id)}
+                      categories={categories}
+                      formatCurrency={formatCurrency}
+                      onQuickCategoryChange={(entryId, categoryId) =>
+                        updateEntry(entryId, { categoryId })
                       }
-                    }}
-                    onTogglePaid={(entryId, isPaid) =>
-                      updateEntry(entryId, { isPaid })
-                    }
-                    onStartEdit={() => handleOpenEdit(entry)}
-                    onDelete={() =>
-                      handleConfirmDelete(
-                        [entry.id],
-                        entry.isFixed && !entry.parentId,
-                      )
-                    }
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
+                      onToggleFixed={(entryId, isFixed) => {
+                        if (entry.parentId) return;
+
+                        if (!isFixed) {
+                          setRecurringTarget(entry);
+                          setIsRecurringModalOpen(true);
+                        } else {
+                          updateEntry(entryId, { isFixed: false });
+                        }
+                      }}
+                      onTogglePaid={(entryId, isPaid) =>
+                        updateEntry(entryId, { isPaid })
+                      }
+                      onStartEdit={() => handleOpenEdit(entry)}
+                      onDelete={() =>
+                        handleConfirmDelete(
+                          [entry.id],
+                          entry.isFixed && !entry.parentId,
+                        )
+                      }
+                    />
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
