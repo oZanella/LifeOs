@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
         type: 'receita' | 'despesa' | 'investimento';
         isFixed: boolean;
         isPaid: boolean;
+        isArchivedPaid?: boolean;
         parentId?: string | null;
       }>;
     };
@@ -34,7 +35,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await createEntries(session.userId, body.entries);
+    await createEntries(
+      session.userId,
+      body.entries.map((entry) => ({
+        ...entry,
+        isArchivedPaid: Boolean(entry.isArchivedPaid),
+      })),
+    );
 
     return NextResponse.json({
       entries: await listEntries(session.userId),

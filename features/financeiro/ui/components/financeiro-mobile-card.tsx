@@ -31,6 +31,7 @@ interface FinanceiroMobileCardProps {
   onDelete: () => void;
   onToggleFixed: (entryId: string, isFixed: boolean) => void;
   onTogglePaid: (entryId: string, isPaid: boolean) => void;
+  isReadOnly?: boolean;
 }
 
 export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
@@ -44,6 +45,7 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
   onDelete,
   onToggleFixed,
   onTogglePaid,
+  isReadOnly = false,
 }: FinanceiroMobileCardProps) {
   const category = categories.find((c) => c.id === entry.categoryId);
   const isReceita = entry.type === 'receita';
@@ -160,13 +162,14 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
                 type="button"
                 className={cn(
                   'flex items-center gap-1 shrink-0',
-                  isSelectionMode || entry.parentId
+                  isSelectionMode || entry.parentId || isReadOnly
                     ? 'cursor-not-allowed opacity-40'
                     : 'cursor-pointer active:scale-95 transition-transform',
                 )}
                 onClick={() =>
                   !isSelectionMode &&
                   !entry.parentId &&
+                  !isReadOnly &&
                   onToggleFixed(entry.id, entry.isFixed)
                 }
               >
@@ -179,7 +182,7 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
-            {!isSelectionMode && entry.type !== 'receita' && (
+            {!isSelectionMode && !isReadOnly && entry.type !== 'receita' && (
               <div className="flex items-center gap-1.5 mr-1 px-1.5 py-0.5 rounded-lg bg-muted/30 border border-border/10">
                 <Checkbox
                   checked={entry.isPaid}
@@ -194,23 +197,33 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
               </div>
             )}
 
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                'h-7 w-7 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-xl',
-                isSelectionMode || entry.parentId
-                  ? 'opacity-20 cursor-not-allowed'
-                  : 'cursor-pointer active:scale-90 transition-all',
-              )}
-              onClick={() =>
-                !isSelectionMode && !entry.parentId && onStartEdit()
-              }
-            >
-              <Edit2 size={12} strokeWidth={2.5} />
-            </Button>
+            {isReadOnly && entry.type !== 'receita' && (
+              <div className="flex items-center gap-1.5 mr-1 px-1.5 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500">
+                  Pago
+                </span>
+              </div>
+            )}
 
-            {!isSelectionMode && (
+            {!isReadOnly && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className={cn(
+                  'h-7 w-7 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-xl',
+                  isSelectionMode || entry.parentId
+                    ? 'opacity-20 cursor-not-allowed'
+                    : 'cursor-pointer active:scale-90 transition-all',
+                )}
+                onClick={() =>
+                  !isSelectionMode && !entry.parentId && onStartEdit()
+                }
+              >
+                <Edit2 size={12} strokeWidth={2.5} />
+              </Button>
+            )}
+
+            {!isSelectionMode && !isReadOnly && (
               <Button
                 size="icon"
                 variant="ghost"

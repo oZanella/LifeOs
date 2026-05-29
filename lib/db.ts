@@ -76,6 +76,7 @@ async function runMigrations() {
         type TEXT NOT NULL CHECK(type IN ('receita', 'despesa', 'investimento')),
         is_fixed BOOLEAN NOT NULL DEFAULT FALSE,
         is_paid BOOLEAN NOT NULL DEFAULT FALSE,
+        is_archived_paid BOOLEAN NOT NULL DEFAULT FALSE,
         parent_id TEXT REFERENCES financeiro_entries(id) ON DELETE CASCADE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -96,6 +97,13 @@ async function runMigrations() {
         -- Ensure is_paid exists for legacy DBs.
         BEGIN
           ALTER TABLE financeiro_entries ADD COLUMN is_paid BOOLEAN NOT NULL DEFAULT FALSE;
+        EXCEPTION
+          WHEN duplicate_column THEN NULL;
+        END;
+
+        -- Entries preserved from deleted installments already paid in past months.
+        BEGIN
+          ALTER TABLE financeiro_entries ADD COLUMN is_archived_paid BOOLEAN NOT NULL DEFAULT FALSE;
         EXCEPTION
           WHEN duplicate_column THEN NULL;
         END;

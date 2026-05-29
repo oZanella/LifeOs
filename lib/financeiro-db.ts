@@ -18,6 +18,7 @@ export interface FinanceiroEntry {
   type: EntryType;
   isFixed: boolean;
   isPaid: boolean;
+  isArchivedPaid: boolean;
   parentId?: string | null;
 }
 
@@ -66,10 +67,11 @@ export async function listEntries(userId: number) {
     type: EntryType;
     is_fixed: boolean;
     is_paid: boolean;
+    is_archived_paid: boolean;
     parent_id: string | null;
   }>(
     `
-      SELECT id, date, description, category_id, amount, type, is_fixed, is_paid, parent_id
+      SELECT id, date, description, category_id, amount, type, is_fixed, is_paid, is_archived_paid, parent_id
       FROM financeiro_entries
       WHERE user_id = $1
       ORDER BY date DESC, created_at DESC
@@ -86,6 +88,7 @@ export async function listEntries(userId: number) {
     type: row.type,
     isFixed: Boolean(row.is_fixed),
     isPaid: Boolean(row.is_paid),
+    isArchivedPaid: Boolean(row.is_archived_paid),
     parentId: row.parent_id,
   }));
 }
@@ -99,8 +102,8 @@ export async function createEntry(
   await dbExec(
     `
       INSERT INTO financeiro_entries
-        (id, user_id, date, description, category_id, amount, type, is_fixed, is_paid, parent_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        (id, user_id, date, description, category_id, amount, type, is_fixed, is_paid, is_archived_paid, parent_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     `,
     [
       id,
@@ -112,6 +115,7 @@ export async function createEntry(
       data.type,
       data.isFixed,
       Boolean(data.isPaid),
+      Boolean(data.isArchivedPaid),
       data.parentId || null,
     ],
   );
@@ -130,9 +134,9 @@ export async function createEntries(
 
   entries.forEach((entry, i) => {
     const id = crypto.randomUUID();
-    const offset = i * 10;
+    const offset = i * 11;
     placeholders.push(
-      `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10})`,
+      `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11})`,
     );
     values.push(
       id,
@@ -144,6 +148,7 @@ export async function createEntries(
       entry.type,
       entry.isFixed,
       Boolean(entry.isPaid),
+      Boolean(entry.isArchivedPaid),
       entry.parentId || null,
     );
   });
@@ -151,13 +156,13 @@ export async function createEntries(
   await dbExec(
     `
       INSERT INTO financeiro_entries
-        (id, user_id, date, description, category_id, amount, type, is_fixed, is_paid, parent_id)
+        (id, user_id, date, description, category_id, amount, type, is_fixed, is_paid, is_archived_paid, parent_id)
       VALUES ${placeholders.join(', ')}
     `,
     values,
   );
 
-  return values.filter((_, i) => i % 10 === 0).map(String);
+  return values.filter((_, i) => i % 11 === 0).map(String);
 }
 
 export async function updateEntry(
@@ -207,6 +212,11 @@ export async function updateEntry(
     updateParts.push(`is_paid = $${params.length}`);
   }
 
+  if (typeof data.isArchivedPaid === 'boolean') {
+    params.push(data.isArchivedPaid);
+    updateParts.push(`is_archived_paid = $${params.length}`);
+  }
+
   if (data.parentId !== undefined) {
     params.push(data.parentId);
     updateParts.push(`parent_id = $${params.length}`);
@@ -231,6 +241,65 @@ export async function updateEntry(
 }
 
 export async function deleteEntry(userId: number, entryId: string) {
+  const target = await dbQueryOne<{
+    id: string;
+    date: string;
+    is_fixed: boolean;
+    parent_id: string | null;
+  }>(
+    `
+      SELECT id, date, is_fixed, parent_id
+      FROM financeiro_entries
+      WHERE user_id = $1 AND id = $2
+    `,
+    [userId, entryId],
+  );
+
+  if (!target) return;
+
+  const groupId = target.parent_id || target.id;
+  const grouped = await dbQueryOne<{ total: number }>(
+    `
+      SELECT COUNT(*)::int AS total
+      FROM financeiro_entries
+      WHERE user_id = $1 AND (id = $2 OR parent_id = $2)
+    `,
+    [userId, groupId],
+  );
+
+  if (target.is_fixed || target.parent_id || (grouped?.total ?? 0) > 1) {
+    const now = new Date();
+    const currentMonthStart = `${now.getFullYear()}-${String(
+      now.getMonth() + 1,
+    ).padStart(2, '0')}-01`;
+
+    await dbExec(
+      `
+        UPDATE financeiro_entries
+        SET is_archived_paid = TRUE,
+            is_paid = TRUE,
+            parent_id = NULL,
+            updated_at = NOW()
+        WHERE user_id = $1
+          AND (id = $2 OR parent_id = $2)
+          AND date < $3
+      `,
+      [userId, groupId, currentMonthStart],
+    );
+
+    await dbExec(
+      `
+        DELETE FROM financeiro_entries
+        WHERE user_id = $1
+          AND (id = $2 OR parent_id = $2)
+          AND date >= $3
+      `,
+      [userId, groupId, currentMonthStart],
+    );
+
+    return;
+  }
+
   await dbExec(
     `
       DELETE FROM financeiro_entries
@@ -244,15 +313,9 @@ export async function deleteEntry(userId: number, entryId: string) {
 export async function deleteEntries(userId: number, entryIds: string[]) {
   if (entryIds.length === 0) return;
 
-  const placeholders = entryIds.map((_, i) => `$${i + 2}`).join(', ');
-  await dbExec(
-    `
-      DELETE FROM financeiro_entries
-      WHERE user_id = $1
-        AND (id IN (${placeholders}) OR parent_id IN (${placeholders}))
-    `,
-    [userId, ...entryIds],
-  );
+  for (const entryId of entryIds) {
+    await deleteEntry(userId, entryId);
+  }
 }
 
 export async function createCategory(

@@ -26,6 +26,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
   const {
     entries,
     filteredEntries,
+    archivedPaidEntries,
     categories,
     filters,
     setFilters,
@@ -84,6 +85,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       type: 'despesa',
       isFixed: false,
       isPaid: false,
+      isArchivedPaid: false,
     });
   };
 
@@ -131,6 +133,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         type: data.type ?? 'despesa',
         isFixed: data.isFixed ?? false,
         isPaid: data.isPaid ?? false,
+        isArchivedPaid: false,
       };
 
       const createdId = await addEntry(entryData);
@@ -296,7 +299,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   onDelete={() =>
                     handleConfirmDelete(
                       [entry.id],
-                      entry.isFixed && !entry.parentId,
+                      entry.isFixed || Boolean(entry.parentId),
                     )
                   }
                 />
@@ -304,6 +307,35 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             )}
           </div>
         </div>
+
+        {archivedPaidEntries.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+                Lançamentos pagos
+              </h3>
+              <span className="text-[9px] font-bold text-muted-foreground uppercase bg-muted/50 px-2 py-0.5 rounded-full">
+                {archivedPaidEntries.length} Itens
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-full min-w-0">
+              {archivedPaidEntries.map((entry) => (
+                <FinanceiroMobileCard
+                  key={entry.id}
+                  entry={entry}
+                  categories={categories}
+                  formatCurrency={formatCurrency}
+                  onToggleFixed={() => undefined}
+                  onTogglePaid={() => undefined}
+                  onStartEdit={() => undefined}
+                  onDelete={() => undefined}
+                  isReadOnly
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* VIEWPORT >= 1280px: DESKTOP TABLE */}
@@ -460,7 +492,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                       onDelete={() =>
                         handleConfirmDelete(
                           [entry.id],
-                          entry.isFixed && !entry.parentId,
+                          entry.isFixed || Boolean(entry.parentId),
                         )
                       }
                     />
@@ -470,6 +502,49 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             </table>
           </div>
         </div>
+
+        {archivedPaidEntries.length > 0 && (
+          <div className="shrink-0 max-h-72 overflow-auto rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md custom-scrollbar">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-muted/50 px-4 py-3">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Lançamentos pagos
+              </h3>
+              <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                {archivedPaidEntries.length} itens
+              </span>
+            </div>
+            <table className="w-full text-left border-collapse min-w-230 cursor-default">
+              <thead>
+                <tr className="bg-muted/30 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                  <th className="px-4 py-3 w-40">Data</th>
+                  <th className="px-4 py-3">Descrição</th>
+                  <th className="px-4 py-3 w-40">Categoria</th>
+                  <th className="px-4 py-3 w-32">Valor</th>
+                  <th className="px-4 py-3 w-24 text-center">Tipo</th>
+                  <th className="px-4 py-3 w-20 text-center">Fixo</th>
+                  <th className="px-4 py-3 w-24 text-center">Pago</th>
+                  <th className="px-4 py-3 w-32 text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/20">
+                {archivedPaidEntries.map((entry) => (
+                  <FinanceiroGridRow
+                    key={entry.id}
+                    entry={entry}
+                    categories={categories}
+                    formatCurrency={formatCurrency}
+                    onQuickCategoryChange={() => undefined}
+                    onToggleFixed={() => undefined}
+                    onTogglePaid={() => undefined}
+                    onStartEdit={() => undefined}
+                    onDelete={() => undefined}
+                    isReadOnly
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {editingEntry !== null && (
@@ -606,7 +681,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   const ids = Array.from(selectedIds);
                   const hasParent = entries
                     .filter((e) => ids.includes(e.id))
-                    .some((e) => e.isFixed && !e.parentId);
+                    .some((e) => e.isFixed || Boolean(e.parentId));
                   handleConfirmDelete(ids, hasParent);
                 }}
               >

@@ -73,9 +73,9 @@ export function FinanceiroConfirmDeleteModal({
                     Aviso importante
                   </p>
                   <p className="text-xs leading-normal font-medium italic opacity-90">
-                    Este registro é a origem de lançamentos recorrentes. Todas
-                    as parcelas vinculadas a ele também serão excluídas
-                    automaticamente.
+                    Este registro faz parte de um lançamento parcelado. Parcelas
+                    de meses anteriores serão mantidas em Lançamentos pagos, e
+                    parcelas do mês atual em diante serão excluídas.
                   </p>
                 </div>
               </div>

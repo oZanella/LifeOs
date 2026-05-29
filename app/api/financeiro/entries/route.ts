@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       type: body.type,
       isFixed: Boolean(body.isFixed),
       isPaid: Boolean(body.isPaid),
+      isArchivedPaid: false,
     });
 
     return NextResponse.json({

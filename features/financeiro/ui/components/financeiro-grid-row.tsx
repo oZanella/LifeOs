@@ -24,6 +24,7 @@ interface FinanceiroGridRowProps {
   onTogglePaid: (entryId: string, isPaid: boolean) => void;
   onStartEdit: () => void;
   onDelete: () => void;
+  isReadOnly?: boolean;
 }
 
 export const FinanceiroGridRow = memo(function FinanceiroGridRow({
@@ -38,6 +39,7 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
   onTogglePaid,
   onStartEdit,
   onDelete,
+  isReadOnly = false,
 }: FinanceiroGridRowProps) {
   return (
     <tr
@@ -57,7 +59,7 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
       </td>
 
       <td className="px-4 py-2">
-        {isSelectionMode ? (
+        {isSelectionMode || isReadOnly ? (
           <span className="text-[10px] uppercase font-bold tracking-tight text-muted-foreground">
             {categories.find((item) => item.id === entry.categoryId)?.name ??
               'Sem Categoria'}
@@ -102,10 +104,14 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
         <div
           className={cn(
             'flex justify-center',
-            isSelectionMode ? 'cursor-not-allowed opacity-40' : 'cursor-pointer',
+            isSelectionMode || isReadOnly
+              ? 'cursor-not-allowed opacity-40'
+              : 'cursor-pointer',
           )}
           onClick={() =>
-            !isSelectionMode && onToggleFixed(entry.id, entry.isFixed)
+            !isSelectionMode &&
+            !isReadOnly &&
+            onToggleFixed(entry.id, entry.isFixed)
           }
         >
           <div
@@ -131,7 +137,7 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
 
       <td className="px-4 py-2 text-center">
         <div className="flex justify-center">
-          {!isSelectionMode && entry.type !== 'receita' && (
+          {!isSelectionMode && !isReadOnly && entry.type !== 'receita' && (
             <Checkbox
               checked={entry.isPaid}
               onCheckedChange={(checked) =>
@@ -139,6 +145,11 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
               }
               className="cursor-pointer"
             />
+          )}
+          {isReadOnly && entry.type !== 'receita' && (
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">
+              Pago
+            </span>
           )}
         </div>
       </td>
@@ -150,21 +161,25 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
             variant="ghost"
             className={cn(
               'h-7 w-7 text-muted-foreground hover:text-blue-500',
-              isSelectionMode || entry.parentId
+              isSelectionMode || entry.parentId || isReadOnly
                 ? 'opacity-30 cursor-not-allowed'
                 : 'cursor-pointer',
             )}
             onClick={() =>
-              !isSelectionMode && !entry.parentId && onStartEdit()
+              !isSelectionMode && !entry.parentId && !isReadOnly && onStartEdit()
             }
             title={
-              entry.parentId ? 'Registro automático (não editável)' : 'Editar'
+              isReadOnly
+                ? 'Lançamento pago preservado'
+                : entry.parentId
+                  ? 'Registro automático (não editável)'
+                  : 'Editar'
             }
           >
             <Edit2 size={14} />
           </Button>
 
-          {!isSelectionMode && (
+          {!isSelectionMode && !isReadOnly && (
             <Button
               size="icon"
               variant="ghost"

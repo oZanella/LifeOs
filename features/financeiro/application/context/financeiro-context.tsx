@@ -30,6 +30,7 @@ export interface FinancialEntry {
   type: EntryType;
   isFixed: boolean;
   isPaid: boolean;
+  isArchivedPaid: boolean;
   parentId?: string | null;
 }
 
@@ -44,6 +45,7 @@ export interface FiltersType {
 interface FinanceiroContextData {
   entries: FinancialEntry[];
   filteredEntries: FinancialEntry[];
+  archivedPaidEntries: FinancialEntry[];
   categories: Category[];
 
   addEntry: (entry: Omit<FinancialEntry, 'id'>) => Promise<string | null>;
@@ -321,6 +323,7 @@ export function FinanceiroProvider({
           type: baseEntry.type,
           isFixed: true,
           isPaid: false,
+          isArchivedPaid: false,
           parentId: baseEntry.id,
         });
       }
@@ -357,6 +360,7 @@ export function FinanceiroProvider({
     let fixedExpenses = 0;
     let paidTotal = 0;
     const filtered: FinancialEntry[] = [];
+    const archivedPaid: FinancialEntry[] = [];
 
     const { month, year, day, categoryId, type } = filters;
 
@@ -377,7 +381,11 @@ export function FinanceiroProvider({
       const matches = mMatch && yMatch && dMatch && cMatch && tMatch;
 
       if (matches) {
-        filtered.push(entry);
+        if (entry.isArchivedPaid) {
+          archivedPaid.push(entry);
+        } else {
+          filtered.push(entry);
+        }
 
         if (entry.type === 'receita') {
           totalRevenue += entry.amount;
@@ -406,10 +414,11 @@ export function FinanceiroProvider({
       paidTotal,
       forecast: balance,
       filtered,
+      archivedPaid,
     };
   }, [entries, filters]);
 
-  const { filtered, ...computedStats } = stats;
+  const { filtered, archivedPaid, ...computedStats } = stats;
 
   return (
     <FinanceiroContext.Provider
@@ -428,6 +437,7 @@ export function FinanceiroProvider({
         setFilters,
         stats: computedStats,
         filteredEntries: filtered,
+        archivedPaidEntries: archivedPaid,
         addRecurringEntries,
         deleteEntries,
       }}
