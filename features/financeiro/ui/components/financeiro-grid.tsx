@@ -351,20 +351,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             <Button
               variant="outline"
               size="sm"
-              className="gap-2 cursor-pointer flex-1 sm:flex-none"
-              disabled={isProcessing}
-              onClick={() => {
-                setPendingFilters(filters);
-                setIsFiltersOpen(true);
-              }}
-            >
-              <Filter size={14} />
-              Filtros
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
               className={cn(
                 'hidden sm:flex gap-2 cursor-pointer transition-all',
                 isSelectionMode &&
@@ -375,6 +361,20 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             >
               <CheckSquare size={14} />
               {isSelectionMode ? 'Cancelar' : 'Selecionar'}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 cursor-pointer flex-1 sm:flex-none"
+              disabled={isProcessing}
+              onClick={() => {
+                setPendingFilters(filters);
+                setIsFiltersOpen(true);
+              }}
+            >
+              <Filter size={14} />
+              Filtros
             </Button>
 
             <Button
