@@ -60,6 +60,7 @@ export function FinanceiroEntryModal({
   const [form, setForm] = useState<Partial<FinancialEntry>>({});
   const [amountInput, setAmountInput] = useState('');
   const [installments, setInstallments] = useState('1');
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   useEffect(() => {
     if (entry) {
@@ -112,7 +113,10 @@ export function FinanceiroEntryModal({
               <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Data
               </Label>
-              <Popover>
+              <Popover
+                open={isDatePickerOpen}
+                onOpenChange={setIsDatePickerOpen}
+              >
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -137,12 +141,16 @@ export function FinanceiroEntryModal({
                     selected={
                       form.date ? new Date(`${form.date}T12:00:00`) : undefined
                     }
-                    onSelect={(date) =>
+                    onSelect={(date) => {
                       setForm((prev) => ({
                         ...prev,
                         date: date ? format(date, 'yyyy-MM-dd') : '',
-                      }))
-                    }
+                      }));
+
+                      if (date) {
+                        setIsDatePickerOpen(false);
+                      }
+                    }}
                     initialFocus
                     locale={ptBR}
                     className="cursor-pointer"

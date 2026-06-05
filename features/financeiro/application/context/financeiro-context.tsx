@@ -14,6 +14,7 @@ import { AppBadgeTone, VALID_CATEGORY_TONES } from '@/lib/tone-options';
 import { useAuth } from '@/providers/auth-provider/auth.provider';
 
 export type EntryType = 'receita' | 'despesa' | 'investimento';
+export type PaymentStatusFilter = 'all' | 'paid' | 'unpaid';
 
 export interface Category {
   id: string;
@@ -36,6 +37,7 @@ export interface FinancialEntry {
 
 export interface FiltersType {
   type: string;
+  paymentStatus: PaymentStatusFilter;
   month: string;
   year: string;
   day: string;
@@ -59,13 +61,7 @@ interface FinanceiroContextData {
   isProcessing: boolean;
   filters: FiltersType;
   setFilters: React.Dispatch<
-    React.SetStateAction<{
-      type: string;
-      month: string;
-      year: string;
-      day: string;
-      categoryId: string;
-    }>
+    React.SetStateAction<FiltersType>
   >;
   stats: {
     totalRevenue: number;
@@ -100,6 +96,7 @@ export function FinanceiroProvider({
   const [isProcessing, setIsProcessing] = useState(false);
   const [filters, setFilters] = useState<FiltersType>({
     type: 'all',
+    paymentStatus: 'all',
     day: '',
     month: new Date().getMonth().toString(),
     year: new Date().getFullYear().toString(),
@@ -362,7 +359,7 @@ export function FinanceiroProvider({
     const filtered: FinancialEntry[] = [];
     const archivedPaid: FinancialEntry[] = [];
 
-    const { month, year, day, categoryId, type } = filters;
+    const { month, year, day, categoryId, type, paymentStatus } = filters;
 
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
@@ -377,8 +374,12 @@ export function FinanceiroProvider({
       const dMatch = day === '' || entryDay === day;
       const cMatch = categoryId === 'all' || entry.categoryId === categoryId;
       const tMatch = type === 'all' || entry.type === type;
+      const pMatch =
+        paymentStatus === 'all' ||
+        (paymentStatus === 'paid' && entry.isPaid) ||
+        (paymentStatus === 'unpaid' && !entry.isPaid && entry.type !== 'receita');
 
-      const matches = mMatch && yMatch && dMatch && cMatch && tMatch;
+      const matches = mMatch && yMatch && dMatch && cMatch && tMatch && pMatch;
 
       if (matches) {
         if (entry.isArchivedPaid) {

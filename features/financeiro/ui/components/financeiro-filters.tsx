@@ -33,6 +33,12 @@ const years = Array.from({ length: 10 }, (_, i) =>
   (new Date().getFullYear() - 5 + i).toString(),
 );
 
+const paymentStatusLabels: Record<FiltersType['paymentStatus'], string> = {
+  all: 'Todos',
+  paid: 'Pagos',
+  unpaid: 'Não pagos',
+};
+
 type FinanceiroFiltersProps = {
   tone?: BadgeTone;
   filters: FiltersType;
@@ -167,6 +173,36 @@ export function FinanceiroFilters({
             </SelectContent>
           </Select>
         </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            Pagamento
+          </label>
+          <Select
+            value={filters.paymentStatus}
+            onValueChange={(v: FiltersType['paymentStatus']) =>
+              setFilters((prev: FiltersType) => ({
+                ...prev,
+                paymentStatus: v,
+              }))
+            }
+          >
+            <SelectTrigger className="w-full bg-background cursor-pointer">
+              <SelectValue placeholder="Pagamento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="cursor-pointer font-bold">
+                Todos
+              </SelectItem>
+              <SelectItem value="paid" className="cursor-pointer">
+                Pagos
+              </SelectItem>
+              <SelectItem value="unpaid" className="cursor-pointer">
+                Não pagos
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="flex items-center justify-between pt-2 border-t border-border/20">
@@ -176,7 +212,7 @@ export function FinanceiroFilters({
             {filters.month === 'all'
               ? 'Todos os Meses'
               : months[Number(filters.month)]}{' '}
-            / {filters.year}
+            / {filters.year} / {paymentStatusLabels[filters.paymentStatus]}
           </span>
         </div>
       </div>
