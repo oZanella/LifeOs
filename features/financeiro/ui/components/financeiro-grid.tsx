@@ -6,6 +6,21 @@ import { Button } from '@/components/ui/button';
 import { BadgeTone } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
   FiltersType,
   FinancialEntry,
   useFinanceiroContext,
@@ -21,6 +36,17 @@ import { FinanceiroConfirmDeleteModal } from './financeiro-confirm-delete-modal'
 import { CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ProcessingOverlay } from './processing-overlay';
+
+const TABLE_HEADERS = [
+  { label: 'Data', className: 'w-40' },
+  { label: 'Descrição', className: '' },
+  { label: 'Categoria', className: 'w-40' },
+  { label: 'Valor', className: 'w-32 text-right' },
+  { label: 'Tipo', className: 'w-24 text-center' },
+  { label: 'Fixo', className: 'w-20 text-center' },
+  { label: 'Pago', className: 'w-24 text-center' },
+  { label: 'Ações', className: 'w-32 text-center' },
+];
 
 export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
   const {
@@ -167,91 +193,80 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     <div className="flex flex-col gap-6 flex-1 sm:min-h-0 sm:h-full sm:overflow-hidden w-full max-w-full min-w-0 overflow-hidden">
       <ProcessingOverlay isOpen={isProcessing || loading} />
 
-      {/* VIEWPORT < 1280px: CARD GRID (Meta-style) */}
+      {/* VIEWPORT < 1280px: CARD GRID */}
       <div className="xl:hidden w-full max-w-full mx-auto px-3 space-y-6 overflow-x-hidden pb-10 min-w-0">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-1 cursor-default pt-2">
-            <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] opacity-70">
-              Gestão Financeira
-            </h2>
-            <h1 className="text-2xl font-black tracking-tighter italic uppercase">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-0.5 pt-2">
+            <h2 className="text-xs text-muted-foreground">Gestão financeira</h2>
+            <h1 className="text-xl font-semibold tracking-tight">
               {monthName}{' '}
-              <span style={{ color: 'var(--tone-color)' }}>{filters.year}</span>
+              <span className="text-(--tone-color)">{filters.year}</span>
             </h1>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2.5">
             <div className="flex gap-2 flex-1">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 h-10 rounded-xl border-border/40 bg-card/40 backdrop-blur-sm cursor-pointer shadow-sm active:scale-95 transition-all text-xs font-bold flex-1 sm:flex-none"
+                className="gap-2 h-10 cursor-pointer flex-1 sm:flex-none"
                 disabled={isProcessing}
                 onClick={() => {
                   setPendingFilters(filters);
                   setIsFiltersOpen(true);
                 }}
               >
-                <Filter size={14} strokeWidth={2.5} />
+                <Filter size={14} />
                 Filtros
               </Button>
 
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 h-10 rounded-xl border-border/40 bg-card/40 backdrop-blur-sm cursor-pointer shadow-sm active:scale-95 transition-all text-xs font-bold flex-1 sm:flex-none"
+                className="gap-2 h-10 cursor-pointer flex-1 sm:flex-none"
                 disabled={isProcessing}
                 onClick={() => setIsCategoriesOpen(true)}
               >
-                <Tags size={14} strokeWidth={2.5} />
+                <Tags size={14} />
                 Categorias
               </Button>
             </div>
 
             <Button
-              variant="outline"
               size="sm"
               onClick={handleOpenNew}
               disabled={isProcessing}
-              className="h-11 gap-2 rounded-xl border-dashed hover:border-solid transition-all cursor-pointer shadow-lg flex items-center justify-center font-black uppercase tracking-widest text-xs sm:flex-1 md:max-w-xs"
-              style={{
-                borderColor: 'var(--tone-color)',
-                color: 'var(--tone-color)',
-                backgroundColor:
-                  'color-mix(in srgb, var(--tone-color) 5%, transparent)',
-              }}
+              className="h-10 gap-2 cursor-pointer sm:flex-1 md:max-w-xs"
             >
-              <Plus size={16} strokeWidth={3} />
+              <Plus size={16} />
               Novo lançamento
             </Button>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-              Resumo Operacional
-            </h3>
-          </div>
+        <div className="space-y-3">
+          <h3 className="text-xs font-medium text-muted-foreground">
+            Resumo operacional
+          </h3>
           <FinanceiroStats tone={tone} />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-              Histórico de Lançamentos
+            <h3 className="text-xs font-medium text-muted-foreground">
+              Histórico de lançamentos
             </h3>
-            <span className="text-[9px] font-bold text-muted-foreground uppercase bg-muted/50 px-2 py-0.5 rounded-full">
-              {filteredEntries.length} Itens
+            <span className="text-xs text-muted-foreground">
+              {filteredEntries.length} itens
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-full min-w-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch w-full max-w-full min-w-0">
             {loading ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="rounded-3xl border border-border/20 bg-card/20 p-5 space-y-4 animate-pulse"
+                  className="rounded-2xl border border-border bg-card p-4 space-y-3"
                 >
                   <div className="flex justify-between items-start">
                     <div className="space-y-2">
@@ -260,18 +275,16 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                     </div>
                     <Skeleton className="h-6 w-20 rounded-xl" />
                   </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-border/10">
+                  <div className="flex justify-between items-center pt-2 border-t border-border">
                     <Skeleton className="h-3 w-24 rounded-full" />
                     <Skeleton className="h-8 w-20 rounded-xl" />
                   </div>
                 </div>
               ))
             ) : filteredEntries.length === 0 ? (
-              <div className="col-span-1 md:col-span-2 lg:col-span-3 py-16 text-center space-y-2 rounded-3xl border border-dashed border-border/40 bg-muted/5">
-                <p className="text-muted-foreground italic text-sm">
-                  Vazio por aqui.
-                </p>
-                <p className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-widest">
+              <div className="col-span-1 md:col-span-2 lg:col-span-3 py-16 text-center space-y-1 rounded-2xl border border-dashed border-border">
+                <p className="text-sm text-muted-foreground">Vazio por aqui.</p>
+                <p className="text-xs text-muted-foreground/70">
                   Nenhuma transação encontrada.
                 </p>
               </div>
@@ -309,17 +322,17 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         </div>
 
         {archivedPaidEntries.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+              <h3 className="text-xs font-medium text-muted-foreground">
                 Lançamentos pagos
               </h3>
-              <span className="text-[9px] font-bold text-muted-foreground uppercase bg-muted/50 px-2 py-0.5 rounded-full">
-                {archivedPaidEntries.length} Itens
+              <span className="text-xs text-muted-foreground">
+                {archivedPaidEntries.length} itens
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-full min-w-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch w-full max-w-full min-w-0">
               {archivedPaidEntries.map((entry) => (
                 <FinanceiroMobileCard
                   key={entry.id}
@@ -339,22 +352,19 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       </div>
 
       {/* VIEWPORT >= 1280px: DESKTOP TABLE */}
-      <div className="hidden xl:flex flex-col gap-6 flex-1 sm:min-h-0 sm:h-full sm:overflow-hidden w-full min-w-0">
+      <div className="hidden xl:flex flex-col gap-5 flex-1 sm:min-h-0 sm:h-full sm:overflow-hidden w-full min-w-0">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 flex-wrap cursor-default">
-            <h2 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
-              Movimentações Financeiras - {monthName}
-            </h2>
-          </div>
+          <h2 className="text-sm font-medium text-foreground">
+            Movimentações financeiras — {monthName}
+          </h2>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <Button
               variant="outline"
               size="sm"
               className={cn(
-                'hidden sm:flex gap-2 cursor-pointer transition-all',
-                isSelectionMode &&
-                  'bg-blue-500/10 border-blue-500 text-blue-500',
+                'hidden sm:flex gap-2 cursor-pointer',
+                isSelectionMode && 'bg-primary/10 border-primary text-primary',
               )}
               disabled={isProcessing}
               onClick={handleToggleSelectionMode}
@@ -389,15 +399,10 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
             </Button>
 
             <Button
-              variant="outline"
               size="sm"
               onClick={handleOpenNew}
               disabled={isProcessing}
-              className="basis-full sm:basis-auto w-full sm:w-auto gap-2 border-dashed hover:border-solid transition-all cursor-pointer"
-              style={{
-                borderColor: 'var(--tone-color)',
-                color: 'var(--tone-color)',
-              }}
+              className="basis-full sm:basis-auto w-full sm:w-auto gap-2 cursor-pointer"
             >
               <Plus size={14} />
               Novo lançamento
@@ -408,60 +413,60 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         <FinanceiroStats tone={tone} />
 
         <div className="flex-1 sm:h-full sm:overflow-auto sm:min-h-0 w-full min-w-0 overflow-hidden">
-          <div className="hidden sm:block h-full min-h-0 rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md overflow-auto custom-scrollbar overscroll-contain">
-            <table className="w-full text-left border-collapse min-w-230 cursor-default">
-              <thead>
-                <tr className="bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
-                  <th className="px-4 py-3 w-40">Data</th>
-                  <th className="px-4 py-3">Descrição</th>
-                  <th className="px-4 py-3 w-40">Categoria</th>
-                  <th className="px-4 py-3 w-32">Valor</th>
-                  <th className="px-4 py-3 w-24 text-center">Tipo</th>
-                  <th className="px-4 py-3 w-20 text-center">Fixo</th>
-                  <th className="px-4 py-3 w-24 text-center">Pago</th>
-                  <th className="px-4 py-3 w-32 text-center">Ações</th>
-                </tr>
-              </thead>
+          <div className="hidden sm:block h-full min-h-0 rounded-2xl border border-border overflow-auto custom-scrollbar overscroll-contain">
+            <Table className="min-w-230">
+              <TableHeader>
+                <TableRow className="bg-muted/40 hover:bg-muted/40">
+                  {TABLE_HEADERS.map((h) => (
+                    <TableHead
+                      key={h.label}
+                      className={cn('text-xs text-muted-foreground', h.className)}
+                    >
+                      {h.label}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
 
-              <tbody className="divide-y divide-border/20">
+              <TableBody>
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i}>
-                      <td className="px-4 py-4">
+                    <TableRow key={i}>
+                      <TableCell>
                         <Skeleton className="h-4 w-24" />
-                      </td>
-                      <td className="px-4 py-4">
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-4 w-48" />
-                      </td>
-                      <td className="px-4 py-4">
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-4 w-32" />
-                      </td>
-                      <td className="px-4 py-4">
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-4 w-20" />
-                      </td>
-                      <td className="px-4 py-4 flex justify-center">
-                        <Skeleton className="h-4 w-12" />
-                      </td>
-                      <td className="px-4 py-4 text-center">
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12 mx-auto" />
+                      </TableCell>
+                      <TableCell className="text-center">
                         <Skeleton className="h-4 w-8 mx-auto" />
-                      </td>
-                      <td className="px-4 py-4 text-center">
+                      </TableCell>
+                      <TableCell className="text-center">
                         <Skeleton className="h-4 w-8 mx-auto" />
-                      </td>
-                      <td className="px-4 py-4 text-center">
+                      </TableCell>
+                      <TableCell className="text-center">
                         <Skeleton className="h-8 w-24 mx-auto" />
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 ) : filteredEntries.length === 0 ? (
-                  <tr>
-                    <td
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell
                       colSpan={8}
-                      className="px-4 py-12 text-center text-muted-foreground italic text-sm"
+                      className="py-12 text-center text-sm text-muted-foreground"
                     >
                       Nenhuma transação encontrada para este período.
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   filteredEntries.map((entry) => (
                     <FinanceiroGridRow
@@ -498,35 +503,35 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                     />
                   ))
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
 
         {archivedPaidEntries.length > 0 && (
-          <div className="shrink-0 max-h-72 overflow-auto rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md custom-scrollbar">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-muted/50 px-4 py-3">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <div className="shrink-0 max-h-72 overflow-auto rounded-2xl border border-border custom-scrollbar">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2.5">
+              <h3 className="text-xs font-medium text-muted-foreground">
                 Lançamentos pagos
               </h3>
-              <span className="text-[10px] font-bold uppercase text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {archivedPaidEntries.length} itens
               </span>
             </div>
-            <table className="w-full text-left border-collapse min-w-230 cursor-default">
-              <thead>
-                <tr className="bg-muted/30 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
-                  <th className="px-4 py-3 w-40">Data</th>
-                  <th className="px-4 py-3">Descrição</th>
-                  <th className="px-4 py-3 w-40">Categoria</th>
-                  <th className="px-4 py-3 w-32">Valor</th>
-                  <th className="px-4 py-3 w-24 text-center">Tipo</th>
-                  <th className="px-4 py-3 w-20 text-center">Fixo</th>
-                  <th className="px-4 py-3 w-24 text-center">Pago</th>
-                  <th className="px-4 py-3 w-32 text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/20">
+            <Table className="min-w-230">
+              <TableHeader>
+                <TableRow className="bg-muted/20 hover:bg-muted/20">
+                  {TABLE_HEADERS.map((h) => (
+                    <TableHead
+                      key={h.label}
+                      className={cn('text-xs text-muted-foreground', h.className)}
+                    >
+                      {h.label}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {archivedPaidEntries.map((entry) => (
                   <FinanceiroGridRow
                     key={entry.id}
@@ -541,8 +546,8 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                     isReadOnly
                   />
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
@@ -556,74 +561,50 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
         />
       )}
 
-      {isFiltersOpen && (
-        <div className="fixed inset-0 z-50">
-          <button
-            type="button"
-            aria-label="Fechar filtros"
-            className="absolute inset-0 bg-black/50 backdrop-blur-[1px] cursor-pointer"
-            onClick={() => setIsFiltersOpen(false)}
+      <Dialog open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Filtros</DialogTitle>
+          </DialogHeader>
+          <FinanceiroFilters
+            tone={tone}
+            filters={pendingFilters}
+            setFilters={setPendingFilters}
           />
-          <div className="relative z-10 flex min-h-full items-center justify-center p-4">
-            <div className="w-full max-w-xl rounded-2xl border border-border/50 bg-background p-3 shadow-2xl">
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-foreground">Filtros</h3>
-              </div>
-              <FinanceiroFilters
-                tone={tone}
-                filters={pendingFilters}
-                setFilters={setPendingFilters}
-              />
-              <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full sm:w-auto px-6 cursor-pointer"
-                  onClick={() => setIsFiltersOpen(false)}
-                >
-                  Voltar
-                </Button>
-                <Button
-                  size="sm"
-                  className="w-full sm:w-auto px-8 cursor-pointer font-bold"
-                  onClick={() => {
-                    setFilters(pendingFilters);
-                    setIsFiltersOpen(false);
-                  }}
-                >
-                  Aplicar
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              className="cursor-pointer"
+              onClick={() => setIsFiltersOpen(false)}
+            >
+              Voltar
+            </Button>
+            <Button
+              className="cursor-pointer"
+              onClick={() => {
+                setFilters(pendingFilters);
+                setIsFiltersOpen(false);
+              }}
+            >
+              Aplicar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {isCategoriesOpen && (
-        <div className="fixed inset-0 z-50">
-          <button
-            type="button"
-            aria-label="Fechar categorias"
-            className="absolute inset-0 bg-black/50 backdrop-blur-[1px] cursor-pointer"
-            onClick={() => setIsCategoriesOpen(false)}
+      <Dialog open={isCategoriesOpen} onOpenChange={setIsCategoriesOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Categorias</DialogTitle>
+          </DialogHeader>
+          <FinanceiroCategories
+            tone={tone}
+            onApplyAction={() => setIsCategoriesOpen(false)}
+            onCancelAction={() => setIsCategoriesOpen(false)}
           />
-          <div className="relative z-10 flex min-h-full items-center justify-center p-4">
-            <div className="w-full max-w-xl rounded-2xl border border-border/50 bg-background p-3 shadow-2xl">
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-foreground">
-                  Categorias
-                </h3>
-              </div>
-              <FinanceiroCategories
-                tone={tone}
-                onApplyAction={() => setIsCategoriesOpen(false)}
-                onCancelAction={() => setIsCategoriesOpen(false)}
-                className="border-0 shadow-none"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
+
       {isRecurringModalOpen && recurringTarget && (
         <FinanceiroRecurringModal
           isOpen={isRecurringModalOpen}
@@ -641,25 +622,13 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       />
 
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-20 sm:bottom-10 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm animate-in fade-in slide-in-from-bottom-6 duration-300">
-          <div className="flex items-center justify-between gap-4 px-4 py-2.5 rounded-xl bg-background/80 backdrop-blur-md border border-border/40 shadow-xl overflow-hidden relative">
-            <div
-              className="absolute left-0 top-0 bottom-0 w-1"
-              style={{ backgroundColor: 'var(--tone-color)' }}
-            />
-
+        <div className="fixed bottom-20 sm:bottom-10 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm">
+          <div className="flex items-center justify-between gap-4 px-4 py-2.5 rounded-xl bg-card border border-border shadow-lg">
             <div className="flex items-center gap-3">
-              <div
-                className="flex items-center justify-center w-6 h-6 rounded-lg text-[10px] font-black tabular-nums border border-border/40"
-                style={{
-                  color: 'var(--tone-color)',
-                  backgroundColor:
-                    'color-mix(in srgb, var(--tone-color) 15%, transparent)',
-                }}
-              >
+              <div className="flex items-center justify-center w-6 h-6 rounded-lg text-xs font-semibold tabular-nums bg-primary/10 text-primary">
                 {selectedIds.size}
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
                 Selecionados
               </span>
             </div>
@@ -668,7 +637,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 text-[10px] uppercase font-bold tracking-wider cursor-pointer transition-colors"
+                className="h-8 px-3 text-xs cursor-pointer"
                 onClick={() => setSelectedIds(new Set())}
               >
                 Limpar
@@ -676,7 +645,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
               <Button
                 variant="destructive"
                 size="sm"
-                className="h-8 px-4 text-[10px] uppercase font-black tracking-wider cursor-pointer shadow-sm transition-all active:scale-95"
+                className="h-8 px-4 text-xs cursor-pointer"
                 onClick={() => {
                   const ids = Array.from(selectedIds);
                   const hasParent = entries

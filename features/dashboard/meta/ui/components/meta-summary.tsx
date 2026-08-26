@@ -1,7 +1,6 @@
 'use client';
 
 import { useMetaContext } from '@/features/meta/application/context/meta-context';
-import { cn } from '@/lib/utils';
 import { Target, CheckCircle2, Clock, ArrowUpRight } from 'lucide-react';
 
 export function MetaSummary() {
@@ -9,12 +8,9 @@ export function MetaSummary() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-pulse">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="h-24 rounded-2xl bg-muted/20 border border-border/40"
-          />
+          <div key={i} className="h-18 rounded-2xl bg-muted/40" />
         ))}
       </div>
     );
@@ -38,44 +34,44 @@ export function MetaSummary() {
 
   const stats = [
     {
-      label: 'Metas Ativas',
+      label: 'Metas ativas',
       value: totalMetas,
       icon: Target,
-      color: 'text-amber-500',
+      color: 'text-amber-600 dark:text-amber-400',
       bg: 'bg-amber-500/10',
     },
     {
       label: 'Concluídas',
       value: completedMetas,
       icon: CheckCircle2,
-      color: 'text-emerald-500',
+      color: 'text-emerald-600 dark:text-emerald-400',
       bg: 'bg-emerald-500/10',
     },
     {
-      label: 'Progresso Geral',
+      label: 'Progresso geral',
       value: `${overallProgress}%`,
       icon: ArrowUpRight,
-      color: 'text-blue-500',
+      color: 'text-blue-600 dark:text-blue-400',
       bg: 'bg-blue-500/10',
     },
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="flex items-center gap-4 rounded-2xl border border-border/40 bg-card/30 p-4 shadow-sm backdrop-blur-sm transition-all hover:bg-card/50"
+            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm"
           >
-            <div className={cn('p-3 rounded-xl shrink-0', stat.bg, stat.color)}>
-              <stat.icon size={20} />
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${stat.bg} ${stat.color}`}
+            >
+              <stat.icon size={17} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-1">
-                {stat.label}
-              </p>
-              <p className="text-xl font-black text-foreground tabular-nums">
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <p className="text-lg font-semibold tabular-nums text-foreground">
                 {stat.value}
               </p>
             </div>
@@ -83,31 +79,25 @@ export function MetaSummary() {
         ))}
       </div>
 
-      <div className="rounded-2xl border border-border/40 bg-card/30 p-6 shadow-sm backdrop-blur-sm relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none">
-          <Target size={120} />
-        </div>
-
-        <div className="flex items-center justify-between mb-6 relative z-10">
-          <div className="flex flex-col">
-            <h3 className="text-base font-black tracking-tight text-foreground/90">
-              Metas em Destaque
-            </h3>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">
-              Seu foco atual e nível de progresso
-            </p>
-          </div>
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="mb-5 flex flex-col">
+          <h3 className="text-sm font-semibold text-foreground">
+            Metas em destaque
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Seu foco atual e nível de progresso
+          </p>
         </div>
 
         {metas.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center relative z-10">
-            <Target size={32} className="text-muted-foreground/20 mb-2" />
-            <p className="text-sm text-muted-foreground font-medium">
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <Target size={28} className="text-muted-foreground/30 mb-2" />
+            <p className="text-sm text-muted-foreground">
               Nenhuma meta cadastrada ainda.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {metas.slice(0, 4).map((meta) => {
               const mTasks = meta.tasks || [];
               const cTasks = mTasks.filter((t) => t.completed).length;
@@ -117,45 +107,44 @@ export function MetaSummary() {
                   : 0;
 
               return (
-                <div key={meta.id} className="space-y-3 group/item">
+                <div key={meta.id} className="space-y-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className="w-2 h-2 rounded-full shrink-0 animate-pulse"
+                        className="w-2 h-2 rounded-full shrink-0"
                         style={{
                           backgroundColor: `var(--${meta.tone || 'laranja'})`,
                         }}
                       />
-                      <span className="text-sm font-bold truncate text-foreground/80 group-hover/item:text-foreground transition-colors">
+                      <span className="text-sm font-medium truncate text-foreground">
                         {meta.title}
                       </span>
                     </div>
-                    <span className="text-[10px] font-black tabular-nums text-muted-foreground bg-muted/30 px-2 py-0.5 rounded-full">
+                    <span className="text-xs tabular-nums text-muted-foreground">
                       {progress}%
                     </span>
                   </div>
 
-                  <div className="h-2 w-full rounded-full bg-muted/40 overflow-hidden">
+                  <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                     <div
-                      className="h-full transition-all duration-1000 ease-out"
+                      className="h-full transition-all duration-500"
                       style={{
                         width: `${progress}%`,
                         backgroundColor: `var(--${meta.tone || 'laranja'})`,
-                        boxShadow: `0 0 10px var(--${meta.tone || 'laranja'})50`,
                       }}
                     />
                   </div>
 
-                  <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                  <div className="flex justify-between items-center text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
-                      <Clock size={10} />
+                      <Clock size={11} />
                       {mTasks.length}{' '}
-                      {mTasks.length === 1 ? 'Tarefa' : 'Tarefas'}
+                      {mTasks.length === 1 ? 'tarefa' : 'tarefas'}
                     </span>
                     <span className="flex items-center gap-1">
-                      {cTasks} Concluídas
+                      {cTasks} concluídas
                       {progress === 100 && (
-                        <CheckCircle2 size={10} className="text-emerald-500" />
+                        <CheckCircle2 size={11} className="text-emerald-600 dark:text-emerald-400" />
                       )}
                     </span>
                   </div>

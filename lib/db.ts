@@ -23,9 +23,6 @@ function getPool() {
     );
   }
 
-  // Railway's private network (*.railway.internal) accepts plain connections,
-  // so skip forcing ssl there. External hosts (Vercel/Neon, public proxies)
-  // still require it.
   const needsSsl =
     process.env.NODE_ENV === 'production' &&
     !/\.railway\.internal\b/i.test(connectionString);

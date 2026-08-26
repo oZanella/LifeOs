@@ -2,6 +2,7 @@
 
 import { TrendingDown, TrendingUp, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TableCell, TableRow } from '@/components/ui/table';
 import {
   Category,
   FinancialEntry,
@@ -42,27 +43,20 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
   isReadOnly = false,
 }: FinanceiroGridRowProps) {
   return (
-    <tr
-      className={cn(
-        'group transition-colors border-b border-border/10',
-        isSelected ? 'bg-black/5 dark:bg-white/5' : 'hover:bg-white/5',
-      )}
-    >
-      <td className="px-4 py-2">
-        <span className="text-xs font-medium tabular-nums">
-          {format(new Date(`${entry.date}T12:00:00`), 'dd/MM/yyyy')}
-        </span>
-      </td>
+    <TableRow className={cn(isSelected && 'bg-muted/60')}>
+      <TableCell className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">
+        {format(new Date(`${entry.date}T12:00:00`), 'dd/MM/yyyy')}
+      </TableCell>
 
-      <td className="px-4 py-2">
-        <span className="text-sm">{entry.description}</span>
-      </td>
+      <TableCell className="text-sm whitespace-normal">
+        {entry.description}
+      </TableCell>
 
-      <td className="px-4 py-2">
+      <TableCell>
         {isSelectionMode || isReadOnly ? (
-          <span className="text-[10px] uppercase font-bold tracking-tight text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {categories.find((item) => item.id === entry.categoryId)?.name ??
-              'Sem Categoria'}
+              'Sem categoria'}
           </span>
         ) : (
           <FinanceiroCategoryCell
@@ -71,36 +65,36 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
             onQuickCategoryChange={onQuickCategoryChange}
           />
         )}
-      </td>
+      </TableCell>
 
-      <td className="px-4 py-2 text-right">
+      <TableCell className="text-right">
         <span
           className={cn(
-            'text-sm font-black tabular-nums whitespace-nowrap',
+            'text-sm font-semibold tabular-nums whitespace-nowrap',
             entry.type === 'receita'
-              ? 'text-emerald-500'
+              ? 'text-emerald-600 dark:text-emerald-400'
               : entry.type === 'investimento'
-                ? 'text-blue-700'
-                : 'text-red-500',
+                ? 'text-blue-600 dark:text-blue-400'
+                : 'text-red-600 dark:text-red-400',
           )}
         >
           {formatCurrency(entry.amount)}
         </span>
-      </td>
+      </TableCell>
 
-      <td className="px-4 py-2 text-center">
+      <TableCell>
         <div className="flex justify-center">
           {entry.type === 'receita' ? (
-            <TrendingUp size={14} className="text-emerald-500" />
+            <TrendingUp size={14} className="text-emerald-600 dark:text-emerald-400" />
           ) : entry.type === 'investimento' ? (
-            <TrendingUp size={14} className="text-blue-700" />
+            <TrendingUp size={14} className="text-blue-600 dark:text-blue-400" />
           ) : (
-            <TrendingDown size={14} className="text-red-500" />
+            <TrendingDown size={14} className="text-red-600 dark:text-red-400" />
           )}
         </div>
-      </td>
+      </TableCell>
 
-      <td className="px-4 py-2 text-center">
+      <TableCell>
         <div
           className={cn(
             'flex justify-center',
@@ -116,10 +110,10 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
         >
           <div
             className={cn(
-              'w-2 h-2 rounded-full transition-all',
+              'h-2 w-2 rounded-full transition-colors',
               entry.isFixed
-                ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] scale-125'
-                : 'bg-gray-700 hover:bg-gray-600',
+                ? 'bg-amber-500'
+                : 'bg-muted-foreground/30 hover:bg-muted-foreground/50',
               entry.parentId
                 ? 'cursor-not-allowed opacity-50'
                 : 'cursor-pointer',
@@ -133,9 +127,9 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
             }
           />
         </div>
-      </td>
+      </TableCell>
 
-      <td className="px-4 py-2 text-center">
+      <TableCell>
         <div className="flex justify-center">
           {!isSelectionMode && !isReadOnly && entry.type !== 'receita' && (
             <Checkbox
@@ -147,20 +141,20 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
             />
           )}
           {isReadOnly && entry.type !== 'receita' && (
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">
+            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
               Pago
             </span>
           )}
         </div>
-      </td>
+      </TableCell>
 
-      <td className="px-4 py-2">
-        <div className="flex items-center justify-center gap-2">
+      <TableCell>
+        <div className="flex items-center justify-center gap-1">
           <Button
             size="icon"
             variant="ghost"
             className={cn(
-              'h-7 w-7 text-muted-foreground hover:text-blue-500',
+              'h-7 w-7 text-muted-foreground hover:text-blue-600',
               isSelectionMode || entry.parentId || isReadOnly
                 ? 'opacity-30 cursor-not-allowed'
                 : 'cursor-pointer',
@@ -183,7 +177,7 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
             <Button
               size="icon"
               variant="ghost"
-              className="h-7 w-7 text-muted-foreground hover:text-red-500 cursor-pointer"
+              className="h-7 w-7 cursor-pointer text-muted-foreground hover:text-red-600"
               onClick={onDelete}
             >
               <Trash2 size={14} />
@@ -191,7 +185,7 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
           )}
 
           {isSelectionMode && (
-            <div className="h-7 w-7 flex items-center justify-center">
+            <div className="flex h-7 w-7 items-center justify-center">
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={onToggleSelection}
@@ -200,7 +194,7 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
             </div>
           )}
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 });

@@ -1,7 +1,14 @@
 'use client';
 
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface FinanceiroConfirmDeleteModalProps {
   isOpen: boolean;
@@ -22,87 +29,60 @@ export function FinanceiroConfirmDeleteModal({
   count = 1,
   hasParent = false,
 }: FinanceiroConfirmDeleteModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-60">
-      <button
-        type="button"
-        aria-label="Fechar"
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
-        onClick={onClose}
-      />
-
-      <div className="relative z-10 flex min-h-full items-center justify-center p-4">
-        <div className="w-full max-w-sm rounded-2xl border border-red-500/20 bg-background shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-          <div className="flex items-center justify-between px-5 pt-5 pb-3">
-            <div className="flex items-center gap-2.5 text-red-500">
-              <div className="p-2 rounded-full bg-red-500/10">
-                <Trash2 size={18} />
-              </div>
-              <h3 className="font-bold tracking-tight">
-                {title || 'Confirmar exclusão'}
-              </h3>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+              <Trash2 size={16} />
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
-              onClick={onClose}
-            >
-              <X size={16} />
-            </Button>
+            <DialogTitle>{title || 'Confirmar exclusão'}</DialogTitle>
           </div>
+        </DialogHeader>
 
-          <div className="px-6 py-4 flex flex-col gap-4">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {description ||
-                (count > 1
-                  ? `Tem certeza que deseja excluir os ${count} lançamentos selecionados?`
-                  : 'Tem certeza que deseja excluir este lançamento?')}
-              <span className="block mt-1 font-medium text-foreground">
-                Esta ação não poderá ser desfeita.
-              </span>
-            </p>
+        <div className="flex flex-col gap-4">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {description ||
+              (count > 1
+                ? `Tem certeza que deseja excluir os ${count} lançamentos selecionados?`
+                : 'Tem certeza que deseja excluir este lançamento?')}
+            <span className="mt-1 block font-medium text-foreground">
+              Esta ação não poderá ser desfeita.
+            </span>
+          </p>
 
-            {hasParent && (
-              <div className="flex gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500">
-                <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                <div className="flex flex-col gap-0.5">
-                  <p className="text-xs font-bold uppercase tracking-wider">
-                    Aviso importante
-                  </p>
-                  <p className="text-xs leading-normal font-medium italic opacity-90">
-                    Este registro faz parte de um lançamento parcelado. Parcelas
-                    de meses anteriores serão mantidas em Lançamentos pagos, e
-                    parcelas do mês atual em diante serão excluídas.
-                  </p>
-                </div>
+          {hasParent && (
+            <div className="flex gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-amber-700 dark:text-amber-400">
+              <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+              <div className="flex flex-col gap-0.5">
+                <p className="text-xs font-semibold">Aviso importante</p>
+                <p className="text-xs leading-normal opacity-90">
+                  Este registro faz parte de um lançamento parcelado. Parcelas
+                  de meses anteriores serão mantidas em Lançamentos pagos, e
+                  parcelas do mês atual em diante serão excluídas.
+                </p>
               </div>
-            )}
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-2 px-5 pb-5">
-            <Button
-              variant="ghost"
-              className="flex-1 cursor-pointer order-2 sm:order-1"
-              onClick={onClose}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              className="flex-1 font-bold bg-red-500 hover:bg-red-600 cursor-pointer order-1 sm:order-2"
-              onClick={() => {
-                onConfirm();
-                onClose();
-              }}
-            >
-              Excluir
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
+
+        <DialogFooter>
+          <Button variant="ghost" className="cursor-pointer" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button
+            variant="destructive"
+            className="cursor-pointer"
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+          >
+            Excluir
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

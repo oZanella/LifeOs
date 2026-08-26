@@ -1,118 +1,52 @@
 'use client';
 
-import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { HomeClock } from './home-clock';
-import { HomeProfileCard } from './home-profile-card';
-import { HomeProgressSummary } from './home-progress-summary';
-import { HomeThemeToggle } from './home-theme-toggle';
+import { badgeVariants } from '@/components/ui/badge';
 import { lab_itens, type PageType } from '../tabs/home-config';
 
 interface HomeSidebarProps {
   activePage: PageType;
   onPageChange: (page: PageType) => void;
-  mobileOpen: boolean;
-  onCloseMobile: () => void;
 }
 
-export function HomeSidebar({
-  activePage,
-  onPageChange,
-  mobileOpen,
-  onCloseMobile,
-}: HomeSidebarProps) {
-  const currentPage =
-    lab_itens.find((item) => item.id === activePage) || lab_itens[0];
-  const activeTone = currentPage.tone;
-
-  useEffect(() => {
-    if (!mobileOpen) {
-      return;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [mobileOpen]);
-
+export function HomeSidebar({ activePage, onPageChange }: HomeSidebarProps) {
   return (
-    <>
-      <div
-        className={cn(
-          'fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] transition-opacity md:hidden',
-          mobileOpen
-            ? 'opacity-100 pointer-events-auto'
-            : 'opacity-0 pointer-events-none',
-        )}
-        onClick={onCloseMobile}
-      />
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-border/60 bg-background p-4 md:flex lg:w-72">
+      <p className="px-2 pb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        Navegação
+      </p>
 
-      <aside
-        className={cn(
-          'fixed left-0 top-0 z-50 h-dvh w-[86vw] max-w-85 bg-sidebar text-sidebar-foreground p-4 overflow-y-auto no-scrollbar transition-transform duration-300 md:static md:z-auto md:h-full md:w-72 lg:w-80 md:translate-x-0 md:bg-background md:text-foreground',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full',
-        )}
-      >
-        <div className="mb-3 flex items-center justify-between md:hidden">
-          <h2 className="text-sm font-black tracking-widest uppercase text-muted-foreground">
-            Menu
-          </h2>
-        </div>
+      <nav className="flex flex-col gap-1">
+        {lab_itens.map((item) => {
+          const Icon = item.icon;
+          const isActive = activePage === item.id;
 
-        <div
-          className="hidden md:block"
-          style={{ color: 'var(--tone-color)' }}
-        />
-        <div className="flex flex-col items-stretch gap-4">
-          <HomeProfileCard tone={activeTone} />
-          <HomeClock tone={activeTone} />
-          <HomeThemeToggle />
-
-          <div className="hidden md:block rounded-2xl border border-border/50 bg-card/40 p-2">
-            <p className="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-              Navegação
-            </p>
-            <div className="space-y-1">
-              {lab_itens.map((item) => {
-                const Icon = item.icon;
-                const isActive = activePage === item.id;
-
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      if (!item.disabled) {
-                        onPageChange(item.id);
-                        onCloseMobile();
-                      }
-                    }}
-                    disabled={item.disabled}
-                    className={cn(
-                      'w-full flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors',
-                      item.disabled
-                        ? 'opacity-40 cursor-not-allowed grayscale pointer-events-none'
-                        : isActive
-                          ? 'bg-background border border-border/60 text-foreground'
-                          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground cursor-pointer',
-                    )}
-                  >
-                    <Icon
-                      size={16}
-                      className={isActive ? 'text-(--tone-color)' : undefined}
-                    />
-                    <span className="truncate">{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <HomeProgressSummary tone={activeTone} />
-        </div>
-      </aside>
-    </>
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => {
+                if (!item.disabled) {
+                  onPageChange(item.id);
+                }
+              }}
+              disabled={item.disabled}
+              className={cn(
+                isActive && badgeVariants({ tone: item.tone, variant: 'subtle' }),
+                'flex w-full items-center gap-3 rounded-xl border-none px-3 py-2.5 text-sm justify-start whitespace-normal',
+                item.disabled
+                  ? 'pointer-events-none opacity-40'
+                  : isActive
+                    ? 'font-medium'
+                    : 'cursor-pointer bg-transparent text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground',
+              )}
+            >
+              <Icon size={17} strokeWidth={isActive ? 2.25 : 2} />
+              <span className="truncate">{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </aside>
   );
 }

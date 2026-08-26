@@ -35,14 +35,14 @@ export function FinanceiroCategoryCell({
             <Badge
               tone={category.tone as BadgeTone}
               variant="subtle"
-              className="text-[10px] uppercase font-bold tracking-tight border-none"
+              className="text-[10px] font-medium border-none"
             >
               {category.name}
             </Badge>
           ) : (
             <Badge
               variant="subtle"
-              className="text-[10px] uppercase font-bold tracking-tight bg-gray-500/10 text-gray-500 border-none"
+              className="text-[10px] font-medium bg-gray-500/10 text-gray-500 border-none"
             >
               Sem Categoria
             </Badge>

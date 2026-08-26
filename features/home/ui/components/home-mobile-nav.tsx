@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { badgeVariants } from '@/components/ui/badge';
 import { lab_itens, type PageType } from '../tabs/home-config';
 
 interface HomeMobileNavProps {
@@ -19,58 +20,40 @@ export function HomeMobileNav({
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden pb-safe">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-xl border-t border-border/50 shadow-[0_-8px_30px_rgb(0,0,0,0.12)]" />
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background pb-safe md:hidden">
+      <div className="mx-auto flex h-16 max-w-md items-center justify-around px-2">
+        {mainItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activePage === item.id;
 
-      <div className="relative flex items-center h-16 px-4 max-w-md mx-auto overflow-x-auto no-scrollbar snap-x snap-mandatory">
-        <div className="flex items-center justify-between w-full min-w-max gap-4 px-2">
-          {mainItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activePage === item.id;
-
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onPageChange(item.id)}
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onPageChange(item.id)}
+              className="flex h-full w-16 flex-col items-center justify-center gap-1 cursor-pointer"
+            >
+              <div
                 className={cn(
-                  'relative flex flex-col items-center justify-center gap-1 w-20 h-full transition-all duration-300 snap-center',
-                  isActive
-                    ? 'text-foreground'
-                    : 'text-muted-foreground hover:text-foreground',
+                  isActive &&
+                    badgeVariants({ tone: item.tone, variant: 'subtle' }),
+                  'flex h-8 w-8 items-center justify-center rounded-full border-none p-0 transition-colors',
+                  !isActive && 'bg-transparent text-muted-foreground',
                 )}
               >
-                <div
-                  className={cn(
-                    'p-1.5 rounded-xl transition-all duration-300',
-                    isActive
-                      ? 'bg-primary/10 scale-110 shadow-sm'
-                      : 'bg-transparent',
-                  )}
-                  style={isActive ? { color: `var(--tone-color)` } : {}}
-                >
-                  <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                </div>
-
-                <span
-                  className={cn(
-                    'text-[10px] font-bold uppercase tracking-wider transition-opacity duration-300',
-                    isActive ? 'opacity-100' : 'opacity-60',
-                  )}
-                >
-                  {item.label.split(' ')[0]}
-                </span>
-
-                {isActive && (
-                  <div
-                    className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full blur-[2px]"
-                    style={{ backgroundColor: `var(--tone-color)` }}
-                  />
+                <Icon size={18} strokeWidth={isActive ? 2.25 : 2} />
+              </div>
+              <span
+                className={cn(
+                  'text-[10px] font-medium',
+                  isActive ? 'text-foreground' : 'text-muted-foreground',
                 )}
-              </button>
-            );
-          })}
-        </div>
+              >
+                {item.label.split(' ')[0]}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </nav>
   );

@@ -154,13 +154,13 @@ export function FinanceiroCategories({
   return (
     <div className={cn('space-y-4', className)} data-tone={tone}>
       <div className="flex items-center justify-between">
-        <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-          Gerenciar Categorias
+        <h4 className="text-sm font-medium text-foreground">
+          Gerenciar categorias
         </h4>
         <Button
           size="sm"
           variant="outline"
-          className="h-7 text-[10px] uppercase font-bold tracking-wider gap-1.5 cursor-pointer"
+          className="h-7 text-xs gap-1.5 cursor-pointer"
           disabled={isAdding || isSyncing}
           onClick={() => {
             setIsAdding(true);
@@ -284,7 +284,7 @@ export function FinanceiroCategories({
               <Badge
                 tone={cat.tone as BadgeTone}
                 variant="subtle"
-                className="px-3 py-1 text-xs font-semibold uppercase tracking-tight transition-all group-hover:opacity-80"
+                className="px-3 py-1 text-xs font-medium transition-all group-hover:opacity-80"
               >
                 {cat.name}
               </Badge>

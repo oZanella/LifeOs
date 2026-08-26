@@ -53,13 +53,10 @@ export function FinanceiroFilters({
   const { categories } = useFinanceiroContext();
 
   return (
-    <div
-      data-tone={tone}
-      className="flex flex-col gap-4 rounded-xl border border-border bg-muted/50 p-3 sm:p-4"
-    >
+    <div data-tone={tone} className="flex flex-col gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <label className="text-xs font-medium text-muted-foreground pl-1">
             Mês
           </label>
           <Select
@@ -89,7 +86,7 @@ export function FinanceiroFilters({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <label className="text-xs font-medium text-muted-foreground pl-1">
             Ano
           </label>
           <Select
@@ -112,7 +109,7 @@ export function FinanceiroFilters({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <label className="text-xs font-medium text-muted-foreground pl-1">
             Categoria
           </label>
           <Select
@@ -145,7 +142,7 @@ export function FinanceiroFilters({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <label className="text-xs font-medium text-muted-foreground pl-1">
             Tipo
           </label>
           <Select
@@ -175,7 +172,7 @@ export function FinanceiroFilters({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <label className="text-xs font-medium text-muted-foreground pl-1">
             Pagamento
           </label>
           <Select
@@ -205,16 +202,16 @@ export function FinanceiroFilters({
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-2 border-t border-border/20">
-        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-          Filtrando por:{' '}
-          <span style={{ color: 'var(--tone-color)' }}>
+      <div className="flex items-center justify-between border-t border-border pt-3">
+        <p className="text-xs text-muted-foreground">
+          Filtrando por{' '}
+          <span className="font-medium text-foreground">
             {filters.month === 'all'
-              ? 'Todos os Meses'
+              ? 'Todos os meses'
               : months[Number(filters.month)]}{' '}
             / {filters.year} / {paymentStatusLabels[filters.paymentStatus]}
           </span>
-        </div>
+        </p>
       </div>
     </div>
   );

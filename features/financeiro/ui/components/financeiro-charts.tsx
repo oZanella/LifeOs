@@ -4,6 +4,7 @@ import { useMemo, useEffect, useState } from 'react';
 import { BarChart3 } from 'lucide-react';
 import {
   ComposedChart,
+  Area,
   Line,
   PieChart,
   Pie,
@@ -46,6 +47,7 @@ const CustomTooltip = ({
   active,
   payload,
   label,
+  hideValues,
 }: {
   active?: boolean;
   payload?: Array<{
@@ -56,14 +58,17 @@ const CustomTooltip = ({
     payload?: unknown;
   }>;
   label?: string;
+  hideValues?: boolean;
 }) => {
   if (!active || !payload?.length) return null;
+  const shown = payload.filter((p) => p.name);
+  if (!shown.length) return null;
   return (
-    <div className="rounded-xl border border-border/50 bg-background/95 backdrop-blur-sm px-3 py-2 shadow-xl text-xs">
-      <p className="font-semibold text-muted-foreground mb-1">
-        {label || payload[0].name}
+    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-sm text-xs">
+      <p className="font-medium text-muted-foreground mb-1">
+        {label || shown[0].name}
       </p>
-      {payload.map((p) => (
+      {shown.map((p) => (
         <div key={p.name} className="flex items-center gap-2">
           <span
             className="w-2 h-2 rounded-full shrink-0"
@@ -72,13 +77,13 @@ const CustomTooltip = ({
           <span className="text-muted-foreground">{p.name}:</span>
           <span
             className={cn(
-              'font-bold',
-              p.name === 'Receita' && 'text-emerald-500',
-              p.name === 'Despesa' && 'text-red-500',
-              p.name === 'Investimento' && 'text-blue-500',
+              'font-semibold',
+              p.name === 'Receita' && 'text-emerald-600 dark:text-emerald-400',
+              p.name === 'Despesa' && 'text-red-600 dark:text-red-400',
+              p.name === 'Investimento' && 'text-blue-600 dark:text-blue-400',
             )}
           >
-            {formatBRL(p.value)}
+            {hideValues ? '••••••' : formatBRL(p.value)}
           </span>
         </div>
       ))}
@@ -151,7 +156,11 @@ function buildMonthlyData(entries: FinancialEntry[]) {
   return Array.from(map.values());
 }
 
-export function FinanceiroCharts() {
+export function FinanceiroCharts({
+  hideValues = false,
+}: {
+  hideValues?: boolean;
+}) {
   const { entries, filteredEntries, loading } = useFinanceiroContext();
   const [isMobile, setIsMobile] = useState(false);
   const [groupIndex, setGroupIndex] = useState(0);
@@ -211,15 +220,15 @@ export function FinanceiroCharts() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-md backdrop-blur-sm dark:border-border/40 dark:bg-card/30 dark:shadow-none">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-stretch">
+        <div className="xl:col-span-2 rounded-2xl border border-border bg-card p-4 shadow-sm">
           <Skeleton className="h-3 w-48 mb-4" />
-          <Skeleton className="h-44 w-full" />
+          <Skeleton className="h-72 w-full" />
         </div>
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-md backdrop-blur-sm dark:border-border/40 dark:bg-card/30 dark:shadow-none flex flex-col items-center">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col items-center">
           <Skeleton className="h-3 w-40 mb-4 self-start" />
           <div className="flex items-center justify-center w-full">
-            <Skeleton className="h-40 w-40 rounded-full" />
+            <Skeleton className="h-56 w-56 rounded-full" />
           </div>
           <div className="flex items-center justify-center gap-6 mt-4 w-full">
             <Skeleton className="h-4 w-16" />
@@ -233,23 +242,18 @@ export function FinanceiroCharts() {
 
   if (monthlyData.length === 0) {
     return (
-      <div className="rounded-2xl border border-border/40 bg-card/30 p-6 shadow-sm backdrop-blur-sm relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none">
-          <BarChart3 size={120} />
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <div className="mb-6 flex flex-col">
+          <h3 className="text-sm font-semibold text-foreground">
+            Gráficos financeiros
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Resumo mensal das movimentações
+          </p>
         </div>
-        <div className="flex items-center justify-between mb-6 relative z-10">
-          <div className="flex flex-col">
-            <h3 className="text-base font-black tracking-tight text-foreground/90">
-              Gráficos Financeiros
-            </h3>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">
-              Resumo mensal das movimentações
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center py-8 text-center relative z-10">
-          <BarChart3 size={32} className="text-muted-foreground/20 mb-2" />
-          <p className="text-sm text-muted-foreground font-medium">
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <BarChart3 size={28} className="text-muted-foreground/30 mb-2" />
+          <p className="text-sm text-muted-foreground">
             Nenhuma informação disponível para exibir os gráficos ainda.
           </p>
         </div>
@@ -268,11 +272,11 @@ export function FinanceiroCharts() {
   const activeGroupData = groupedData[groupIndex] ?? [];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-md backdrop-blur-sm dark:border-border/40 dark:bg-card/30 dark:shadow-none">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-stretch">
+      <div className="xl:col-span-2 rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Evolução Financeira ({new Date().getFullYear()})
+          <p className="text-sm font-medium text-foreground">
+            Evolução financeira ({new Date().getFullYear()})
           </p>
           {totalGroups > 1 && (
             <div className="flex items-center gap-2">
@@ -307,11 +311,18 @@ export function FinanceiroCharts() {
             </div>
           )}
         </div>
-        <ResponsiveContainer width="100%" height={180}>
+        <div className="flex-1 min-h-80">
+        <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={activeGroupData}
             margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
           >
+            <defs>
+              <linearGradient id="fillReceita" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={colorsEdit.revenue} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={colorsEdit.revenue} stopOpacity={0} />
+              </linearGradient>
+            </defs>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke={colorsEdit.grid}
@@ -332,17 +343,26 @@ export function FinanceiroCharts() {
               tick={axisStyle}
               axisLine={false}
               tickLine={false}
-              tickFormatter={formatBRLShort}
+              tickFormatter={(v: number) => (hideValues ? '••••' : formatBRLShort(v))}
               width={52}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip hideValues={hideValues} />} />
+            <Area
+              type="monotone"
+              dataKey="receita"
+              stroke="none"
+              fill="url(#fillReceita)"
+              legendType="none"
+              activeDot={false}
+              isAnimationActive={false}
+            />
             <Line
               type="monotone"
               dataKey="receita"
               name="Receita"
               stroke={colorsEdit.revenue}
-              strokeWidth={3}
-              dot={{ r: 4, fill: colorsEdit.revenue, strokeWidth: 0 }}
+              strokeWidth={2.5}
+              dot={{ r: 3.5, fill: colorsEdit.revenue, strokeWidth: 0 }}
               activeDot={{ r: 6, strokeWidth: 0 }}
             />
             <Line
@@ -350,8 +370,8 @@ export function FinanceiroCharts() {
               dataKey="despesa"
               name="Despesa"
               stroke={colorsEdit.expense}
-              strokeWidth={3}
-              dot={{ r: 4, fill: colorsEdit.expense, strokeWidth: 0 }}
+              strokeWidth={2.5}
+              dot={{ r: 3.5, fill: colorsEdit.expense, strokeWidth: 0 }}
               activeDot={{ r: 6, strokeWidth: 0 }}
             />
             <Line
@@ -359,32 +379,33 @@ export function FinanceiroCharts() {
               dataKey="investimento"
               name="Investimento"
               stroke={colorsEdit.investment}
-              strokeWidth={3}
-              dot={{ r: 4, fill: colorsEdit.investment, strokeWidth: 0 }}
+              strokeWidth={2.5}
+              dot={{ r: 3.5, fill: colorsEdit.investment, strokeWidth: 0 }}
               activeDot={{ r: 6, strokeWidth: 0 }}
             />
           </ComposedChart>
         </ResponsiveContainer>
+        </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-md backdrop-blur-sm dark:border-border/40 dark:bg-card/30 dark:shadow-none flex flex-col items-center">
-        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 w-full">
-          Receitas vs Despesas
+      <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col items-center">
+        <p className="text-sm font-medium text-foreground mb-4 w-full">
+          Receitas vs despesas
         </p>
-        <div className="relative w-full h-45">
+        <div className="relative w-full flex-1 min-h-80">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip hideValues={hideValues} />} />
               <Pie
                 data={pieData}
                 cx="50%"
                 cy="50%"
-                innerRadius={65}
-                outerRadius={80}
-                paddingAngle={5}
+                innerRadius={85}
+                outerRadius={110}
+                paddingAngle={4}
                 dataKey="value"
                 animationBegin={0}
-                animationDuration={1500}
+                animationDuration={1200}
                 stroke="none"
               >
                 {pieData.map((entry, index) => (
@@ -397,20 +418,22 @@ export function FinanceiroCharts() {
               </Pie>
             </PieChart>
           </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mb-4">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 leading-none">
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-xs text-muted-foreground leading-none">
               Saldo
             </span>
-            <span className="text-sm font-black text-foreground">
-              {formatBRL(
-                pieData.reduce(
-                  (acc, item) =>
-                    item.name === 'Receita'
-                      ? acc + item.value
-                      : acc - item.value,
-                  0,
-                ),
-              )}
+            <span className="text-2xl font-semibold tabular-nums text-foreground mt-1">
+              {hideValues
+                ? '••••••'
+                : formatBRL(
+                    pieData.reduce(
+                      (acc, item) =>
+                        item.name === 'Receita'
+                          ? acc + item.value
+                          : acc - item.value,
+                      0,
+                    ),
+                  )}
             </span>
           </div>
         </div>
@@ -422,11 +445,11 @@ export function FinanceiroCharts() {
                 style={{ backgroundColor: item.color }}
               />
               <div className="flex flex-col">
-                <span className="text-[9px] font-bold text-muted-foreground uppercase leading-tight">
+                <span className="text-xs text-muted-foreground leading-tight">
                   {item.name}
                 </span>
-                <span className="text-xs font-black leading-tight">
-                  {formatBRLShort(item.value)}
+                <span className="text-sm font-semibold leading-tight">
+                  {hideValues ? '••••' : formatBRLShort(item.value)}
                 </span>
               </div>
             </div>
