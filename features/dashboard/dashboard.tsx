@@ -102,7 +102,7 @@ export function Dashboard({}: DashboardProps) {
               ref={scrollRef}
               className="h-full overflow-y-auto pr-1 flex flex-col gap-8 pb-10 custom-scrollbar"
             >
-              <section className="flex flex-col gap-4 h-full">
+              <section className="flex flex-col gap-4 shrink-0">
                 <SectionHeading
                   icon={Wallet}
                   iconClassName="bg-(--receita)/10 text-(--receita)"
