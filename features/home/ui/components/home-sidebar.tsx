@@ -33,7 +33,7 @@ export function HomeSidebar({ activePage, onPageChange }: HomeSidebarProps) {
               disabled={item.disabled}
               className={cn(
                 isActive && badgeVariants({ tone: item.tone, variant: 'subtle' }),
-                'flex w-full items-center gap-3 rounded-xl border-none px-3 py-2.5 text-sm justify-start whitespace-normal',
+                'flex w-full items-center gap-3 rounded-xl border-none px-3 py-2.5 text-sm justify-start whitespace-normal [&>svg]:size-[17px]',
                 item.disabled
                   ? 'pointer-events-none opacity-40'
                   : isActive

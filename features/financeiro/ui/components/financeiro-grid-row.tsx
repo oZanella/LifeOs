@@ -9,6 +9,7 @@ import {
 } from '@/features/financeiro/application/context/financeiro-context';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { getCategoryLabel } from '@/features/financeiro/application/category-utils';
 import { FinanceiroCategoryCell } from './financeiro-category-cell';
 import { Checkbox } from '@/components/ui/checkbox';
 import { memo } from 'react';
@@ -55,8 +56,7 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
       <TableCell>
         {isSelectionMode || isReadOnly ? (
           <span className="text-xs text-muted-foreground">
-            {categories.find((item) => item.id === entry.categoryId)?.name ??
-              'Sem categoria'}
+            {getCategoryLabel(categories, entry.categoryId) ?? 'Sem categoria'}
           </span>
         ) : (
           <FinanceiroCategoryCell

@@ -20,6 +20,7 @@ export interface Category {
   id: string;
   name: string;
   tone: BadgeTone;
+  parentId: string | null;
 }
 
 export interface FinancialEntry {
@@ -360,6 +361,9 @@ export function FinanceiroProvider({
     const archivedPaid: FinancialEntry[] = [];
 
     const { month, year, day, categoryId, type, paymentStatus } = filters;
+    const categoryParentById = new Map(
+      categories.map((cat) => [cat.id, cat.parentId]),
+    );
 
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
@@ -372,7 +376,10 @@ export function FinanceiroProvider({
       const mMatch = month === 'all' || month === '' || entryMonth === month;
       const yMatch = year === '' || entryYear === year;
       const dMatch = day === '' || entryDay === day;
-      const cMatch = categoryId === 'all' || entry.categoryId === categoryId;
+      const cMatch =
+        categoryId === 'all' ||
+        entry.categoryId === categoryId ||
+        categoryParentById.get(entry.categoryId) === categoryId;
       const tMatch = type === 'all' || entry.type === type;
       const pMatch =
         paymentStatus === 'all' ||
@@ -417,7 +424,7 @@ export function FinanceiroProvider({
       filtered,
       archivedPaid,
     };
-  }, [entries, filters]);
+  }, [entries, filters, categories]);
 
   const { filtered, archivedPaid, ...computedStats } = stats;
 

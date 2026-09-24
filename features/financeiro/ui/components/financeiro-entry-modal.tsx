@@ -30,6 +30,11 @@ import {
   FinancialEntry,
   useFinanceiroContext,
 } from '@/features/financeiro/application/context/financeiro-context';
+import {
+  getRootCategories,
+  getSubcategories,
+  resolveCategory,
+} from '@/features/financeiro/application/category-utils';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -46,6 +51,8 @@ const formatCurrencyDisplay = (value: number) =>
     style: 'currency',
     currency: 'BRL',
   }).format(value);
+
+const NO_SUBCATEGORY_VALUE = '__none__';
 
 const parseCurrencyInput = (raw: string) => {
   const digits = raw.replace(/\D/g, '');
@@ -74,6 +81,15 @@ export function FinanceiroEntryModal({
   }, [entry]);
 
   if (!entry) return null;
+
+  const { parent: selectedParent, sub: selectedSub } = resolveCategory(
+    categories,
+    form.categoryId,
+  );
+  const rootCategories = getRootCategories(categories);
+  const subcategories = selectedParent
+    ? getSubcategories(categories, selectedParent.id)
+    : [];
 
   const handleSave = () => {
     onSave(form, parseInt(installments, 10));
@@ -163,7 +179,7 @@ export function FinanceiroEntryModal({
               </Label>
 
               <Select
-                value={String(form.categoryId ?? '')}
+                value={selectedParent?.id ?? ''}
                 onValueChange={(categoryId) =>
                   setForm((prev) => ({ ...prev, categoryId }))
                 }
@@ -173,7 +189,7 @@ export function FinanceiroEntryModal({
                 </SelectTrigger>
 
                 <SelectContent>
-                  {categories.map((cat) => (
+                  {rootCategories.map((cat) => (
                     <SelectItem
                       key={cat.id}
                       value={cat.id}
@@ -201,6 +217,47 @@ export function FinanceiroEntryModal({
               />
             </div>
           </div>
+
+          {selectedParent && subcategories.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">
+                Subcategoria
+              </Label>
+
+              <Select
+                value={selectedSub?.id ?? NO_SUBCATEGORY_VALUE}
+                onValueChange={(value) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    categoryId:
+                      value === NO_SUBCATEGORY_VALUE ? selectedParent.id : value,
+                  }))
+                }
+              >
+                <SelectTrigger className="h-9 w-full cursor-pointer text-sm">
+                  <SelectValue placeholder="Selecionar subcategoria" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem
+                    value={NO_SUBCATEGORY_VALUE}
+                    className="cursor-pointer text-sm text-muted-foreground"
+                  >
+                    Nenhuma
+                  </SelectItem>
+                  {subcategories.map((cat) => (
+                    <SelectItem
+                      key={cat.id}
+                      value={cat.id}
+                      className="cursor-pointer text-sm"
+                    >
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs font-medium text-muted-foreground">

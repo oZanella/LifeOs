@@ -21,13 +21,16 @@ export async function PATCH(
     const body = (await request.json()) as {
       name?: string;
       tone?: string;
+      parentId?: string | null;
     };
 
     await updateCategory(session.userId, id, body);
 
     return NextResponse.json({ categories: await listCategories(session.userId) });
-  } catch {
-    return NextResponse.json({ message: 'Erro ao atualizar categoria.' }, { status: 500 });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Erro ao atualizar categoria.';
+    return NextResponse.json({ message }, { status: 400 });
   }
 }
 

@@ -7,6 +7,7 @@ export interface FinanceiroCategory {
   id: string;
   name: string;
   tone: string;
+  parentId: string | null;
 }
 
 export interface FinanceiroEntry {
@@ -51,10 +52,22 @@ export async function ensureDefaultCategories(userId: number) {
 }
 
 export async function listCategories(userId: number) {
-  return dbQuery<FinanceiroCategory>(
-    'SELECT id, name, tone FROM financeiro_categories WHERE user_id = $1 ORDER BY created_at ASC',
+  const rows = await dbQuery<{
+    id: string;
+    name: string;
+    tone: string;
+    parent_id: string | null;
+  }>(
+    'SELECT id, name, tone, parent_id FROM financeiro_categories WHERE user_id = $1 ORDER BY created_at ASC',
     [userId],
   );
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    tone: row.tone,
+    parentId: row.parent_id,
+  }));
 }
 
 export async function listEntries(userId: number) {
@@ -318,15 +331,45 @@ export async function deleteEntries(userId: number, entryIds: string[]) {
   }
 }
 
+async function assertValidParent(
+  userId: number,
+  categoryId: string | null,
+  parentId: string,
+) {
+  if (parentId === categoryId) {
+    throw new Error('Uma categoria não pode ser subcategoria dela mesma.');
+  }
+
+  const parent = await dbQueryOne<{ parent_id: string | null }>(
+    'SELECT parent_id FROM financeiro_categories WHERE id = $1 AND user_id = $2',
+    [parentId, userId],
+  );
+
+  if (!parent) {
+    throw new Error('Categoria pai não encontrada.');
+  }
+
+  if (parent.parent_id) {
+    throw new Error(
+      'Não é possível criar mais de dois níveis de categorias.',
+    );
+  }
+}
+
 export async function createCategory(
   userId: number,
   data: Omit<FinanceiroCategory, 'id'>,
 ) {
   const id = crypto.randomUUID();
+  const parentId = data.parentId || null;
+
+  if (parentId) {
+    await assertValidParent(userId, null, parentId);
+  }
 
   await dbExec(
-    'INSERT INTO financeiro_categories (id, user_id, name, tone) VALUES ($1, $2, $3, $4)',
-    [id, userId, data.name, data.tone],
+    'INSERT INTO financeiro_categories (id, user_id, name, tone, parent_id) VALUES ($1, $2, $3, $4, $5)',
+    [id, userId, data.name, data.tone, parentId],
   );
 
   return id;
@@ -338,7 +381,7 @@ export async function updateCategory(
   data: Partial<Omit<FinanceiroCategory, 'id'>>,
 ) {
   const updateParts: string[] = [];
-  const params: Array<string | number> = [];
+  const params: Array<string | number | null> = [];
 
   if (typeof data.name === 'string') {
     params.push(data.name);
@@ -348,6 +391,15 @@ export async function updateCategory(
   if (typeof data.tone === 'string') {
     params.push(data.tone);
     updateParts.push(`tone = $${params.length}`);
+  }
+
+  if (data.parentId !== undefined) {
+    if (data.parentId) {
+      await assertValidParent(userId, categoryId, data.parentId);
+    }
+
+    params.push(data.parentId);
+    updateParts.push(`parent_id = $${params.length}`);
   }
 
   if (updateParts.length === 0) {

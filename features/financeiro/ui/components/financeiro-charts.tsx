@@ -53,6 +53,7 @@ const CustomTooltip = ({
   payload?: Array<{
     name: string;
     value: number;
+    type?: string;
     color?: string;
     fill?: string;
     payload?: unknown;
@@ -61,7 +62,7 @@ const CustomTooltip = ({
   hideValues?: boolean;
 }) => {
   if (!active || !payload?.length) return null;
-  const shown = payload.filter((p) => p.name);
+  const shown = payload.filter((p) => p.name && p.type !== 'none');
   if (!shown.length) return null;
   return (
     <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-sm text-xs">
@@ -353,6 +354,7 @@ export function FinanceiroCharts({
               stroke="none"
               fill="url(#fillReceita)"
               legendType="none"
+              tooltipType="none"
               activeDot={false}
               isAnimationActive={false}
             />

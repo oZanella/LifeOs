@@ -6,6 +6,10 @@ import {
   useFinanceiroContext,
 } from '@/features/financeiro/application/context/financeiro-context';
 import {
+  getRootCategories,
+  getSubcategories,
+} from '@/features/financeiro/application/category-utils';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -128,15 +132,24 @@ export function FinanceiroFilters({
               <SelectItem value="all" className="cursor-pointer font-bold">
                 Todas Categorias
               </SelectItem>
-              {categories.map((cat) => (
+              {getRootCategories(categories).map((cat) => [
                 <SelectItem
                   key={cat.id}
                   value={cat.id}
                   className="cursor-pointer"
                 >
                   {cat.name}
-                </SelectItem>
-              ))}
+                </SelectItem>,
+                ...getSubcategories(categories, cat.id).map((sub) => (
+                  <SelectItem
+                    key={sub.id}
+                    value={sub.id}
+                    className="cursor-pointer pl-6 text-muted-foreground"
+                  >
+                    {sub.name}
+                  </SelectItem>
+                )),
+              ])}
             </SelectContent>
           </Select>
         </div>

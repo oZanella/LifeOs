@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as {
       name?: string;
       tone?: string;
+      parentId?: string | null;
     };
 
     if (!body.name || typeof body.tone !== 'string') {
@@ -26,12 +27,15 @@ export async function POST(request: NextRequest) {
     await createCategory(session.userId, {
       name: body.name,
       tone: body.tone,
+      parentId: body.parentId || null,
     });
 
     await ensureDefaultCategories(session.userId);
 
     return NextResponse.json({ categories: await listCategories(session.userId) });
-  } catch {
-    return NextResponse.json({ message: 'Erro ao criar categoria.' }, { status: 500 });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Erro ao criar categoria.';
+    return NextResponse.json({ message }, { status: 400 });
   }
 }

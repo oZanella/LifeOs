@@ -23,9 +23,7 @@ function getPool() {
     );
   }
 
-  const needsSsl =
-    process.env.NODE_ENV === 'production' &&
-    !/\.railway\.internal\b/i.test(connectionString);
+  const needsSsl = !/@(localhost|127\.0\.0\.1)(:\d+)?\//i.test(connectionString);
 
   const pool = new Pool({
     connectionString,
@@ -132,12 +130,38 @@ async function runMigrations() {
         ) THEN
           ALTER TABLE financeiro_entries ADD CONSTRAINT financeiro_entries_type_check CHECK (type IN ('receita', 'despesa', 'investimento'));
         END IF;
+
+        -- Ensure parent_id exists on financeiro_categories for subcategories.
+        BEGIN
+          ALTER TABLE financeiro_categories ADD COLUMN parent_id TEXT;
+        EXCEPTION
+          WHEN duplicate_column THEN NULL;
+        END;
+
+        -- Remove references to parents that no longer exist (legacy DBs).
+        UPDATE financeiro_categories c
+        SET parent_id = NULL
+        WHERE c.parent_id IS NOT NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM financeiro_categories p WHERE p.id = c.parent_id
+          );
+
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'financeiro_categories_parent_id_fkey'
+        ) THEN
+          ALTER TABLE financeiro_categories
+            ADD CONSTRAINT financeiro_categories_parent_id_fkey
+            FOREIGN KEY (parent_id)
+            REFERENCES financeiro_categories(id)
+            ON DELETE SET NULL;
+        END IF;
       END $$;
 
       CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
       CREATE INDEX IF NOT EXISTS idx_financeiro_entries_user_id ON financeiro_entries(user_id);
       CREATE INDEX IF NOT EXISTS idx_financeiro_categories_user_id ON financeiro_categories(user_id);
       CREATE INDEX IF NOT EXISTS idx_financeiro_entries_parent_id ON financeiro_entries(parent_id);
+      CREATE INDEX IF NOT EXISTS idx_financeiro_categories_parent_id ON financeiro_categories(parent_id);
   
       CREATE TABLE IF NOT EXISTS metas (
         id TEXT PRIMARY KEY,

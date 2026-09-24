@@ -106,7 +106,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     setEditingEntry({
       date: `${year}-${month}-${day}`,
       description: '',
-      categoryId: categories[0]?.id || '',
+      categoryId: categories.find((cat) => !cat.parentId)?.id || '',
       amount: 0,
       type: 'despesa',
       isFixed: false,
@@ -593,7 +593,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       </Dialog>
 
       <Dialog open={isCategoriesOpen} onOpenChange={setIsCategoriesOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Categorias</DialogTitle>
           </DialogHeader>

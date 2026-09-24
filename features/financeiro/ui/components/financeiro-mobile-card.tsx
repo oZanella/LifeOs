@@ -12,6 +12,10 @@ import {
   Category,
   FinancialEntry,
 } from '@/features/financeiro/application/context/financeiro-context';
+import {
+  getCategoryLabel,
+  resolveCategory,
+} from '@/features/financeiro/application/category-utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -47,7 +51,7 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
   onTogglePaid,
   isReadOnly = false,
 }: FinanceiroMobileCardProps) {
-  const category = categories.find((c) => c.id === entry.categoryId);
+  const { parent: category } = resolveCategory(categories, entry.categoryId);
   const isReceita = entry.type === 'receita';
   const isInvestimento = entry.type === 'investimento';
   const amountColor = isReceita
@@ -92,7 +96,7 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
                   variant="subtle"
                   className="h-4 min-w-0 truncate border-none px-1.5 text-[10px] font-medium"
                 >
-                  {category.name}
+                  {getCategoryLabel(categories, entry.categoryId)}
                 </Badge>
               )}
             </div>
