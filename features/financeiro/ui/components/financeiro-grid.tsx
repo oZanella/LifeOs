@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Filter, Plus, Tags } from 'lucide-react';
+import { CircleCheck, CircleOff, Filter, Plus, Tags } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BadgeTone } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,6 +11,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Table,
@@ -34,6 +35,7 @@ import { FinanceiroStats } from './financeiro-stats';
 import { FinanceiroRecurringModal } from './financeiro-recurring-modal';
 import { FinanceiroConfirmDeleteModal } from './financeiro-confirm-delete-modal';
 import { CheckSquare } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { ProcessingOverlay } from './processing-overlay';
 
@@ -63,6 +65,7 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     deleteEntry,
     addRecurringEntries,
     deleteEntries,
+    setEntriesPaid,
   } = useFinanceiroContext();
 
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -122,6 +125,23 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     setSelectedIds(next);
   };
 
+  const exitSelectionMode = () => {
+    setSelectedIds(new Set());
+    setIsSelectionMode(false);
+  };
+
+  const allVisibleSelected =
+    filteredEntries.length > 0 &&
+    filteredEntries.every((e) => selectedIds.has(e.id));
+
+  const toggleSelectAll = () => {
+    setSelectedIds(
+      allVisibleSelected
+        ? new Set()
+        : new Set(filteredEntries.map((e) => e.id)),
+    );
+  };
+
   const handleConfirmDelete = (ids: string[], hasParent: boolean) => {
     setDeleteConfirm({
       isOpen: true,
@@ -136,12 +156,23 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
     } else if (deleteConfirm.ids.length > 1) {
       await deleteEntries(deleteConfirm.ids);
     }
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      deleteConfirm.ids.forEach((id) => next.delete(id));
-      return next;
-    });
-    setIsSelectionMode(false);
+    exitSelectionMode();
+  };
+
+  // Receitas não têm pagamento; o botão age só sobre as demais selecionadas.
+  const selectedPayable = entries.filter(
+    (e) => selectedIds.has(e.id) && e.type !== 'receita' && !e.isArchivedPaid,
+  );
+  const allSelectedPaid =
+    selectedPayable.length > 0 && selectedPayable.every((e) => e.isPaid);
+
+  const executeTogglePaid = async () => {
+    if (selectedPayable.length === 0) return;
+    await setEntriesPaid(
+      selectedPayable.map((e) => e.id),
+      !allSelectedPaid,
+    );
+    exitSelectionMode();
   };
 
   const handleSave = async (
@@ -420,9 +451,34 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   {TABLE_HEADERS.map((h) => (
                     <TableHead
                       key={h.label}
-                      className={cn('text-xs text-muted-foreground', h.className)}
+                      className={cn(
+                        'text-xs text-muted-foreground',
+                        h.className,
+                      )}
                     >
-                      {h.label}
+                      {h.label === 'Ações' && isSelectionMode ? (
+                        <button
+                          type="button"
+                          onClick={toggleSelectAll}
+                          disabled={filteredEntries.length === 0}
+                          className="inline-flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                          title={
+                            allVisibleSelected
+                              ? 'Desmarcar todos'
+                              : 'Selecionar todos os lançamentos exibidos'
+                          }
+                        >
+                          <Checkbox
+                            checked={allVisibleSelected}
+                            readOnly
+                            tabIndex={-1}
+                            className="pointer-events-none"
+                          />
+                          Todos
+                        </button>
+                      ) : (
+                        h.label
+                      )}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -524,7 +580,10 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   {TABLE_HEADERS.map((h) => (
                     <TableHead
                       key={h.label}
-                      className={cn('text-xs text-muted-foreground', h.className)}
+                      className={cn(
+                        'text-xs text-muted-foreground',
+                        h.className,
+                      )}
                     >
                       {h.label}
                     </TableHead>
@@ -593,9 +652,13 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       </Dialog>
 
       <Dialog open={isCategoriesOpen} onOpenChange={setIsCategoriesOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Categorias</DialogTitle>
+            <DialogDescription>
+              Organize suas categorias e subcategorias. Nada é salvo até você
+              aplicar.
+            </DialogDescription>
           </DialogHeader>
           <FinanceiroCategories
             tone={tone}
@@ -622,10 +685,10 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
       />
 
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-20 sm:bottom-10 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm">
-          <div className="flex items-center justify-between gap-4 px-4 py-2.5 rounded-xl bg-card border border-border shadow-lg">
+        <div className="fixed bottom-20 sm:bottom-10 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 rounded-xl bg-card border border-border shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-6 h-6 rounded-lg text-xs font-semibold tabular-nums bg-primary/10 text-primary">
+              <div className="flex items-center justify-center min-w-6 h-6 px-1 rounded-lg text-xs font-semibold tabular-nums bg-primary/10 text-primary">
                 {selectedIds.size}
               </div>
               <span className="text-xs text-muted-foreground whitespace-nowrap">
@@ -633,19 +696,43 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
               </span>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex flex-1 items-center justify-end gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-8 px-3 text-xs cursor-pointer"
-                onClick={() => setSelectedIds(new Set())}
+                onClick={exitSelectionMode}
               >
                 Limpar
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  'h-8 gap-1.5 px-3 text-xs cursor-pointer',
+                  !allSelectedPaid &&
+                    'border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-600 dark:text-emerald-400',
+                )}
+                disabled={selectedPayable.length === 0 || isProcessing}
+                title={
+                  selectedPayable.length === 0
+                    ? 'Receitas não têm status de pagamento'
+                    : undefined
+                }
+                onClick={() => void executeTogglePaid()}
+              >
+                {allSelectedPaid ? (
+                  <CircleOff size={13} />
+                ) : (
+                  <CircleCheck size={13} />
+                )}
+                {allSelectedPaid ? 'Desmarcar pago' : 'Marcar pago'}
               </Button>
               <Button
                 variant="destructive"
                 size="sm"
                 className="h-8 px-4 text-xs cursor-pointer"
+                disabled={isProcessing}
                 onClick={() => {
                   const ids = Array.from(selectedIds);
                   const hasParent = entries

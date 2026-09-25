@@ -331,6 +331,28 @@ export async function deleteEntries(userId: number, entryIds: string[]) {
   }
 }
 
+// Receitas não têm status de pagamento, então ficam de fora da atualização.
+export async function setEntriesPaid(
+  userId: number,
+  entryIds: string[],
+  isPaid: boolean,
+) {
+  if (entryIds.length === 0) return;
+
+  await dbExec(
+    `
+      UPDATE financeiro_entries
+      SET is_paid = $3,
+          updated_at = NOW()
+      WHERE user_id = $1
+        AND id = ANY($2::text[])
+        AND type <> 'receita'
+        AND is_archived_paid = FALSE
+    `,
+    [userId, entryIds, isPaid],
+  );
+}
+
 async function assertValidParent(
   userId: number,
   categoryId: string | null,
@@ -350,9 +372,7 @@ async function assertValidParent(
   }
 
   if (parent.parent_id) {
-    throw new Error(
-      'Não é possível criar mais de dois níveis de categorias.',
-    );
+    throw new Error('Não é possível criar mais de dois níveis de categorias.');
   }
 }
 

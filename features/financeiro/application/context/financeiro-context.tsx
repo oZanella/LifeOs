@@ -55,15 +55,14 @@ interface FinanceiroContextData {
   updateEntry: (id: string, entry: Partial<FinancialEntry>) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
   deleteEntries: (ids: string[]) => Promise<void>;
+  setEntriesPaid: (ids: string[], isPaid: boolean) => Promise<void>;
   addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
   updateCategory: (id: string, category: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   loading: boolean;
   isProcessing: boolean;
   filters: FiltersType;
-  setFilters: React.Dispatch<
-    React.SetStateAction<FiltersType>
-  >;
+  setFilters: React.Dispatch<React.SetStateAction<FiltersType>>;
   stats: {
     totalRevenue: number;
     totalExpense: number;
@@ -203,6 +202,24 @@ export function FinanceiroProvider({
         {
           method: 'DELETE',
           body: JSON.stringify({ ids }),
+        },
+      );
+
+      setEntries(data.entries);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const setEntriesPaid = async (ids: string[], isPaid: boolean) => {
+    if (ids.length === 0) return;
+    setIsProcessing(true);
+    try {
+      const data = await requestJson<{ entries: FinancialEntry[] }>(
+        '/api/financeiro/entries/bulk',
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ ids, isPaid }),
         },
       );
 
@@ -384,7 +401,9 @@ export function FinanceiroProvider({
       const pMatch =
         paymentStatus === 'all' ||
         (paymentStatus === 'paid' && entry.isPaid) ||
-        (paymentStatus === 'unpaid' && !entry.isPaid && entry.type !== 'receita');
+        (paymentStatus === 'unpaid' &&
+          !entry.isPaid &&
+          entry.type !== 'receita');
 
       const matches = mMatch && yMatch && dMatch && cMatch && tMatch && pMatch;
 
@@ -448,6 +467,7 @@ export function FinanceiroProvider({
         archivedPaidEntries: archivedPaid,
         addRecurringEntries,
         deleteEntries,
+        setEntriesPaid,
       }}
     >
       {children}

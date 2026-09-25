@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/auth';
-import { createEntries, listEntries } from '@/lib/financeiro-db';
+import {
+  createEntries,
+  listEntries,
+  setEntriesPaid,
+} from '@/lib/financeiro-db';
 
 export async function POST(request: NextRequest) {
   const session = await getSessionFromRequest(request);
@@ -81,6 +85,45 @@ export async function DELETE(request: NextRequest) {
     console.error('Bulk deletion error:', error);
     return NextResponse.json(
       { message: 'Erro ao excluir entradas em lote.' },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  const session = await getSessionFromRequest(request);
+
+  if (!session) {
+    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+  }
+
+  try {
+    const { ids, isPaid } = (await request.json()) as {
+      ids: string[];
+      isPaid: boolean;
+    };
+
+    if (
+      !ids ||
+      !Array.isArray(ids) ||
+      ids.length === 0 ||
+      typeof isPaid !== 'boolean'
+    ) {
+      return NextResponse.json(
+        { message: 'Dados inválidos.' },
+        { status: 400 },
+      );
+    }
+
+    await setEntriesPaid(session.userId, ids, isPaid);
+
+    return NextResponse.json({
+      entries: await listEntries(session.userId),
+    });
+  } catch (error) {
+    console.error('Bulk paid update error:', error);
+    return NextResponse.json(
+      { message: 'Erro ao atualizar pagamento em lote.' },
       { status: 500 },
     );
   }
