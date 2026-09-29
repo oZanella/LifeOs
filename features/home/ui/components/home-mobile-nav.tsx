@@ -37,7 +37,7 @@ export function HomeMobileNav({
                 className={cn(
                   isActive &&
                     badgeVariants({ tone: item.tone, variant: 'subtle' }),
-                  'flex h-8 w-8 items-center justify-center rounded-full border-none p-0 transition-colors',
+                  'flex h-8 w-8 items-center justify-center rounded-full border-none p-0 transition-colors [&>svg]:size-4.5',
                   !isActive && 'bg-transparent text-muted-foreground',
                 )}
               >
