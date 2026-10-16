@@ -2,42 +2,22 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { SESSION_COOKIE_NAME } from './lib/auth-constants';
 
+// Only checks that a session cookie exists; API routes validate it for real.
 export function proxy(request: NextRequest) {
-  const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const { pathname } = request.nextUrl;
+  const hasSession = Boolean(request.cookies.get(SESSION_COOKIE_NAME)?.value);
+  const isLoginPage = request.nextUrl.pathname === '/login';
 
-  // Se o usuário NÃO tem sessão e NÃO está na página de login, redireciona para /login
-  if (!sessionToken && pathname !== '/login') {
-    // Evitar redirecionar chamadas de API ou arquivos estáticos (embora o config.matcher deva cuidar disso)
-    if (
-      pathname.startsWith('/api/') ||
-      pathname.startsWith('/_next/') ||
-      pathname.includes('.')
-    ) {
-      return NextResponse.next();
-    }
-
+  if (!hasSession && !isLoginPage) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
-
-  // Se o usuário JÁ tem sessão e está tentando acessar a página de login, redireciona para a home
-  if (sessionToken && pathname === '/login') {
+  if (hasSession && isLoginPage) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();
 }
 
-// Configuração para rodar o middleware apenas em rotas relevantes
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  // Skip API routes, Next internals and public files (anything with a dot).
+  matcher: ['/((?!api|_next/static|_next/image|.*\\..*).*)'],
 };

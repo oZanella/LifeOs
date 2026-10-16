@@ -21,13 +21,7 @@ import {
 } from '@/features/financeiro/application/context/financeiro-context';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const formatBRL = (v: number) =>
-  new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    maximumFractionDigits: 0,
-  }).format(v);
+import { formatBRLRounded } from '@/lib/format';
 
 const formatBRLShort = (v: number) => {
   if (Math.abs(v) >= 1000) return `R$${(v / 1000).toFixed(1)}k`;
@@ -84,7 +78,7 @@ const CustomTooltip = ({
               p.name === 'Investimento' && 'text-blue-600 dark:text-blue-400',
             )}
           >
-            {hideValues ? '••••••' : formatBRL(p.value)}
+            {hideValues ? '••••••' : formatBRLRounded(p.value)}
           </span>
         </div>
       ))}
@@ -313,80 +307,90 @@ export function FinanceiroCharts({
           )}
         </div>
         <div className="flex-1 min-h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart
-            data={activeGroupData}
-            margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
-          >
-            <defs>
-              <linearGradient id="fillReceita" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={colorsEdit.revenue} stopOpacity={0.25} />
-                <stop offset="95%" stopColor={colorsEdit.revenue} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke={colorsEdit.grid}
-              opacity={0.3}
-              vertical={false}
-            />
-            <XAxis
-              dataKey="label"
-              tick={{ ...axisStyle }}
-              axisLine={false}
-              tickLine={false}
-              interval={0}
-              minTickGap={10}
-              height={30}
-              padding={{ left: 20, right: 20 }}
-            />
-            <YAxis
-              tick={axisStyle}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(v: number) => (hideValues ? '••••' : formatBRLShort(v))}
-              width={52}
-            />
-            <Tooltip content={<CustomTooltip hideValues={hideValues} />} />
-            <Area
-              type="monotone"
-              dataKey="receita"
-              stroke="none"
-              fill="url(#fillReceita)"
-              legendType="none"
-              tooltipType="none"
-              activeDot={false}
-              isAnimationActive={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="receita"
-              name="Receita"
-              stroke={colorsEdit.revenue}
-              strokeWidth={2.5}
-              dot={{ r: 3.5, fill: colorsEdit.revenue, strokeWidth: 0 }}
-              activeDot={{ r: 6, strokeWidth: 0 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="despesa"
-              name="Despesa"
-              stroke={colorsEdit.expense}
-              strokeWidth={2.5}
-              dot={{ r: 3.5, fill: colorsEdit.expense, strokeWidth: 0 }}
-              activeDot={{ r: 6, strokeWidth: 0 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="investimento"
-              name="Investimento"
-              stroke={colorsEdit.investment}
-              strokeWidth={2.5}
-              dot={{ r: 3.5, fill: colorsEdit.investment, strokeWidth: 0 }}
-              activeDot={{ r: 6, strokeWidth: 0 }}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={activeGroupData}
+              margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+            >
+              <defs>
+                <linearGradient id="fillReceita" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor={colorsEdit.revenue}
+                    stopOpacity={0.25}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={colorsEdit.revenue}
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={colorsEdit.grid}
+                opacity={0.3}
+                vertical={false}
+              />
+              <XAxis
+                dataKey="label"
+                tick={{ ...axisStyle }}
+                axisLine={false}
+                tickLine={false}
+                interval={0}
+                minTickGap={10}
+                height={30}
+                padding={{ left: 20, right: 20 }}
+              />
+              <YAxis
+                tick={axisStyle}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v: number) =>
+                  hideValues ? '••••' : formatBRLShort(v)
+                }
+                width={52}
+              />
+              <Tooltip content={<CustomTooltip hideValues={hideValues} />} />
+              <Area
+                type="monotone"
+                dataKey="receita"
+                stroke="none"
+                fill="url(#fillReceita)"
+                legendType="none"
+                tooltipType="none"
+                activeDot={false}
+                isAnimationActive={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="receita"
+                name="Receita"
+                stroke={colorsEdit.revenue}
+                strokeWidth={2.5}
+                dot={{ r: 3.5, fill: colorsEdit.revenue, strokeWidth: 0 }}
+                activeDot={{ r: 6, strokeWidth: 0 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="despesa"
+                name="Despesa"
+                stroke={colorsEdit.expense}
+                strokeWidth={2.5}
+                dot={{ r: 3.5, fill: colorsEdit.expense, strokeWidth: 0 }}
+                activeDot={{ r: 6, strokeWidth: 0 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="investimento"
+                name="Investimento"
+                stroke={colorsEdit.investment}
+                strokeWidth={2.5}
+                dot={{ r: 3.5, fill: colorsEdit.investment, strokeWidth: 0 }}
+                activeDot={{ r: 6, strokeWidth: 0 }}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -427,7 +431,7 @@ export function FinanceiroCharts({
             <span className="text-2xl font-semibold tabular-nums text-foreground mt-1">
               {hideValues
                 ? '••••••'
-                : formatBRL(
+                : formatBRLRounded(
                     pieData.reduce(
                       (acc, item) =>
                         item.name === 'Receita'

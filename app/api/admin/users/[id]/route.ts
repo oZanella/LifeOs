@@ -1,233 +1,88 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   countAdmins,
   deleteUserById,
-  findUserByEmail,
   findUserById,
-  findUserByUsername,
-  getSessionFromRequest,
   listUsersForAdmin,
-  updateUserAccount,
-  updateUserByAdmin,
+  parseAccountUpdate,
+  updateUser,
   verifyPassword,
 } from '@/lib/auth';
+import { jsonError, withSession } from '@/lib/api';
 
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await getSessionFromRequest(request);
+type Params = { id: string };
 
-  if (!session) {
-    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
-  }
-
-  try {
-    const { id } = await context.params;
-    const targetId = Number(id);
-
-    if (!Number.isFinite(targetId)) {
-      return NextResponse.json(
-        { message: 'Usuário inválido.' },
-        { status: 400 },
-      );
-    }
-
-    if (!session.isAdmin && targetId !== session.userId) {
-      return NextResponse.json(
-        { message: 'Acesso permitido apenas ao próprio usuário.' },
-        { status: 403 },
-      );
-    }
-
-    const target = await findUserById(targetId);
-    if (!target) {
-      return NextResponse.json(
-        { message: 'Usuário não encontrado.' },
-        { status: 404 },
-      );
-    }
-
-    const body = (await request.json()) as {
-      email?: string;
-      username?: string;
-      password?: string;
-      isAdmin?: boolean;
-      avatarUrl?: string;
-    };
-
-    const nextEmail = body.email?.trim().toLowerCase();
-    const nextUsername = body.username?.trim().toLowerCase();
-    const nextPassword = body.password?.trim();
-    const nextIsAdmin = body.isAdmin;
-    const avatarInput = body.avatarUrl;
-    const hasAvatarField = typeof avatarInput === 'string';
-    const nextAvatarUrl = hasAvatarField ? avatarInput.trim() : undefined;
-
-    if (!session.isAdmin && typeof nextIsAdmin === 'boolean') {
-      return NextResponse.json(
-        { message: 'Apenas administradores podem alterar permissão.' },
-        { status: 403 },
-      );
-    }
-
-    if (nextEmail && !nextEmail.includes('@')) {
-      return NextResponse.json({ message: 'Email inválido.' }, { status: 400 });
-    }
-
-    if (nextUsername && nextUsername.length < 3) {
-      return NextResponse.json(
-        { message: 'Nome de usuário precisa ter 3+ caracteres.' },
-        { status: 400 },
-      );
-    }
-
-    if (nextPassword && nextPassword.length < 6) {
-      return NextResponse.json(
-        { message: 'Senha precisa ter 6+ caracteres.' },
-        { status: 400 },
-      );
-    }
-
-    if (typeof nextAvatarUrl === 'string' && nextAvatarUrl.length > 2_000_000) {
-      return NextResponse.json(
-        { message: 'Avatar muito grande.' },
-        { status: 400 },
-      );
-    }
-
-    if (nextEmail) {
-      const existing = await findUserByEmail(nextEmail);
-      if (existing && existing.id !== targetId) {
-        return NextResponse.json(
-          { message: 'Este email já esta em uso.' },
-          { status: 409 },
-        );
-      }
-    }
-
-    if (nextUsername) {
-      const existing = await findUserByUsername(nextUsername);
-      if (existing && existing.id !== targetId) {
-        return NextResponse.json(
-          { message: 'Este nome de usuário já existe.' },
-          { status: 409 },
-        );
-      }
-    }
-
-    if (
-      session.isAdmin &&
-      typeof nextIsAdmin === 'boolean' &&
-      !nextIsAdmin &&
-      target.is_admin
-    ) {
-      const admins = await countAdmins();
-      if (admins <= 1) {
-        return NextResponse.json(
-          { message: 'Não e permitido remover o último usuário ADM.' },
-          { status: 400 },
-        );
-      }
-    }
-
-    const updated = session.isAdmin
-      ? await updateUserByAdmin(targetId, {
-          email: nextEmail,
-          username: nextUsername,
-          password: nextPassword,
-          avatarUrl: hasAvatarField ? nextAvatarUrl : undefined,
-          isAdmin: nextIsAdmin,
-        })
-      : await updateUserAccount(targetId, {
-          email: nextEmail,
-          username: nextUsername,
-          password: nextPassword,
-          avatarUrl: hasAvatarField ? nextAvatarUrl : undefined,
-        });
-
-    if (!updated) {
-      return NextResponse.json(
-        { message: 'Nada para atualizar.' },
-        { status: 400 },
-      );
-    }
-
-    const users = await listUsersForAdmin();
-    return NextResponse.json({
-      users: session.isAdmin
-        ? users
-        : users.filter((item) => item.id === session.userId),
-    });
-  } catch {
-    return NextResponse.json(
-      { message: 'Erro ao atualizar usuário.' },
-      { status: 500 },
-    );
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await getSessionFromRequest(request);
-
-  if (!session) {
-    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
-  }
-
-  if (!session.isAdmin) {
-    return NextResponse.json(
-      { message: 'Acesso permitido apenas para ADM.' },
-      { status: 403 },
-    );
-  }
-
-  const { id } = await context.params;
+export const PATCH = withSession<Params>(async (request, session, { id }) => {
   const targetId = Number(id);
-
   if (!Number.isFinite(targetId)) {
-    return NextResponse.json({ message: 'Usuario invalido.' }, { status: 400 });
+    return jsonError('Usuário inválido.');
+  }
+  if (!session.isAdmin && targetId !== session.userId) {
+    return jsonError('Acesso permitido apenas ao próprio usuário.', 403);
+  }
+
+  const target = await findUserById(targetId);
+  if (!target) {
+    return jsonError('Usuário não encontrado.', 404);
+  }
+
+  const body = await request.json();
+  const isAdmin = typeof body.isAdmin === 'boolean' ? body.isAdmin : undefined;
+
+  if (isAdmin !== undefined && !session.isAdmin) {
+    return jsonError('Apenas administradores podem alterar permissão.', 403);
+  }
+  if (isAdmin === false && target.is_admin && (await countAdmins()) <= 1) {
+    return jsonError('Não é permitido remover o último usuário ADM.');
+  }
+
+  const data = await parseAccountUpdate(body, targetId);
+  const updated = await updateUser(targetId, { ...data, isAdmin });
+
+  if (!updated) {
+    return jsonError('Nada para atualizar.');
+  }
+
+  const users = await listUsersForAdmin();
+  return NextResponse.json({
+    users: session.isAdmin
+      ? users
+      : users.filter((item) => item.id === session.userId),
+  });
+});
+
+export const DELETE = withSession<Params>(async (request, session, { id }) => {
+  if (!session.isAdmin) {
+    return jsonError('Acesso permitido apenas para ADM.', 403);
+  }
+
+  const targetId = Number(id);
+  if (!Number.isFinite(targetId)) {
+    return jsonError('Usuário inválido.');
   }
 
   const body = (await request.json().catch(() => null)) as {
     password?: string;
   } | null;
   const password = body?.password?.trim();
-
   if (!password) {
-    return NextResponse.json(
-      { message: 'Senha obrigatória para excluir.' },
-      { status: 400 },
-    );
+    return jsonError('Senha obrigatória para excluir.');
   }
 
   const sessionUser = await findUserById(session.userId);
-  if (!sessionUser) {
-    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
-  }
-
-  if (!verifyPassword(password, sessionUser)) {
-    return NextResponse.json({ message: 'Senha inválida.' }, { status: 401 });
+  if (!sessionUser || !verifyPassword(password, sessionUser)) {
+    return jsonError('Senha inválida.', 401);
   }
 
   const target = await findUserById(targetId);
   if (!target) {
-    return NextResponse.json(
-      { message: 'Usuario nao encontrado.' },
-      { status: 404 },
-    );
+    return jsonError('Usuário não encontrado.', 404);
   }
-
   if (target.is_admin && (await countAdmins()) <= 1) {
-    return NextResponse.json(
-      { message: 'Não e permitido remover o último usuário ADM.' },
-      { status: 400 },
-    );
+    return jsonError('Não é permitido remover o último usuário ADM.');
   }
 
   await deleteUserById(targetId);
 
   return NextResponse.json({ users: await listUsersForAdmin() });
-}
+});

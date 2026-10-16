@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { jsonError, withSession } from '@/lib/api';
 import {
   updateExercicio,
   deleteExercicio,
@@ -7,42 +7,23 @@ import {
   parseExercicioInput,
 } from '@/lib/treino-db';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; exercicioId: string }> },
-) {
-  const session = await getSessionFromRequest(req);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+type Params = { id: string; exercicioId: string };
 
-  const { id: treinoId, exercicioId } = await params;
-  const data = parseExercicioInput(await req.json());
-  if (data.name !== undefined && !data.name) {
-    return NextResponse.json(
-      { message: 'Informe o nome do exercício.' },
-      { status: 400 },
-    );
-  }
+export const PATCH = withSession<Params>(
+  async (request, session, { id, exercicioId }) => {
+    const data = parseExercicioInput(await request.json());
+    if (data.name !== undefined && !data.name) {
+      return jsonError('Informe o nome do exercício.');
+    }
 
-  await updateExercicio(Number(session.userId), treinoId, exercicioId, data);
-  const treinos = await listTreinos(Number(session.userId));
+    await updateExercicio(session.userId, id, exercicioId, data);
+    return NextResponse.json({ treinos: await listTreinos(session.userId) });
+  },
+);
 
-  return NextResponse.json({ treinos });
-}
-
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; exercicioId: string }> },
-) {
-  const session = await getSessionFromRequest(req);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const { id: treinoId, exercicioId } = await params;
-  await deleteExercicio(Number(session.userId), treinoId, exercicioId);
-  const treinos = await listTreinos(Number(session.userId));
-
-  return NextResponse.json({ treinos });
-}
+export const DELETE = withSession<Params>(
+  async (_request, session, { id, exercicioId }) => {
+    await deleteExercicio(session.userId, id, exercicioId);
+    return NextResponse.json({ treinos: await listTreinos(session.userId) });
+  },
+);

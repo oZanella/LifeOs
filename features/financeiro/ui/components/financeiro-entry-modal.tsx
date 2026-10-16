@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, TrendingDown, TrendingUp } from 'lucide-react';
+import {
+  Calendar as CalendarIcon,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
@@ -38,6 +42,7 @@ import {
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { formatBRL } from '@/lib/format';
 
 interface FinanceiroEntryModalProps {
   entry: Partial<FinancialEntry> | null;
@@ -45,12 +50,6 @@ interface FinanceiroEntryModalProps {
   onSave: (data: Partial<FinancialEntry>, installments?: number) => void;
   onClose: () => void;
 }
-
-const formatCurrencyDisplay = (value: number) =>
-  new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
 
 const NO_SUBCATEGORY_VALUE = '__none__';
 
@@ -75,7 +74,7 @@ export function FinanceiroEntryModal({
     if (entry) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm(entry);
-      setAmountInput(formatCurrencyDisplay(entry.amount ?? 0));
+      setAmountInput(formatBRL(entry.amount ?? 0));
       setInstallments('1');
     }
   }, [entry]);
@@ -98,7 +97,7 @@ export function FinanceiroEntryModal({
   const handleAmountChange = (raw: string) => {
     const numeric = parseCurrencyInput(raw);
     setForm((prev) => ({ ...prev, amount: numeric }));
-    setAmountInput(formatCurrencyDisplay(numeric));
+    setAmountInput(formatBRL(numeric));
   };
 
   return (
@@ -230,7 +229,9 @@ export function FinanceiroEntryModal({
                   setForm((prev) => ({
                     ...prev,
                     categoryId:
-                      value === NO_SUBCATEGORY_VALUE ? selectedParent.id : value,
+                      value === NO_SUBCATEGORY_VALUE
+                        ? selectedParent.id
+                        : value,
                   }))
                 }
               >
@@ -360,8 +361,8 @@ export function FinanceiroEntryModal({
                   />
                   <p className="px-1 text-xs text-muted-foreground">
                     O sistema criará automaticamente{' '}
-                    {parseInt(installments || '1', 10) - 1} lançamentos para
-                    os meses seguintes.
+                    {parseInt(installments || '1', 10) - 1} lançamentos para os
+                    meses seguintes.
                   </p>
                 </div>
               )}

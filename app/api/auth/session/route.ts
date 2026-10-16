@@ -1,14 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { withSession } from '@/lib/api';
 
-export async function GET(request: NextRequest) {
-  const session = await getSessionFromRequest(request);
-
-  if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
-  }
-
-  return NextResponse.json({
+export const GET = withSession(async (_request, session) =>
+  NextResponse.json({
     user: {
       id: session.userId,
       username: session.username,
@@ -16,5 +10,5 @@ export async function GET(request: NextRequest) {
       avatarUrl: session.avatarUrl,
       isAdmin: session.isAdmin,
     },
-  });
-}
+  }),
+);

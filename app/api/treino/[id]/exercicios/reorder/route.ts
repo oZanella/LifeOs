@@ -1,27 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { jsonError, withSession } from '@/lib/api';
 import { listTreinos, reorderExercicios } from '@/lib/treino-db';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await getSessionFromRequest(req);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export const POST = withSession<{ id: string }>(
+  async (request, session, { id }) => {
+    const { ids } = await request.json();
+    if (!Array.isArray(ids) || ids.some((item) => typeof item !== 'string')) {
+      return jsonError('Ordem de exercícios inválida.');
+    }
 
-  const { id: treinoId } = await params;
-  const { ids } = await req.json();
-  if (!Array.isArray(ids) || ids.some((id) => typeof id !== 'string')) {
-    return NextResponse.json(
-      { message: 'Ordem de exercícios inválida.' },
-      { status: 400 },
-    );
-  }
-
-  await reorderExercicios(Number(session.userId), treinoId, ids);
-  const treinos = await listTreinos(Number(session.userId));
-
-  return NextResponse.json({ treinos });
-}
+    await reorderExercicios(session.userId, id, ids);
+    return NextResponse.json({ treinos: await listTreinos(session.userId) });
+  },
+);

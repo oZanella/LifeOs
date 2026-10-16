@@ -1,9 +1,13 @@
 import crypto from 'node:crypto';
+import { ApiError } from '@/lib/api-error';
 import { dbExec, dbQuery, dbQueryOne } from '@/lib/db';
 
 export type EntryType = 'receita' | 'despesa' | 'investimento';
 
-export interface FinanceiroCategory {
+export const isEntryType = (value: unknown): value is EntryType =>
+  value === 'receita' || value === 'despesa' || value === 'investimento';
+
+interface FinanceiroCategory {
   id: string;
   name: string;
   tone: string;
@@ -206,11 +210,7 @@ export async function updateEntry(
     updateParts.push(`amount = $${params.length}`);
   }
 
-  if (
-    data.type === 'receita' ||
-    data.type === 'investimento' ||
-    data.type === 'despesa'
-  ) {
+  if (isEntryType(data.type)) {
     params.push(data.type);
     updateParts.push(`type = $${params.length}`);
   }
@@ -324,8 +324,6 @@ export async function deleteEntry(userId: number, entryId: string) {
 }
 
 export async function deleteEntries(userId: number, entryIds: string[]) {
-  if (entryIds.length === 0) return;
-
   for (const entryId of entryIds) {
     await deleteEntry(userId, entryId);
   }
@@ -359,7 +357,7 @@ async function assertValidParent(
   parentId: string,
 ) {
   if (parentId === categoryId) {
-    throw new Error('Uma categoria não pode ser subcategoria dela mesma.');
+    throw new ApiError('Uma categoria não pode ser subcategoria dela mesma.');
   }
 
   const parent = await dbQueryOne<{ parent_id: string | null }>(
@@ -368,11 +366,13 @@ async function assertValidParent(
   );
 
   if (!parent) {
-    throw new Error('Categoria pai não encontrada.');
+    throw new ApiError('Categoria pai não encontrada.');
   }
 
   if (parent.parent_id) {
-    throw new Error('Não é possível criar mais de dois níveis de categorias.');
+    throw new ApiError(
+      'Não é possível criar mais de dois níveis de categorias.',
+    );
   }
 }
 

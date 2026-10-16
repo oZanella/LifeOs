@@ -133,13 +133,7 @@ export async function createExercicio(
        (SELECT COALESCE(MAX(order_index), -1) + 1 FROM treino_exercicios WHERE treino_id = t.id)
      FROM treinos t
      WHERE t.id = $2 AND t.user_id = $5`,
-    [
-      id,
-      treinoId,
-      data.name,
-      JSON.stringify(data.sets ?? []),
-      userId,
-    ],
+    [id, treinoId, data.name, JSON.stringify(data.sets ?? []), userId],
   );
   return id;
 }

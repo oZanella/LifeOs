@@ -3,13 +3,13 @@ import {
   TreinoExercicio,
   TreinoSet,
 } from '@/features/treino/application/context/treino-context';
+import { formatDecimal } from '@/lib/format';
 
-export const formatWeight = (weight: number) =>
-  weight.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+export const formatWeight = (weight: number) => formatDecimal(weight);
 
 export const formatVolume = (volume: number) =>
   volume >= 1000
-    ? `${(volume / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} t`
+    ? `${formatDecimal(volume / 1000, 1)} t`
     : `${formatWeight(volume)} kg`;
 
 const setVolume = (set: TreinoSet) => (set.reps ?? 0) * (set.weight ?? 0);
@@ -30,9 +30,7 @@ export function getExercicioStats(exercicio: TreinoExercicio) {
 export function summarizeSets(sets: TreinoSet[]) {
   if (sets.length === 0) return null;
 
-  const reps = sets
-    .map((s) => s.reps)
-    .filter((r): r is number => r !== null);
+  const reps = sets.map((s) => s.reps).filter((r): r is number => r !== null);
   if (reps.length === 0) return `${sets.length} séries`;
 
   const min = Math.min(...reps);

@@ -12,12 +12,7 @@ import {
 } from 'lucide-react';
 import { BadgeTone } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-
-const formatCurrency = (v: number) =>
-  new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(v);
+import { formatBRL } from '@/lib/format';
 
 interface StatsData {
   balance: number;
@@ -49,11 +44,14 @@ function StatCard({ item }: { item: StatItem }) {
           <item.icon size={17} className={item.color} />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-xs text-muted-foreground">
-            {item.title}
-          </p>
-          <p className={cn('truncate text-base font-semibold tabular-nums', item.color)}>
-            {formatCurrency(item.value)}
+          <p className="truncate text-xs text-muted-foreground">{item.title}</p>
+          <p
+            className={cn(
+              'truncate text-base font-semibold tabular-nums',
+              item.color,
+            )}
+          >
+            {formatBRL(item.value)}
           </p>
         </div>
       </CardContent>
@@ -69,7 +67,9 @@ function buildItems(stats: StatsData): StatItem[] {
       title: 'Saldo atual',
       value: stats.balance,
       icon: Wallet,
-      color: balancePositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400',
+      color: balancePositive
+        ? 'text-emerald-600 dark:text-emerald-400'
+        : 'text-red-600 dark:text-red-400',
       bg: balancePositive ? 'bg-emerald-500/10' : 'bg-red-500/10',
     },
     {

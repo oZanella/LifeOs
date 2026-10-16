@@ -8,13 +8,14 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
+import { format } from 'date-fns';
 import { BadgeTone } from '@/components/ui/badge';
 import { requestJson } from '@/lib/request-json';
 import { AppBadgeTone, VALID_CATEGORY_TONES } from '@/lib/tone-options';
 import { useAuth } from '@/providers/auth-provider/auth.provider';
 
 export type EntryType = 'receita' | 'despesa' | 'investimento';
-export type PaymentStatusFilter = 'all' | 'paid' | 'unpaid';
+type PaymentStatusFilter = 'all' | 'paid' | 'unpaid';
 
 export interface Category {
   id: string;
@@ -79,10 +80,13 @@ const FinanceiroContext = createContext<FinanceiroContextData>(
   {} as FinanceiroContextData,
 );
 
-const sanitizeTone = (tone: string) =>
-  (VALID_CATEGORY_TONES.includes(tone as AppBadgeTone)
-    ? tone
-    : 'default') as BadgeTone;
+const normalizeCategories = (categories: Category[]) =>
+  categories.map((cat) => ({
+    ...cat,
+    tone: (VALID_CATEGORY_TONES.includes(cat.tone as AppBadgeTone)
+      ? cat.tone
+      : 'default') as BadgeTone,
+  }));
 
 export function FinanceiroProvider({
   children,
@@ -120,12 +124,7 @@ export function FinanceiroProvider({
       }>('/api/financeiro');
 
       setEntries(data.entries);
-      setCategories(
-        data.categories.map((cat) => ({
-          ...cat,
-          tone: sanitizeTone(String(cat.tone || 'default')),
-        })),
-      );
+      setCategories(normalizeCategories(data.categories));
     } catch (error) {
       console.error(error);
       setEntries([]);
@@ -139,181 +138,83 @@ export function FinanceiroProvider({
     loadFinanceiro();
   }, [loadFinanceiro]);
 
-  const addEntry = async (entry: Omit<FinancialEntry, 'id'>) => {
+  const withProcessing = async <T,>(action: () => Promise<T>) => {
     setIsProcessing(true);
     try {
-      const data = await requestJson<{
-        entries: FinancialEntry[];
-        createdEntryId?: string;
-      }>('/api/financeiro/entries', {
-        method: 'POST',
-        body: JSON.stringify(entry),
-      });
-
-      setEntries(data.entries);
-      return data.createdEntryId ?? null;
+      return await action();
     } finally {
       setIsProcessing(false);
     }
   };
+
+  // Entry/category endpoints return the full updated list.
+  const sendEntries = (url: string, method: string, body?: unknown) =>
+    withProcessing(async () => {
+      const data = await requestJson<{
+        entries: FinancialEntry[];
+        createdEntryId?: string;
+      }>(url, {
+        method,
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      setEntries(data.entries);
+      return data.createdEntryId ?? null;
+    });
+
+  const sendCategories = (url: string, method: string, body?: unknown) =>
+    withProcessing(async () => {
+      const data = await requestJson<{ categories: Category[] }>(url, {
+        method,
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      setCategories(normalizeCategories(data.categories));
+    });
+
+  const addEntry = (entry: Omit<FinancialEntry, 'id'>) =>
+    sendEntries('/api/financeiro/entries', 'POST', entry);
 
   const updateEntry = async (
     id: string,
     updatedFields: Partial<FinancialEntry>,
   ) => {
-    setIsProcessing(true);
-    try {
-      const data = await requestJson<{ entries: FinancialEntry[] }>(
-        `/api/financeiro/entries/${id}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify(updatedFields),
-        },
-      );
-
-      setEntries(data.entries);
-    } finally {
-      setIsProcessing(false);
-    }
+    await sendEntries(`/api/financeiro/entries/${id}`, 'PATCH', updatedFields);
   };
 
   const deleteEntry = async (id: string) => {
-    setIsProcessing(true);
-    try {
-      const data = await requestJson<{ entries: FinancialEntry[] }>(
-        `/api/financeiro/entries/${id}`,
-        {
-          method: 'DELETE',
-        },
-      );
-
-      setEntries(data.entries);
-    } finally {
-      setIsProcessing(false);
-    }
+    await sendEntries(`/api/financeiro/entries/${id}`, 'DELETE');
   };
 
   const deleteEntries = async (ids: string[]) => {
     if (ids.length === 0) return;
-    setIsProcessing(true);
-    try {
-      const data = await requestJson<{ entries: FinancialEntry[] }>(
-        '/api/financeiro/entries/bulk',
-        {
-          method: 'DELETE',
-          body: JSON.stringify({ ids }),
-        },
-      );
-
-      setEntries(data.entries);
-    } finally {
-      setIsProcessing(false);
-    }
+    await sendEntries('/api/financeiro/entries/bulk', 'DELETE', { ids });
   };
 
   const setEntriesPaid = async (ids: string[], isPaid: boolean) => {
     if (ids.length === 0) return;
-    setIsProcessing(true);
-    try {
-      const data = await requestJson<{ entries: FinancialEntry[] }>(
-        '/api/financeiro/entries/bulk',
-        {
-          method: 'PATCH',
-          body: JSON.stringify({ ids, isPaid }),
-        },
-      );
-
-      setEntries(data.entries);
-    } finally {
-      setIsProcessing(false);
-    }
+    await sendEntries('/api/financeiro/entries/bulk', 'PATCH', { ids, isPaid });
   };
 
-  const addCategory = async (category: Omit<Category, 'id'>) => {
-    setIsProcessing(true);
-    try {
-      const data = await requestJson<{ categories: Category[] }>(
-        '/api/financeiro/categories',
-        {
-          method: 'POST',
-          body: JSON.stringify(category),
-        },
-      );
+  const addCategory = (category: Omit<Category, 'id'>) =>
+    sendCategories('/api/financeiro/categories', 'POST', category);
 
-      setCategories(
-        data.categories.map((cat) => ({
-          ...cat,
-          tone: sanitizeTone(String(cat.tone || 'default')),
-        })),
-      );
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  const updateCategory = (id: string, updatedFields: Partial<Category>) =>
+    sendCategories(`/api/financeiro/categories/${id}`, 'PATCH', updatedFields);
 
-  const updateCategory = async (
-    id: string,
-    updatedFields: Partial<Category>,
-  ) => {
-    setIsProcessing(true);
-    try {
-      const data = await requestJson<{ categories: Category[] }>(
-        `/api/financeiro/categories/${id}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify(updatedFields),
-        },
-      );
-
-      setCategories(
-        data.categories.map((cat) => ({
-          ...cat,
-          tone: sanitizeTone(String(cat.tone || 'default')),
-        })),
-      );
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
+  // Deleting a category clears it from entries, so both lists are reloaded.
   const deleteCategory = async (id: string) => {
-    setIsProcessing(true);
-    try {
-      const categoriesData = await requestJson<{ categories: Category[] }>(
-        `/api/financeiro/categories/${id}`,
-        {
-          method: 'DELETE',
-        },
-      );
-      const financeiroData = await requestJson<{
-        entries: FinancialEntry[];
-        categories: Category[];
-      }>('/api/financeiro');
-
-      setCategories(
-        categoriesData.categories.map((cat) => ({
-          ...cat,
-          tone: sanitizeTone(String(cat.tone || 'default')),
-        })),
-      );
-      setEntries(financeiroData.entries);
-    } finally {
-      setIsProcessing(false);
-    }
+    await sendCategories(`/api/financeiro/categories/${id}`, 'DELETE');
+    await sendEntries('/api/financeiro', 'GET');
   };
 
   const addRecurringEntries = async (
     baseEntry: FinancialEntry,
     months: number,
   ) => {
-    setIsProcessing(true);
     try {
-      // 1. Mark current as fixed if not already
       if (!baseEntry.isFixed) {
         await updateEntry(baseEntry.id, { isFixed: true });
       }
 
-      // 2. Build additional entries
       const additionalEntries: Omit<FinancialEntry, 'id'>[] = [];
       const baseDate = new Date(`${baseEntry.date}T12:00:00`);
 
@@ -326,12 +227,8 @@ export function FinanceiroProvider({
           nextDate.setDate(0);
         }
 
-        const year = nextDate.getFullYear();
-        const month = String(nextDate.getMonth() + 1).padStart(2, '0');
-        const day = String(nextDate.getDate()).padStart(2, '0');
-
         additionalEntries.push({
-          date: `${year}-${month}-${day}`,
+          date: format(nextDate, 'yyyy-MM-dd'),
           description: baseEntry.description,
           categoryId: baseEntry.categoryId,
           amount: baseEntry.amount,
@@ -343,28 +240,13 @@ export function FinanceiroProvider({
         });
       }
 
-      // 3. Save additional entries if any
       if (additionalEntries.length > 0) {
-        const data = await requestJson<{ entries: FinancialEntry[] }>(
-          '/api/financeiro/entries/bulk',
-          {
-            method: 'POST',
-            body: JSON.stringify({ entries: additionalEntries }),
-          },
-        );
-        setEntries(data.entries);
-      } else {
-        // If only current month, refresh entries to show fixed state
-        const data = await requestJson<{
-          entries: FinancialEntry[];
-          categories: Category[];
-        }>('/api/financeiro');
-        setEntries(data.entries);
+        await sendEntries('/api/financeiro/entries/bulk', 'POST', {
+          entries: additionalEntries,
+        });
       }
     } catch (error) {
       console.error('Failed to add recurring entries:', error);
-    } finally {
-      setIsProcessing(false);
     }
   };
 

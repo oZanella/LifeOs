@@ -1,26 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { withSession } from '@/lib/api';
 import { listMetas, createMeta } from '@/lib/meta-db';
 
-export async function GET(req: NextRequest) {
-  const session = await getSessionFromRequest(req);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export const GET = withSession(async (_request, session) =>
+  NextResponse.json({ metas: await listMetas(session.userId) }),
+);
 
-  const metas = await listMetas(Number(session.userId));
-  return NextResponse.json({ metas });
-}
-
-export async function POST(req: NextRequest) {
-  const session = await getSessionFromRequest(req);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const data = await req.json();
-  const id = await createMeta(Number(session.userId), data);
-  const metas = await listMetas(Number(session.userId));
-
-  return NextResponse.json({ metas, createdMetaId: id });
-}
+export const POST = withSession(async (request, session) => {
+  const id = await createMeta(session.userId, await request.json());
+  return NextResponse.json({
+    metas: await listMetas(session.userId),
+    createdMetaId: id,
+  });
+});

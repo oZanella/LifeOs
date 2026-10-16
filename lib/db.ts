@@ -28,7 +28,9 @@ function getPool() {
     );
   }
 
-  const needsSsl = !/@(localhost|127\.0\.0\.1)(:\d+)?\//i.test(connectionString);
+  const needsSsl = !/@(localhost|127\.0\.0\.1)(:\d+)?\//i.test(
+    connectionString,
+  );
 
   const pool = new Pool({
     connectionString,
@@ -258,7 +260,7 @@ async function runMigrations() {
   }
 }
 
-export async function ensureDbReady() {
+async function ensureDbReady() {
   if (
     !globalThis.__lifeOsPgReady ||
     globalThis.__lifeOsPgSchemaVersion !== SCHEMA_VERSION

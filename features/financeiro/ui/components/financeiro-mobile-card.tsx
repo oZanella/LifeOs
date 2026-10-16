@@ -23,6 +23,7 @@ import { ptBR } from 'date-fns/locale';
 
 import { Badge, BadgeTone } from '@/components/ui/badge';
 import { memo } from 'react';
+import { formatBRL } from '@/lib/format';
 
 interface FinanceiroMobileCardProps {
   entry: FinancialEntry;
@@ -30,7 +31,6 @@ interface FinanceiroMobileCardProps {
   isSelected?: boolean;
   isSelectionMode?: boolean;
   onToggleSelection?: () => void;
-  formatCurrency: (value: number) => string;
   onStartEdit: () => void;
   onDelete: () => void;
   onToggleFixed: (entryId: string, isFixed: boolean) => void;
@@ -44,7 +44,6 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
   isSelected,
   isSelectionMode,
   onToggleSelection,
-  formatCurrency,
   onStartEdit,
   onDelete,
   onToggleFixed,
@@ -110,9 +109,7 @@ export const FinanceiroMobileCard = memo(function FinanceiroMobileCard({
               )}
             >
               {isReceita ? '+' : isInvestimento ? '+' : '-'}
-              {formatCurrency(entry.amount)
-                .replace('R$ ', '')
-                .replace('R$ ', '')}
+              {formatBRL(entry.amount).replace('R$ ', '').replace('R$ ', '')}
             </span>
           </div>
         </div>

@@ -1,37 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { jsonError, withSession } from '@/lib/api';
 import { listTreinos, createTreino } from '@/lib/treino-db';
 
-export async function GET(req: NextRequest) {
-  const session = await getSessionFromRequest(req);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export const GET = withSession(async (_request, session) =>
+  NextResponse.json({ treinos: await listTreinos(session.userId) }),
+);
 
-  const treinos = await listTreinos(Number(session.userId));
-  return NextResponse.json({ treinos });
-}
-
-export async function POST(req: NextRequest) {
-  const session = await getSessionFromRequest(req);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const data = await req.json();
+export const POST = withSession(async (request, session) => {
+  const data = await request.json();
   if (!data?.title?.trim()) {
-    return NextResponse.json(
-      { message: 'Informe o nome do treino.' },
-      { status: 400 },
-    );
+    return jsonError('Informe o nome do treino.');
   }
 
-  const id = await createTreino(Number(session.userId), {
+  const id = await createTreino(session.userId, {
     title: data.title.trim(),
     description: data.description,
     tone: data.tone || 'default',
   });
-  const treinos = await listTreinos(Number(session.userId));
 
-  return NextResponse.json({ treinos, createdTreinoId: id });
-}
+  return NextResponse.json({
+    treinos: await listTreinos(session.userId),
+    createdTreinoId: id,
+  });
+});

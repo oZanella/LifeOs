@@ -4,11 +4,7 @@ import { LogOut, User } from 'lucide-react';
 import { HomeSidebar } from '../components/home-sidebar';
 import { HomeMobileNav } from '../components/home-mobile-nav';
 import { PageHeader } from '@/components/ui/page-header';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,9 +15,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { HomeThemeToggle } from '../components/home-theme-toggle';
 import { useState } from 'react';
-import { lab_itens, PageType } from '../tabs/home-config';
+import { HOME_TABS, PageType } from '../tabs/home-config';
 import { useAuth } from '@/providers/auth-provider/auth.provider';
 import { useHomeUserConfig } from '../../home-user-config';
+import { FinanceiroProvider } from '@/features/financeiro/application/context/financeiro-context';
+import { MetaProvider } from '@/features/meta/application/context/meta-context';
+import { TreinoProvider } from '@/features/treino/application/context/treino-context';
 
 export function Home() {
   const [activePage, setActivePage] = useState<PageType>('dashboard');
@@ -29,7 +28,7 @@ export function Home() {
   const userConfig = useHomeUserConfig();
 
   const currentPage =
-    lab_itens.find((item) => item.id === activePage) || lab_itens[0];
+    HOME_TABS.find((item) => item.id === activePage) ?? HOME_TABS[0];
   const Content = currentPage.component;
 
   return (
@@ -100,7 +99,14 @@ export function Home() {
         <div className="relative flex flex-1 flex-col overflow-visible sm:overflow-hidden">
           <main className="min-h-0 flex-1 overflow-visible px-3 pt-3 pb-20 sm:overflow-hidden sm:px-6 sm:pt-5 sm:pb-6">
             <div className="h-full min-h-0 w-full">
-              <Content tone={currentPage.tone} />
+              {/* Data lives above the tabs so switching tabs never refetches. */}
+              <FinanceiroProvider>
+                <MetaProvider>
+                  <TreinoProvider>
+                    <Content tone={currentPage.tone} />
+                  </TreinoProvider>
+                </MetaProvider>
+              </FinanceiroProvider>
             </div>
           </main>
         </div>

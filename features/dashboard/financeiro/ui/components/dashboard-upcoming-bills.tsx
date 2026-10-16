@@ -6,12 +6,7 @@ import { useFinanceiroContext } from '@/features/financeiro/application/context/
 import { Badge, BadgeTone } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-const formatBRL = (v: number) =>
-  new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(v);
+import { formatBRL } from '@/lib/format';
 
 export function DashboardUpcomingBills({
   hideValues = false,
@@ -79,9 +74,13 @@ export function DashboardUpcomingBills({
                   </p>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">
-                      {format(new Date(`${entry.date}T12:00:00`), "dd 'de' MMM", {
-                        locale: ptBR,
-                      })}
+                      {format(
+                        new Date(`${entry.date}T12:00:00`),
+                        "dd 'de' MMM",
+                        {
+                          locale: ptBR,
+                        },
+                      )}
                     </span>
                     {category && (
                       <Badge

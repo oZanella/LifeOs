@@ -1,52 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { withSession } from '@/lib/api';
 import {
   deleteCategory,
   listCategories,
   updateCategory,
 } from '@/lib/financeiro-db';
 
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await getSessionFromRequest(request);
+type Params = { id: string };
 
-  if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
-  }
+export const PATCH = withSession<Params>(async (request, session, { id }) => {
+  await updateCategory(session.userId, id, await request.json());
+  return NextResponse.json({
+    categories: await listCategories(session.userId),
+  });
+});
 
-  try {
-    const { id } = await context.params;
-    const body = (await request.json()) as {
-      name?: string;
-      tone?: string;
-      parentId?: string | null;
-    };
-
-    await updateCategory(session.userId, id, body);
-
-    return NextResponse.json({ categories: await listCategories(session.userId) });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Erro ao atualizar categoria.';
-    return NextResponse.json({ message }, { status: 400 });
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await getSessionFromRequest(request);
-
-  if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
-  }
-
-  const { id } = await context.params;
-
+export const DELETE = withSession<Params>(async (_request, session, { id }) => {
   await deleteCategory(session.userId, id);
-
-  return NextResponse.json({ categories: await listCategories(session.userId) });
-}
+  return NextResponse.json({
+    categories: await listCategories(session.userId),
+  });
+});

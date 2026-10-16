@@ -1,41 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
-import {
-  createCategory,
-  ensureDefaultCategories,
-  listCategories,
-} from '@/lib/financeiro-db';
+import { NextResponse } from 'next/server';
+import { jsonError, withSession } from '@/lib/api';
+import { createCategory, listCategories } from '@/lib/financeiro-db';
 
-export async function POST(request: NextRequest) {
-  const session = await getSessionFromRequest(request);
+export const POST = withSession(async (request, session) => {
+  const body = (await request.json()) as {
+    name?: string;
+    tone?: string;
+    parentId?: string | null;
+  };
 
-  if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
+  if (!body.name || typeof body.tone !== 'string') {
+    return jsonError('Dados inválidos.');
   }
 
-  try {
-    const body = (await request.json()) as {
-      name?: string;
-      tone?: string;
-      parentId?: string | null;
-    };
+  await createCategory(session.userId, {
+    name: body.name,
+    tone: body.tone,
+    parentId: body.parentId || null,
+  });
 
-    if (!body.name || typeof body.tone !== 'string') {
-      return NextResponse.json({ message: 'Dados invalidos.' }, { status: 400 });
-    }
-
-    await createCategory(session.userId, {
-      name: body.name,
-      tone: body.tone,
-      parentId: body.parentId || null,
-    });
-
-    await ensureDefaultCategories(session.userId);
-
-    return NextResponse.json({ categories: await listCategories(session.userId) });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Erro ao criar categoria.';
-    return NextResponse.json({ message }, { status: 400 });
-  }
-}
+  return NextResponse.json({
+    categories: await listCategories(session.userId),
+  });
+});

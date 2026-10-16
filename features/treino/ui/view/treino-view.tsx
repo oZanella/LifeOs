@@ -3,10 +3,7 @@
 import { useState } from 'react';
 import { BadgeTone } from '@/components/ui/badge';
 import { PageContainer } from '@/components/page/page-container';
-import {
-  TreinoProvider,
-  useTreinoContext,
-} from '@/features/treino/application/context/treino-context';
+import { useTreinoContext } from '@/features/treino/application/context/treino-context';
 import { TreinoGrid } from '../components/treino-grid';
 import { TreinoDetail } from '../components/treino-detail';
 
@@ -16,18 +13,16 @@ interface TreinoProps {
 
 export function Treino({ tone = 'laranja' }: TreinoProps) {
   return (
-    <TreinoProvider>
-      <section
-        data-tone={tone}
-        className="flex flex-col sm:h-full sm:max-h-full sm:min-h-0"
-      >
-        <PageContainer className="bg-background gap-6 pb-4 flex-1 sm:min-h-0 sm:overflow-hidden">
-          <div className="flex-1 sm:min-h-0 sm:overflow-auto pr-1 custom-scrollbar">
-            <TreinoContent />
-          </div>
-        </PageContainer>
-      </section>
-    </TreinoProvider>
+    <section
+      data-tone={tone}
+      className="flex flex-col sm:h-full sm:max-h-full sm:min-h-0"
+    >
+      <PageContainer className="bg-background gap-6 pb-4 flex-1 sm:min-h-0 sm:overflow-hidden">
+        <div className="flex-1 sm:min-h-0 sm:overflow-auto pr-1 custom-scrollbar">
+          <TreinoContent />
+        </div>
+      </PageContainer>
+    </section>
   );
 }
 

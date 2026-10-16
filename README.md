@@ -1,80 +1,55 @@
 # Life OS
 
-## Ideia resumida
+Painel pessoal para organizar a vida em um só lugar: finanças, metas e treinos.
 
-**Dashboard da Sua Vida:**  
-Um painel central com Finanças, Estudos, Metas do ano...
-Tipo um "Life OS".
+## Módulos
 
----
+- **Dashboard**: resumo financeiro do mês, contas a vencer, atividade recente e progresso das metas.
+- **Financeiro**: receitas, despesas e investimentos, categorias e subcategorias, lançamentos fixos ou parcelados, seleção em lote e gráficos.
+- **Metas**: metas com tarefas, destaque e progresso.
+- **Treinos**: fichas de treino com exercícios e séries (repetições e carga).
+- **Configurações**: perfil, avatar e gestão de usuários (ADM).
 
-## O que é o seu Life OS?
+## Stack
 
-Um sistema central onde você gerencia sua vida como se fosse uma empresa com telas de controle:
+- [Next.js](https://nextjs.org) (App Router) + React + TypeScript
+- Tailwind CSS + componentes [shadcn/ui](https://ui.shadcn.com) (Radix)
+- PostgreSQL via `pg`
+- Recharts (gráficos), date-fns, react-hot-toast
 
-- Financeiro
-- Indicadores
-- Performance
-- Planejamento
-- Operação
+## Rodando localmente
 
----
+1. Instale as dependências:
 
-## Estrutura ideal
+   ```bash
+   npm install
+   ```
 
-### 1° - Dashboard (Home)
+2. Crie um `.env.local` apontando para um banco PostgreSQL:
 
-Painel com:
+   ```bash
+   DATABASE_URL=postgres://usuario:senha@localhost:5432/lifeos
+   ```
 
-- Saldo atual
-- Gastos do mês
-- Tarefas pendentes/concluídas
-- Progresso do ano
+   `POSTGRES_URL` também é aceito, para uso com o Vercel Postgres.
 
----
+3. Suba o servidor:
 
-### 2° - Módulo Financeiro
+   ```bash
+   npm run dev
+   ```
 
-- Receitas
-- Despesas
-- Categorias
-- Parcelamentos
-- Metas financeiras
-- Projeção mensal
-- Gráfico de fluxo de caixa
-- Planejamento anual
-- Simulação de cenário
+As tabelas são criadas e atualizadas automaticamente na primeira requisição (`runMigrations` em `lib/db.ts`). Ao alterar o schema, aumente `SCHEMA_VERSION` no mesmo arquivo para a migration rodar de novo sem reiniciar o servidor.
 
----
+## Estrutura
 
-### 3° - Módulo Metas
+```
+app/            páginas (/ e /login) e rotas da API (app/api/**)
+features/       telas e estado de cada módulo (dashboard, financeiro, meta, treino, home)
+components/ui/  componentes base (shadcn)
+lib/            banco (db.ts, *-db.ts), autenticação, helpers da API, formatação
+providers/      autenticação, tema e toasts
+proxy.ts        redireciona para /login quando não há sessão
+```
 
-- Tarefas diárias
-- Prioridade
-- Status
-
----
-
-## Foco do projeto Life OS
-
-Estrutura visual forte e com destaque frontend (**frontend-focused**)
-
----
-
-## Exemplo do site para usar como base
-
-https://www.lifeosdashboard.com/
-
----
-
-## Backend
-
-Algo bem simples como:
-
-- Supabase  
-  ou
-- SQLite + Prisma Local
-
-Mas tendo o foco inicial em MVP 100% visual primeiro.
-
-**Sem backend real.**
+As rotas da API usam `withSession` (`lib/api.ts`), que valida a sessão e transforma erros em respostas JSON.

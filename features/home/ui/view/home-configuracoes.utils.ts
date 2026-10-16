@@ -1,8 +1,12 @@
 import { toTitleCaseName } from '../../home-user-config';
-import { AdminDraft, AdminUser, AvatarCropState } from './home-configuracoes.types';
+import {
+  AdminDraft,
+  AdminUser,
+  AvatarCropState,
+} from './home-configuracoes.types';
 
-export const CROP_BOX_SIZE = 220;
-export const AVATAR_OUTPUT_SIZE = 256;
+const CROP_BOX_SIZE = 220;
+const AVATAR_OUTPUT_SIZE = 256;
 
 export function buildAdminDrafts(users: AdminUser[]) {
   return users.reduce<Record<number, AdminDraft>>((acc, item) => {
@@ -35,7 +39,8 @@ export function readFileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result ?? ''));
-    reader.onerror = () => reject(new Error('Falha ao ler o arquivo de avatar.'));
+    reader.onerror = () =>
+      reject(new Error('Falha ao ler o arquivo de avatar.'));
     reader.readAsDataURL(file);
   });
 }
@@ -93,7 +98,8 @@ export async function cropAvatarToDataUrl(crop: AvatarCropState) {
 
   await new Promise<void>((resolve, reject) => {
     image.onload = () => resolve();
-    image.onerror = () => reject(new Error('Erro ao processar recorte da imagem.'));
+    image.onerror = () =>
+      reject(new Error('Erro ao processar recorte da imagem.'));
   });
 
   const layout = getCropLayout(crop);

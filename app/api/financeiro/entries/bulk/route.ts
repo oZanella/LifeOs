@@ -1,130 +1,54 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { jsonError, withSession } from '@/lib/api';
 import {
   createEntries,
+  deleteEntries,
   listEntries,
   setEntriesPaid,
+  type FinanceiroEntry,
 } from '@/lib/financeiro-db';
 
-export async function POST(request: NextRequest) {
-  const session = await getSessionFromRequest(request);
+const isIdList = (ids: unknown): ids is string[] =>
+  Array.isArray(ids) &&
+  ids.length > 0 &&
+  ids.every((id) => typeof id === 'string');
 
-  if (!session) {
-    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+export const POST = withSession(async (request, session) => {
+  const { entries } = (await request.json()) as {
+    entries?: Omit<FinanceiroEntry, 'id'>[];
+  };
+
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return jsonError('Dados inválidos.');
   }
 
-  try {
-    const body = (await request.json()) as {
-      entries: Array<{
-        date: string;
-        description: string;
-        categoryId: string;
-        amount: number;
-        type: 'receita' | 'despesa' | 'investimento';
-        isFixed: boolean;
-        isPaid: boolean;
-        isArchivedPaid?: boolean;
-        parentId?: string | null;
-      }>;
-    };
+  await createEntries(
+    session.userId,
+    entries.map((entry) => ({
+      ...entry,
+      isArchivedPaid: Boolean(entry.isArchivedPaid),
+    })),
+  );
 
-    if (
-      !body.entries ||
-      !Array.isArray(body.entries) ||
-      body.entries.length === 0
-    ) {
-      return NextResponse.json(
-        { message: 'Dados inválidos.' },
-        { status: 400 },
-      );
-    }
+  return NextResponse.json({ entries: await listEntries(session.userId) });
+});
 
-    await createEntries(
-      session.userId,
-      body.entries.map((entry) => ({
-        ...entry,
-        isArchivedPaid: Boolean(entry.isArchivedPaid),
-      })),
-    );
-
-    return NextResponse.json({
-      entries: await listEntries(session.userId),
-    });
-  } catch (error) {
-    console.error('Bulk creation error detail:', error);
-    const message =
-      error instanceof Error ? error.message : 'Erro desconhecido';
-    return NextResponse.json(
-      { message: 'Erro ao criar entradas em lote.', error: message },
-      { status: 500 },
-    );
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  const session = await getSessionFromRequest(request);
-
-  if (!session) {
-    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+export const DELETE = withSession(async (request, session) => {
+  const { ids } = await request.json();
+  if (!isIdList(ids)) {
+    return jsonError('IDs inválidos.');
   }
 
-  try {
-    const { ids } = (await request.json()) as { ids: string[] };
+  await deleteEntries(session.userId, ids);
+  return NextResponse.json({ entries: await listEntries(session.userId) });
+});
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ message: 'IDs inválidos.' }, { status: 400 });
-    }
-
-    const { deleteEntries, listEntries } = await import('@/lib/financeiro-db');
-    await deleteEntries(session.userId, ids);
-
-    return NextResponse.json({
-      entries: await listEntries(session.userId),
-    });
-  } catch (error) {
-    console.error('Bulk deletion error:', error);
-    return NextResponse.json(
-      { message: 'Erro ao excluir entradas em lote.' },
-      { status: 500 },
-    );
-  }
-}
-
-export async function PATCH(request: NextRequest) {
-  const session = await getSessionFromRequest(request);
-
-  if (!session) {
-    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+export const PATCH = withSession(async (request, session) => {
+  const { ids, isPaid } = await request.json();
+  if (!isIdList(ids) || typeof isPaid !== 'boolean') {
+    return jsonError('Dados inválidos.');
   }
 
-  try {
-    const { ids, isPaid } = (await request.json()) as {
-      ids: string[];
-      isPaid: boolean;
-    };
-
-    if (
-      !ids ||
-      !Array.isArray(ids) ||
-      ids.length === 0 ||
-      typeof isPaid !== 'boolean'
-    ) {
-      return NextResponse.json(
-        { message: 'Dados inválidos.' },
-        { status: 400 },
-      );
-    }
-
-    await setEntriesPaid(session.userId, ids, isPaid);
-
-    return NextResponse.json({
-      entries: await listEntries(session.userId),
-    });
-  } catch (error) {
-    console.error('Bulk paid update error:', error);
-    return NextResponse.json(
-      { message: 'Erro ao atualizar pagamento em lote.' },
-      { status: 500 },
-    );
-  }
-}
+  await setEntriesPaid(session.userId, ids, isPaid);
+  return NextResponse.json({ entries: await listEntries(session.userId) });
+});

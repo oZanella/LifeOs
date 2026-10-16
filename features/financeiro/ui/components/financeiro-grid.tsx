@@ -90,12 +90,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
   );
   const [pendingFilters, setPendingFilters] = useState<FiltersType>(filters);
 
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-
   const handleOpenEdit = (entry: FinancialEntry) => {
     setEditingEntry(entry);
   };
@@ -325,7 +319,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   key={entry.id}
                   entry={entry}
                   categories={categories}
-                  formatCurrency={formatCurrency}
                   onToggleFixed={(entryId, isFixed) => {
                     if (entry.parentId) return;
 
@@ -369,7 +362,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                   key={entry.id}
                   entry={entry}
                   categories={categories}
-                  formatCurrency={formatCurrency}
                   onToggleFixed={() => undefined}
                   onTogglePaid={() => undefined}
                   onStartEdit={() => undefined}
@@ -532,7 +524,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                       isSelected={selectedIds.has(entry.id)}
                       onToggleSelection={() => toggleOne(entry.id)}
                       categories={categories}
-                      formatCurrency={formatCurrency}
                       onQuickCategoryChange={(entryId, categoryId) =>
                         updateEntry(entryId, { categoryId })
                       }
@@ -596,7 +587,6 @@ export function FinanceiroGrid({ tone }: { tone?: BadgeTone }) {
                     key={entry.id}
                     entry={entry}
                     categories={categories}
-                    formatCurrency={formatCurrency}
                     onQuickCategoryChange={() => undefined}
                     onToggleFixed={() => undefined}
                     onTogglePaid={() => undefined}

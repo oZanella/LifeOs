@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSession, findUserByEmail, verifyPassword } from '@/lib/auth';
-import { SESSION_COOKIE_NAME } from '@/lib/auth-constants';
-
-const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+import { handleRouteError, jsonError, setSessionCookie } from '@/lib/api';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,26 +9,13 @@ export async function POST(request: NextRequest) {
       password?: string;
     };
 
-    const email = body.email?.trim().toLowerCase() ?? '';
-    const password = body.password ?? '';
-
-    const user = await findUserByEmail(email);
-
+    const user = await findUserByEmail(body.email ?? '');
     if (!user) {
-      return NextResponse.json(
-        { message: 'Email nao encontrado.' },
-        { status: 401 },
-      );
+      return jsonError('Email não encontrado.', 401);
     }
-
-    if (!verifyPassword(password, user)) {
-      return NextResponse.json(
-        { message: 'Senha incorreta.' },
-        { status: 401 },
-      );
+    if (!verifyPassword(body.password ?? '', user)) {
+      return jsonError('Senha incorreta.', 401);
     }
-
-    const session = await createSession(user.id);
 
     const response = NextResponse.json({
       user: {
@@ -42,21 +27,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    response.cookies.set({
-      name: SESSION_COOKIE_NAME,
-      value: session.token,
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: COOKIE_MAX_AGE_SECONDS,
-      expires: session.expiresAt,
-    });
-
-    return response;
+    return setSessionCookie(response, await createSession(user.id));
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Erro ao fazer login.';
-    return NextResponse.json({ message }, { status: 500 });
+    return handleRouteError(error);
   }
 }

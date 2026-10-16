@@ -160,7 +160,9 @@ export function TreinoCard({ treino, onOpen, onEdit }: TreinoCardProps) {
                     <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                       {[
                         summary,
-                        maxWeight !== null ? `${formatWeight(maxWeight)} kg` : null,
+                        maxWeight !== null
+                          ? `${formatWeight(maxWeight)} kg`
+                          : null,
                       ]
                         .filter(Boolean)
                         .join(' · ')}

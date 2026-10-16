@@ -1,20 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest, listUsersForAdmin } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { withSession } from '@/lib/api';
+import { listUsersForAdmin } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
-  const session = await getSessionFromRequest(request);
-
-  if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
-  }
-
+export const GET = withSession(async (_request, session) => {
   const users = await listUsersForAdmin();
 
-  if (!session.isAdmin) {
-    return NextResponse.json({
-      users: users.filter((item) => item.id === session.userId),
-    });
-  }
-
-  return NextResponse.json({ users });
-}
+  return NextResponse.json({
+    users: session.isAdmin
+      ? users
+      : users.filter((item) => item.id === session.userId),
+  });
+});

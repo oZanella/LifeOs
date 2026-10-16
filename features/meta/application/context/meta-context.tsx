@@ -45,7 +45,6 @@ interface MetaContextData {
     data: Partial<MetaTask>,
   ) => Promise<void>;
   deleteTask: (metaId: string, taskId: string) => Promise<void>;
-  refreshMetas: () => Promise<void>;
 }
 
 const MetaContext = createContext<MetaContextData>({} as MetaContextData);
@@ -78,102 +77,42 @@ export function MetaProvider({ children }: { children: React.ReactNode }) {
     loadMetas();
   }, [loadMetas]);
 
-  const addMeta = async (data: {
+  // Every mutation endpoint returns the full, updated list of metas.
+  const send = async (url: string, method: string, body?: unknown) => {
+    setIsProcessing(true);
+    try {
+      const resp = await requestJson<{ metas: Meta[] }>(url, {
+        method,
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      setMetas(resp.metas);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const addMeta = (data: {
     title: string;
     description?: string;
     tone: string;
-  }) => {
-    setIsProcessing(true);
-    try {
-      const resp = await requestJson<{ metas: Meta[] }>('/api/meta', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-      setMetas(resp.metas);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  }) => send('/api/meta', 'POST', data);
 
-  const updateMeta = async (id: string, data: Partial<Meta>) => {
-    setIsProcessing(true);
-    try {
-      const resp = await requestJson<{ metas: Meta[] }>(`/api/meta/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      });
-      setMetas(resp.metas);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  const updateMeta = (id: string, data: Partial<Meta>) =>
+    send(`/api/meta/${id}`, 'PATCH', data);
 
-  const deleteMeta = async (id: string) => {
-    setIsProcessing(true);
-    try {
-      const resp = await requestJson<{ metas: Meta[] }>(`/api/meta/${id}`, {
-        method: 'DELETE',
-      });
-      setMetas(resp.metas);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  const deleteMeta = (id: string) => send(`/api/meta/${id}`, 'DELETE');
 
-  const addTask = async (metaId: string, data: { description: string }) => {
-    setIsProcessing(true);
-    try {
-      const resp = await requestJson<{ metas: Meta[] }>(
-        `/api/meta/${metaId}/tasks`,
-        {
-          method: 'POST',
-          body: JSON.stringify(data),
-        },
-      );
-      setMetas(resp.metas);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  const addTask = (metaId: string, data: { description: string }) =>
+    send(`/api/meta/${metaId}/tasks`, 'POST', data);
 
-  const updateTask = async (
+  const updateTask = (
     metaId: string,
     taskId: string,
     data: Partial<MetaTask>,
-  ) => {
-    setIsProcessing(true);
-    try {
-      const resp = await requestJson<{ metas: Meta[] }>(
-        `/api/meta/${metaId}/tasks/${taskId}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify(data),
-        },
-      );
-      setMetas(resp.metas);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  ) => send(`/api/meta/${metaId}/tasks/${taskId}`, 'PATCH', data);
 
-  const deleteTask = async (metaId: string, taskId: string) => {
-    setIsProcessing(true);
-    try {
-      const resp = await requestJson<{ metas: Meta[] }>(
-        `/api/meta/${metaId}/tasks/${taskId}`,
-        {
-          method: 'DELETE',
-        },
-      );
-      setMetas(resp.metas);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const refreshMetas = async () => {
-    await loadMetas();
-  };
+  const deleteTask = (metaId: string, taskId: string) =>
+    send(`/api/meta/${metaId}/tasks/${taskId}`, 'DELETE');
 
   return (
     <MetaContext.Provider
@@ -187,7 +126,6 @@ export function MetaProvider({ children }: { children: React.ReactNode }) {
         addTask,
         updateTask,
         deleteTask,
-        refreshMetas,
       }}
     >
       {children}

@@ -73,7 +73,9 @@ export function TreinoModal({ treino, onClose, onCreated }: TreinoModalProps) {
           className="flex flex-col gap-5"
         >
           <DialogHeader>
-            <DialogTitle>{treino ? 'Editar treino' : 'Novo treino'}</DialogTitle>
+            <DialogTitle>
+              {treino ? 'Editar treino' : 'Novo treino'}
+            </DialogTitle>
             <DialogDescription>
               {treino
                 ? 'Altere o nome, a descrição ou a cor do treino.'

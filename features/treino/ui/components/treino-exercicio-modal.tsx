@@ -214,7 +214,11 @@ export function TreinoExercicioModal({
                     className="h-9 text-center tabular-nums"
                     value={set.reps}
                     onChange={(e) =>
-                      updateSet(index, 'reps', e.target.value.replace(/\D/g, ''))
+                      updateSet(
+                        index,
+                        'reps',
+                        e.target.value.replace(/\D/g, ''),
+                      )
                     }
                   />
                   <div className="flex items-center gap-1">
@@ -231,7 +235,11 @@ export function TreinoExercicioModal({
                       className="h-9 min-w-0 text-center tabular-nums"
                       value={set.weight}
                       onChange={(e) =>
-                        updateSet(index, 'weight', sanitizeDecimal(e.target.value))
+                        updateSet(
+                          index,
+                          'weight',
+                          sanitizeDecimal(e.target.value),
+                        )
                       }
                     />
                     <StepButton
@@ -289,7 +297,11 @@ export function TreinoExercicioModal({
                 Salvar e adicionar outro
               </Button>
             )}
-            <Button type="submit" disabled={!canSave} className="cursor-pointer">
+            <Button
+              type="submit"
+              disabled={!canSave}
+              className="cursor-pointer"
+            >
               {isProcessing ? 'Salvando...' : 'Salvar'}
             </Button>
           </DialogFooter>

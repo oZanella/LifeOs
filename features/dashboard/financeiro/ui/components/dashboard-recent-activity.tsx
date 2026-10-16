@@ -6,12 +6,7 @@ import { useFinanceiroContext } from '@/features/financeiro/application/context/
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-
-const formatBRL = (v: number) =>
-  new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(v);
+import { formatBRL } from '@/lib/format';
 
 export function DashboardRecentActivity({
   hideValues = false,

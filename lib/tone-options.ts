@@ -2,9 +2,9 @@ import { BadgeTone } from '@/components/ui/badge';
 
 export type AppBadgeTone = Exclude<BadgeTone, null | undefined>;
 
-export type ToneGroup = 'vivas' | 'escuras' | 'pastel';
+type ToneGroup = 'vivas' | 'escuras' | 'pastel';
 
-export interface ToneOption {
+interface ToneOption {
   value: AppBadgeTone;
   label: string;
   dotClassName: string;
@@ -228,21 +228,11 @@ export const TONE_OPTIONS: ToneOption[] = [
   },
 ];
 
-export const CATEGORY_TONE_OPTIONS = TONE_OPTIONS.filter(
-  (option) => option.value !== 'online',
-);
-
-export const VALID_CATEGORY_TONES = CATEGORY_TONE_OPTIONS.map(
-  (option) => option.value,
-);
+export const VALID_CATEGORY_TONES = TONE_OPTIONS.map((option) => option.value);
 
 export const TONE_DOT_CLASSNAME = Object.fromEntries(
-  CATEGORY_TONE_OPTIONS.map((option) => [option.value, option.dotClassName]),
+  TONE_OPTIONS.map((option) => [option.value, option.dotClassName]),
 ) as Record<AppBadgeTone, string>;
 
-export const getToneLabel = (tone: AppBadgeTone) => {
-  return (
-    CATEGORY_TONE_OPTIONS.find((option) => option.value === tone)?.label ??
-    'Padrão'
-  );
-};
+export const getToneLabel = (tone: AppBadgeTone) =>
+  TONE_OPTIONS.find((option) => option.value === tone)?.label ?? 'Padrão';

@@ -4,13 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 import { PageContainer } from '@/components/page/page-container';
 import { useHomeUserConfig } from '../home/home-user-config';
 import { BadgeTone } from '@/components/ui/badge';
-import { FinanceiroProvider } from '@/features/financeiro/application/context/financeiro-context';
 import { FinanceiroCharts } from '../financeiro/ui/components/financeiro-charts';
 import { DashboardUpcomingBills } from './financeiro/ui/components/dashboard-upcoming-bills';
 import { DashboardRecentActivity } from './financeiro/ui/components/dashboard-recent-activity';
 import { Wallet, Target, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MetaProvider } from '@/features/meta/application/context/meta-context';
 import { MetaSummary } from './meta/ui/components/meta-summary';
 
 interface DashboardProps {
@@ -87,76 +85,72 @@ export function Dashboard({}: DashboardProps) {
   );
 
   return (
-    <FinanceiroProvider>
-      <MetaProvider>
-        <PageContainer className="bg-background gap-6 pt-4 flex flex-col h-full overflow-hidden">
-          <section className="px-1 shrink-0">
-            <h1 className="text-xl font-semibold tracking-tight text-foreground">
-              Olá, {userName}
-            </h1>
-            <p className="text-sm text-muted-foreground">{todayLabel}</p>
+    <PageContainer className="bg-background gap-6 pt-4 flex flex-col h-full overflow-hidden">
+      <section className="px-1 shrink-0">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Olá, {userName}
+        </h1>
+        <p className="text-sm text-muted-foreground">{todayLabel}</p>
+      </section>
+
+      <div className="relative flex-1 min-h-0">
+        <div
+          ref={scrollRef}
+          className="h-full overflow-y-auto pr-1 flex flex-col gap-8 pb-10 custom-scrollbar"
+        >
+          <section className="flex flex-col gap-4 shrink-0">
+            <SectionHeading
+              icon={Wallet}
+              iconClassName="bg-(--receita)/10 text-(--receita)"
+              title="Gestão financeira"
+              subtitle="Resumo de saldos e indicadores mensais"
+            >
+              <button
+                type="button"
+                onClick={() => setHideValues((prev) => !prev)}
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                {hideValues ? <EyeOff size={13} /> : <Eye size={13} />}
+                <span className="hidden sm:inline">
+                  {hideValues ? 'Mostrar valores' : 'Ocultar valores'}
+                </span>
+              </button>
+            </SectionHeading>
+
+            <div className="shrink-0">
+              <FinanceiroCharts hideValues={hideValues} />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 auto-rows-fr gap-4 flex-1 min-h-72 overflow-hidden">
+              <DashboardUpcomingBills hideValues={hideValues} />
+              <DashboardRecentActivity hideValues={hideValues} />
+            </div>
           </section>
 
-          <div className="relative flex-1 min-h-0">
-            <div
-              ref={scrollRef}
-              className="h-full overflow-y-auto pr-1 flex flex-col gap-8 pb-10 custom-scrollbar"
-            >
-              <section className="flex flex-col gap-4 shrink-0">
-                <SectionHeading
-                  icon={Wallet}
-                  iconClassName="bg-(--receita)/10 text-(--receita)"
-                  title="Gestão financeira"
-                  subtitle="Resumo de saldos e indicadores mensais"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setHideValues((prev) => !prev)}
-                    className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                  >
-                    {hideValues ? <EyeOff size={13} /> : <Eye size={13} />}
-                    <span className="hidden sm:inline">
-                      {hideValues ? 'Mostrar valores' : 'Ocultar valores'}
-                    </span>
-                  </button>
-                </SectionHeading>
+          <section className="space-y-4">
+            <SectionHeading
+              icon={Target}
+              iconClassName="bg-indigo-500/10 text-indigo-500"
+              title="Metas & objetivos"
+              subtitle="Acompanhamento de progresso e conquistas"
+            />
 
-                <div className="shrink-0">
-                  <FinanceiroCharts hideValues={hideValues} />
-                </div>
+            <MetaSummary />
+          </section>
+        </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 auto-rows-fr gap-4 flex-1 min-h-72 overflow-hidden">
-                  <DashboardUpcomingBills hideValues={hideValues} />
-                  <DashboardRecentActivity hideValues={hideValues} />
-                </div>
-              </section>
-
-              <section className="space-y-4">
-                <SectionHeading
-                  icon={Target}
-                  iconClassName="bg-indigo-500/10 text-indigo-500"
-                  title="Metas & objetivos"
-                  subtitle="Acompanhamento de progresso e conquistas"
-                />
-
-                <MetaSummary />
-              </section>
-            </div>
-
-            <div
-              className={cn(
-                'pointer-events-none absolute inset-x-0 bottom-0 flex h-16 items-end justify-center bg-linear-to-t from-background to-transparent transition-opacity duration-300',
-                hasMoreBelow ? 'opacity-100' : 'opacity-0',
-              )}
-            >
-              <ChevronDown
-                size={16}
-                className="mb-1.5 text-muted-foreground/70 animate-bounce"
-              />
-            </div>
-          </div>
-        </PageContainer>
-      </MetaProvider>
-    </FinanceiroProvider>
+        <div
+          className={cn(
+            'pointer-events-none absolute inset-x-0 bottom-0 flex h-16 items-end justify-center bg-linear-to-t from-background to-transparent transition-opacity duration-300',
+            hasMoreBelow ? 'opacity-100' : 'opacity-0',
+          )}
+        >
+          <ChevronDown
+            size={16}
+            className="mb-1.5 text-muted-foreground/70 animate-bounce"
+          />
+        </div>
+      </div>
+    </PageContainer>
   );
 }

@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { badgeVariants } from '@/components/ui/badge';
-import { lab_itens, type PageType } from '../tabs/home-config';
+import { HOME_TABS, type PageType } from '../tabs/home-config';
 
 interface HomeMobileNavProps {
   activePage: PageType;
@@ -13,18 +13,10 @@ export function HomeMobileNav({
   activePage,
   onPageChange,
 }: HomeMobileNavProps) {
-  const mainItems = lab_itens.filter(
-    (item) =>
-      !item.disabled &&
-      ['dashboard', 'financeiro', 'meta', 'treino', 'configuracoes'].includes(
-        item.id,
-      ),
-  );
-
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background pb-safe md:hidden">
       <div className="mx-auto flex h-16 max-w-md items-center justify-around px-2">
-        {mainItems.map((item) => {
+        {HOME_TABS.map((item) => {
           const Icon = item.icon;
           const isActive = activePage === item.id;
 

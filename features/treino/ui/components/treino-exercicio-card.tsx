@@ -1,12 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  ChevronDown,
-  ChevronUp,
-  Edit2,
-  Trash2,
-} from 'lucide-react';
+import { ChevronDown, ChevronUp, Edit2, Trash2 } from 'lucide-react';
 import {
   TreinoExercicio,
   useTreinoContext,
@@ -89,7 +84,11 @@ export function TreinoExercicioCard({
             </div>
 
             <div className="flex shrink-0 items-center gap-1">
-              <IconButton title="Editar" onClick={onEdit} className="hover:text-blue-500">
+              <IconButton
+                title="Editar"
+                onClick={onEdit}
+                className="hover:text-blue-500"
+              >
                 <Edit2 size={14} />
               </IconButton>
               <IconButton
@@ -154,10 +153,7 @@ export function TreinoExercicioCard({
   );
 }
 
-function IconButton({
-  className,
-  ...props
-}: React.ComponentProps<'button'>) {
+function IconButton({ className, ...props }: React.ComponentProps<'button'>) {
   return (
     <button
       type="button"

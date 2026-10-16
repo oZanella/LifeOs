@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { badgeVariants } from '@/components/ui/badge';
-import { lab_itens, type PageType } from '../tabs/home-config';
+import { HOME_TABS, type PageType } from '../tabs/home-config';
 
 interface HomeSidebarProps {
   activePage: PageType;
@@ -17,7 +17,7 @@ export function HomeSidebar({ activePage, onPageChange }: HomeSidebarProps) {
       </p>
 
       <nav className="flex flex-col gap-1">
-        {lab_itens.map((item) => {
+        {HOME_TABS.map((item) => {
           const Icon = item.icon;
           const isActive = activePage === item.id;
 
@@ -25,20 +25,14 @@ export function HomeSidebar({ activePage, onPageChange }: HomeSidebarProps) {
             <button
               key={item.id}
               type="button"
-              onClick={() => {
-                if (!item.disabled) {
-                  onPageChange(item.id);
-                }
-              }}
-              disabled={item.disabled}
+              onClick={() => onPageChange(item.id)}
               className={cn(
-                isActive && badgeVariants({ tone: item.tone, variant: 'subtle' }),
+                isActive &&
+                  badgeVariants({ tone: item.tone, variant: 'subtle' }),
                 'flex w-full items-center gap-3 rounded-xl border-none px-3 py-2.5 text-sm justify-start whitespace-normal [&>svg]:size-[17px]',
-                item.disabled
-                  ? 'pointer-events-none opacity-40'
-                  : isActive
-                    ? 'font-medium'
-                    : 'cursor-pointer bg-transparent text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground',
+                isActive
+                  ? 'font-medium'
+                  : 'cursor-pointer bg-transparent text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground',
               )}
             >
               <Icon size={17} strokeWidth={isActive ? 2.25 : 2} />

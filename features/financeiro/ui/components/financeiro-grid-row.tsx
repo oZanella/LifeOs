@@ -13,6 +13,7 @@ import { getCategoryLabel } from '@/features/financeiro/application/category-uti
 import { FinanceiroCategoryCell } from './financeiro-category-cell';
 import { Checkbox } from '@/components/ui/checkbox';
 import { memo } from 'react';
+import { formatBRL } from '@/lib/format';
 
 interface FinanceiroGridRowProps {
   entry: FinancialEntry;
@@ -20,7 +21,6 @@ interface FinanceiroGridRowProps {
   isSelected?: boolean;
   isSelectionMode?: boolean;
   onToggleSelection?: () => void;
-  formatCurrency: (value: number) => string;
   onQuickCategoryChange: (entryId: string, categoryId: string) => void;
   onToggleFixed: (entryId: string, isFixed: boolean) => void;
   onTogglePaid: (entryId: string, isPaid: boolean) => void;
@@ -35,7 +35,6 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
   isSelected,
   isSelectionMode,
   onToggleSelection,
-  formatCurrency,
   onQuickCategoryChange,
   onToggleFixed,
   onTogglePaid,
@@ -78,18 +77,27 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
                 : 'text-red-600 dark:text-red-400',
           )}
         >
-          {formatCurrency(entry.amount)}
+          {formatBRL(entry.amount)}
         </span>
       </TableCell>
 
       <TableCell>
         <div className="flex justify-center">
           {entry.type === 'receita' ? (
-            <TrendingUp size={14} className="text-emerald-600 dark:text-emerald-400" />
+            <TrendingUp
+              size={14}
+              className="text-emerald-600 dark:text-emerald-400"
+            />
           ) : entry.type === 'investimento' ? (
-            <TrendingUp size={14} className="text-blue-600 dark:text-blue-400" />
+            <TrendingUp
+              size={14}
+              className="text-blue-600 dark:text-blue-400"
+            />
           ) : (
-            <TrendingDown size={14} className="text-red-600 dark:text-red-400" />
+            <TrendingDown
+              size={14}
+              className="text-red-600 dark:text-red-400"
+            />
           )}
         </div>
       </TableCell>
@@ -160,7 +168,10 @@ export const FinanceiroGridRow = memo(function FinanceiroGridRow({
                 : 'cursor-pointer',
             )}
             onClick={() =>
-              !isSelectionMode && !entry.parentId && !isReadOnly && onStartEdit()
+              !isSelectionMode &&
+              !entry.parentId &&
+              !isReadOnly &&
+              onStartEdit()
             }
             title={
               isReadOnly

@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { NextRequest } from 'next/server';
 import { dbExec, dbQuery, dbQueryOne } from '@/lib/db';
 import { SESSION_COOKIE_NAME } from './auth-constants';
+import { ApiError } from './api-error';
 
 const SESSION_DURATION_DAYS = 30;
 
@@ -30,19 +31,16 @@ interface UpdateUserInput {
   username?: string;
   password?: string;
   avatarUrl?: string;
-}
-
-interface AdminUpdateUserInput extends UpdateUserInput {
   isAdmin?: boolean;
 }
 
-export function hashPassword(password: string, salt: string) {
+function hashPassword(password: string, salt: string) {
   return crypto
     .pbkdf2Sync(password, salt, 120000, 64, 'sha512')
     .toString('hex');
 }
 
-export function createPasswordRecord(password: string) {
+function createPasswordRecord(password: string) {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = hashPassword(password, salt);
   return { salt, hash };
@@ -68,59 +66,20 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-export async function findUserByUsername(username: string) {
-  return dbQueryOne<UserRow>(
-    `
-      SELECT
-        id::int as id,
-        username,
-        email,
-        avatar_url,
-        is_admin,
-        password_hash,
-        password_salt
-      FROM users
-      WHERE username = $1
-    `,
-    [normalizeUsername(username)],
+const findUserBy = (column: 'id' | 'email' | 'username', value: unknown) =>
+  dbQueryOne<UserRow>(
+    `SELECT id::int AS id, username, email, avatar_url, is_admin, password_hash, password_salt
+     FROM users WHERE ${column} = $1`,
+    [value],
   );
-}
 
-export async function findUserByEmail(email: string) {
-  return dbQueryOne<UserRow>(
-    `
-      SELECT
-        id::int as id,
-        username,
-        email,
-        avatar_url,
-        is_admin,
-        password_hash,
-        password_salt
-      FROM users
-      WHERE email = $1
-    `,
-    [normalizeEmail(email)],
-  );
-}
+export const findUserByUsername = (username: string) =>
+  findUserBy('username', normalizeUsername(username));
 
-export async function findUserById(userId: number) {
-  return dbQueryOne<UserRow>(
-    `
-      SELECT
-        id::int as id,
-        username,
-        email,
-        avatar_url,
-        is_admin,
-        password_hash,
-        password_salt
-      FROM users
-      WHERE id = $1
-    `,
-    [userId],
-  );
-}
+export const findUserByEmail = (email: string) =>
+  findUserBy('email', normalizeEmail(email));
+
+export const findUserById = (userId: number) => findUserBy('id', userId);
 
 export async function createUser(
   email: string,
@@ -170,50 +129,6 @@ export async function createSession(userId: number) {
   };
 }
 
-export async function updateUserAccount(userId: number, data: UpdateUserInput) {
-  const updates: string[] = [];
-  const params: Array<string | number | null> = [];
-
-  if (typeof data.email === 'string' && data.email.length > 0) {
-    params.push(normalizeEmail(data.email));
-    updates.push(`email = $${params.length}`);
-  }
-
-  if (typeof data.username === 'string' && data.username.length > 0) {
-    params.push(normalizeUsername(data.username));
-    updates.push(`username = $${params.length}`);
-  }
-
-  if (typeof data.password === 'string' && data.password.length > 0) {
-    const { salt, hash } = createPasswordRecord(data.password);
-    params.push(hash);
-    updates.push(`password_hash = $${params.length}`);
-    params.push(salt);
-    updates.push(`password_salt = $${params.length}`);
-  }
-
-  if (typeof data.avatarUrl === 'string') {
-    params.push(data.avatarUrl.trim() || null);
-    updates.push(`avatar_url = $${params.length}`);
-  }
-
-  if (updates.length === 0) {
-    return null;
-  }
-
-  params.push(userId);
-  await dbExec(
-    `
-      UPDATE users
-      SET ${updates.join(', ')}
-      WHERE id = $${params.length}
-    `,
-    params,
-  );
-
-  return findUserById(userId);
-}
-
 export async function deleteUserById(userId: number) {
   await dbExec('DELETE FROM users WHERE id = $1', [userId]);
 }
@@ -260,40 +175,26 @@ export async function countAdmins() {
   return row?.total ?? 0;
 }
 
-export async function updateUserByAdmin(
-  userId: number,
-  data: AdminUpdateUserInput,
-) {
+// `isAdmin` is only honored when the caller passes it (admin routes).
+export async function updateUser(userId: number, data: UpdateUserInput) {
   const updates: string[] = [];
   const params: Array<string | number | boolean | null> = [];
+  const set = (column: string, value: string | number | boolean | null) => {
+    params.push(value);
+    updates.push(`${column} = $${params.length}`);
+  };
 
-  if (typeof data.email === 'string' && data.email.length > 0) {
-    params.push(normalizeEmail(data.email));
-    updates.push(`email = $${params.length}`);
-  }
-
-  if (typeof data.username === 'string' && data.username.length > 0) {
-    params.push(normalizeUsername(data.username));
-    updates.push(`username = $${params.length}`);
-  }
-
-  if (typeof data.password === 'string' && data.password.length > 0) {
+  if (data.email) set('email', normalizeEmail(data.email));
+  if (data.username) set('username', normalizeUsername(data.username));
+  if (data.password) {
     const { salt, hash } = createPasswordRecord(data.password);
-    params.push(hash);
-    updates.push(`password_hash = $${params.length}`);
-    params.push(salt);
-    updates.push(`password_salt = $${params.length}`);
+    set('password_hash', hash);
+    set('password_salt', salt);
   }
-
   if (typeof data.avatarUrl === 'string') {
-    params.push(data.avatarUrl.trim() || null);
-    updates.push(`avatar_url = $${params.length}`);
+    set('avatar_url', data.avatarUrl.trim() || null);
   }
-
-  if (typeof data.isAdmin === 'boolean') {
-    params.push(data.isAdmin);
-    updates.push(`is_admin = $${params.length}`);
-  }
+  if (typeof data.isAdmin === 'boolean') set('is_admin', data.isAdmin);
 
   if (updates.length === 0) {
     return null;
@@ -301,15 +202,57 @@ export async function updateUserByAdmin(
 
   params.push(userId);
   await dbExec(
-    `
-      UPDATE users
-      SET ${updates.join(', ')}
-      WHERE id = $${params.length}
-    `,
+    `UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length}`,
     params,
   );
 
   return findUserById(userId);
+}
+
+const MAX_AVATAR_LENGTH = 2_000_000;
+
+/**
+ * Validates a profile/admin update body for `targetUserId` and returns the
+ * normalized fields to save. Throws ApiError with a user-facing message.
+ */
+export async function parseAccountUpdate(
+  body: Record<string, unknown>,
+  targetUserId: number,
+): Promise<UpdateUserInput> {
+  const text = (value: unknown) =>
+    typeof value === 'string' ? value.trim() || undefined : undefined;
+
+  const email = text(body.email)?.toLowerCase();
+  const username = text(body.username)?.toLowerCase();
+  const password = text(body.password);
+  const avatarUrl =
+    typeof body.avatarUrl === 'string' ? body.avatarUrl.trim() : undefined;
+
+  if (email && !email.includes('@')) throw new ApiError('Email inválido.');
+  if (username && username.length < 3) {
+    throw new ApiError('Nome de usuário precisa ter 3+ caracteres.');
+  }
+  if (password && password.length < 6) {
+    throw new ApiError('Senha precisa ter 6+ caracteres.');
+  }
+  if (avatarUrl && avatarUrl.length > MAX_AVATAR_LENGTH) {
+    throw new ApiError('Avatar muito grande.');
+  }
+
+  if (email) {
+    const existing = await findUserByEmail(email);
+    if (existing && existing.id !== targetUserId) {
+      throw new ApiError('Este email já está em uso.', 409);
+    }
+  }
+  if (username) {
+    const existing = await findUserByUsername(username);
+    if (existing && existing.id !== targetUserId) {
+      throw new ApiError('Este nome de usuário já existe.', 409);
+    }
+  }
+
+  return { email, username, password, avatarUrl };
 }
 
 export async function deleteSessionByToken(token: string) {

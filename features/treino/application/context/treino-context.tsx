@@ -7,8 +7,8 @@ import React, {
   useState,
   useCallback,
 } from 'react';
-import toast from 'react-hot-toast';
 import { requestJson } from '@/lib/request-json';
+import { showToast } from '@/lib/toast';
 import { useAuth } from '@/providers/auth-provider/auth.provider';
 
 export interface TreinoSet {
@@ -37,7 +37,7 @@ export type ExercicioForm = {
   sets: TreinoSet[];
 };
 
-export type TreinoForm = {
+type TreinoForm = {
   title: string;
   description: string | null;
   tone: string;
@@ -60,9 +60,7 @@ interface TreinoContextData {
   reorderExercicios: (treinoId: string, orderedIds: string[]) => Promise<void>;
 }
 
-const TreinoContext = createContext<TreinoContextData>(
-  {} as TreinoContextData,
-);
+const TreinoContext = createContext<TreinoContextData>({} as TreinoContextData);
 
 type TreinosResponse = { treinos: Treino[]; createdTreinoId?: string };
 
@@ -85,7 +83,10 @@ export function TreinoProvider({ children }: { children: React.ReactNode }) {
       setTreinos(data.treinos);
     } catch (error) {
       console.error('Failed to load treinos:', error);
-      toast.error('Não foi possível carregar os treinos.');
+      showToast({
+        title: 'Não foi possível carregar os treinos.',
+        severity: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -109,12 +110,15 @@ export function TreinoProvider({ children }: { children: React.ReactNode }) {
         body: body === undefined ? undefined : JSON.stringify(body),
       });
       setTreinos(resp.treinos);
-      if (successMessage) toast.success(successMessage);
+      if (successMessage) showToast({ title: successMessage });
       return resp;
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Erro ao salvar alterações.',
-      );
+      showToast({
+        title: 'Erro ao salvar',
+        description:
+          error instanceof Error ? error.message : 'Tente novamente.',
+        severity: 'error',
+      });
       throw error;
     } finally {
       setIsProcessing(false);

@@ -1,21 +1,11 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { SESSION_COOKIE_NAME } from '@/lib/auth-constants';
 import { LoginView } from './login-view';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Life Os - Login',
-  description: 'Faça login no sistema Life Os',
+  title: 'Login',
 };
 
-export default async function LoginPage() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get(SESSION_COOKIE_NAME);
-
-  if (session?.value) {
-    redirect('/');
-  }
-
+// proxy.ts sends users who already have a session back to the home page.
+export default function LoginPage() {
   return <LoginView />;
 }

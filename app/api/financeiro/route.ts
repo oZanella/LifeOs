@@ -1,22 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { withSession } from '@/lib/api';
 import {
   ensureDefaultCategories,
   listCategories,
   listEntries,
 } from '@/lib/financeiro-db';
 
-export async function GET(request: NextRequest) {
-  const session = await getSessionFromRequest(request);
-
-  if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
-  }
-
+export const GET = withSession(async (_request, session) => {
   await ensureDefaultCategories(session.userId);
 
-  return NextResponse.json({
-    categories: await listCategories(session.userId),
-    entries: await listEntries(session.userId),
-  });
-}
+  const [categories, entries] = await Promise.all([
+    listCategories(session.userId),
+    listEntries(session.userId),
+  ]);
+
+  return NextResponse.json({ categories, entries });
+});

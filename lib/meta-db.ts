@@ -66,7 +66,7 @@ export async function createMeta(
   const id = crypto.randomUUID();
   await dbExec(
     'INSERT INTO metas (id, user_id, title, description, tone) VALUES ($1, $2, $3, $4, $5)',
-    [id, userId.toString(), data.title, data.description || null, data.tone],
+    [id, userId, data.title, data.description || null, data.tone],
   );
   return id;
 }
@@ -77,7 +77,7 @@ export async function updateMeta(
   data: Partial<{ title: string; description: string | null; tone: string }>,
 ) {
   const sets: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
   let i = 1;
 
   if (data.title !== undefined) {
@@ -111,19 +111,25 @@ export async function deleteMeta(userId: number, metaId: string) {
   ]);
 }
 
+// Task mutations only touch tasks whose meta belongs to the user.
+const OWNS_META = `EXISTS (SELECT 1 FROM metas m WHERE m.id = meta_tasks.meta_id AND m.user_id = $`;
+
 export async function createTask(
+  userId: number,
   metaId: string,
   data: { description: string; orderIndex?: number },
 ) {
   const id = crypto.randomUUID();
   await dbExec(
-    'INSERT INTO meta_tasks (id, meta_id, description, order_index) VALUES ($1, $2, $3, $4)',
-    [id, metaId, data.description, data.orderIndex || 0],
+    `INSERT INTO meta_tasks (id, meta_id, description, order_index)
+     SELECT $1, m.id, $3, $4 FROM metas m WHERE m.id = $2 AND m.user_id = $5`,
+    [id, metaId, data.description, data.orderIndex || 0, userId],
   );
   return id;
 }
 
 export async function updateTask(
+  userId: number,
   taskId: string,
   data: Partial<{
     description: string;
@@ -133,7 +139,7 @@ export async function updateTask(
   }>,
 ) {
   const sets: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
   let i = 1;
 
   if (data.description !== undefined) {
@@ -156,14 +162,17 @@ export async function updateTask(
   if (sets.length === 0) return;
 
   sets.push(`updated_at = NOW()`);
-  params.push(taskId);
+  params.push(taskId, userId);
 
   await dbExec(
-    `UPDATE meta_tasks SET ${sets.join(', ')} WHERE id = $${i++}`,
+    `UPDATE meta_tasks SET ${sets.join(', ')} WHERE id = $${i++} AND ${OWNS_META}${i++})`,
     params,
   );
 }
 
-export async function deleteTask(taskId: string) {
-  await dbExec('DELETE FROM meta_tasks WHERE id = $1', [taskId]);
+export async function deleteTask(userId: number, taskId: string) {
+  await dbExec(`DELETE FROM meta_tasks WHERE id = $1 AND ${OWNS_META}2)`, [
+    taskId,
+    userId,
+  ]);
 }

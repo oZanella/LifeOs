@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import {
   AppBadgeTone,
-  CATEGORY_TONE_OPTIONS,
+  TONE_OPTIONS,
   TONE_DOT_CLASSNAME,
   TONE_GROUPS,
   getToneLabel,
@@ -385,7 +385,7 @@ export function FinanceiroCategories({
                     {group.label}
                   </span>
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(1.75rem,1fr))] justify-items-center gap-2.5">
-                    {CATEGORY_TONE_OPTIONS.filter(
+                    {TONE_OPTIONS.filter(
                       (option) => (option.group ?? 'vivas') === group.value,
                     ).map((option) => {
                       const selected =

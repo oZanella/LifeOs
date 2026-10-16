@@ -1,59 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
-import { createEntry, listEntries } from '@/lib/financeiro-db';
+import { NextResponse } from 'next/server';
+import { jsonError, withSession } from '@/lib/api';
+import {
+  createEntry,
+  isEntryType,
+  listEntries,
+  type FinanceiroEntry,
+} from '@/lib/financeiro-db';
 
-export async function POST(request: NextRequest) {
-  const session = await getSessionFromRequest(request);
+export const POST = withSession(async (request, session) => {
+  const body = (await request.json()) as Partial<FinanceiroEntry>;
 
-  if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
+  if (
+    !body.date ||
+    !body.description ||
+    typeof body.categoryId !== 'string' ||
+    typeof body.amount !== 'number' ||
+    !isEntryType(body.type)
+  ) {
+    return jsonError('Dados inválidos.');
   }
 
-  try {
-    const body = (await request.json()) as {
-      date?: string;
-      description?: string;
-      categoryId?: string;
-      amount?: number;
-      type?: 'receita' | 'despesa' | 'investimento';
-      isFixed?: boolean;
-      isPaid?: boolean;
-    };
+  const createdEntryId = await createEntry(session.userId, {
+    date: body.date,
+    description: body.description,
+    categoryId: body.categoryId,
+    amount: body.amount,
+    type: body.type,
+    isFixed: Boolean(body.isFixed),
+    isPaid: Boolean(body.isPaid),
+    isArchivedPaid: false,
+  });
 
-    if (
-      !body.date ||
-      !body.description ||
-      typeof body.categoryId !== 'string' ||
-      typeof body.amount !== 'number' ||
-      (body.type !== 'receita' &&
-        body.type !== 'despesa' &&
-        body.type !== 'investimento')
-    ) {
-      return NextResponse.json(
-        { message: 'Dados inválidos.' },
-        { status: 400 },
-      );
-    }
-
-    const createdEntryId = await createEntry(session.userId, {
-      date: body.date,
-      description: body.description,
-      categoryId: body.categoryId,
-      amount: body.amount,
-      type: body.type,
-      isFixed: Boolean(body.isFixed),
-      isPaid: Boolean(body.isPaid),
-      isArchivedPaid: false,
-    });
-
-    return NextResponse.json({
-      entries: await listEntries(session.userId),
-      createdEntryId,
-    });
-  } catch {
-    return NextResponse.json(
-      { message: 'Erro ao criar entrada.' },
-      { status: 500 },
-    );
-  }
-}
+  return NextResponse.json({
+    entries: await listEntries(session.userId),
+    createdEntryId,
+  });
+});

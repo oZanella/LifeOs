@@ -1,34 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionFromRequest } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { jsonError, withSession } from '@/lib/api';
 import {
   createExercicio,
   listTreinos,
   parseExercicioInput,
 } from '@/lib/treino-db';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await getSessionFromRequest(req);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export const POST = withSession<{ id: string }>(
+  async (request, session, { id }) => {
+    const { name, sets } = parseExercicioInput(await request.json());
+    if (!name) {
+      return jsonError('Informe o nome do exercício.');
+    }
 
-  const { id: treinoId } = await params;
-  const data = parseExercicioInput(await req.json());
-  if (!data.name) {
-    return NextResponse.json(
-      { message: 'Informe o nome do exercício.' },
-      { status: 400 },
-    );
-  }
-
-  await createExercicio(Number(session.userId), treinoId, {
-    ...data,
-    name: data.name,
-  });
-  const treinos = await listTreinos(Number(session.userId));
-
-  return NextResponse.json({ treinos });
-}
+    await createExercicio(session.userId, id, { name, sets });
+    return NextResponse.json({ treinos: await listTreinos(session.userId) });
+  },
+);
