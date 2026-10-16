@@ -16,7 +16,9 @@ export function HomeMobileNav({
   const mainItems = lab_itens.filter(
     (item) =>
       !item.disabled &&
-      ['dashboard', 'financeiro', 'meta', 'configuracoes'].includes(item.id),
+      ['dashboard', 'financeiro', 'meta', 'treino', 'configuracoes'].includes(
+        item.id,
+      ),
   );
 
   return (

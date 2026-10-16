@@ -3,7 +3,12 @@ import { Pool, QueryResultRow } from 'pg';
 declare global {
   var __lifeOsPgPool: Pool | undefined;
   var __lifeOsPgReady: Promise<void> | undefined;
+  var __lifeOsPgSchemaVersion: number | undefined;
 }
+
+// Bump when runMigrations changes so a running dev server (whose globals
+// survive hot reload) applies the new schema without a restart.
+const SCHEMA_VERSION = 5;
 
 function getPool() {
   if (globalThis.__lifeOsPgPool) {
@@ -186,6 +191,65 @@ async function runMigrations() {
 
       CREATE INDEX IF NOT EXISTS idx_metas_user_id ON metas(user_id);
       CREATE INDEX IF NOT EXISTS idx_meta_tasks_meta_id ON meta_tasks(meta_id);
+
+      CREATE TABLE IF NOT EXISTS treinos (
+        id TEXT PRIMARY KEY,
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        description TEXT,
+        tone TEXT NOT NULL DEFAULT 'default',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS treino_exercicios (
+        id TEXT PRIMARY KEY,
+        treino_id TEXT NOT NULL REFERENCES treinos(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        -- Each set is { reps, weight }.
+        sets JSONB NOT NULL DEFAULT '[]'::jsonb,
+        order_index INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      DO $$
+      BEGIN
+        BEGIN
+          ALTER TABLE treino_exercicios ADD COLUMN sets JSONB NOT NULL DEFAULT '[]'::jsonb;
+        EXCEPTION
+          WHEN duplicate_column THEN NULL;
+        END;
+
+        -- Legacy DBs stored series/repetitions/weight as flat columns:
+        -- convert them into individual sets, then drop them.
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = current_schema()
+            AND table_name = 'treino_exercicios'
+            AND column_name = 'series'
+        ) THEN
+          EXECUTE $sql$
+            UPDATE treino_exercicios
+            SET sets = (
+              SELECT jsonb_agg(jsonb_build_object('reps', repetitions, 'weight', weight) ORDER BY g)
+              FROM generate_series(1, GREATEST(COALESCE(series, 1), 1)) AS g
+            )
+            WHERE sets = '[]'::jsonb
+              AND (series IS NOT NULL OR repetitions IS NOT NULL OR weight IS NOT NULL)
+          $sql$;
+        END IF;
+
+        ALTER TABLE treino_exercicios
+          DROP COLUMN IF EXISTS series,
+          DROP COLUMN IF EXISTS repetitions,
+          DROP COLUMN IF EXISTS weight,
+          DROP COLUMN IF EXISTS muscle_group,
+          DROP COLUMN IF EXISTS notes;
+      END $$;
+
+      CREATE INDEX IF NOT EXISTS idx_treinos_user_id ON treinos(user_id);
+      CREATE INDEX IF NOT EXISTS idx_treino_exercicios_treino_id ON treino_exercicios(treino_id);
     `);
     console.log('Database migrations completed successfully.');
   } catch (error) {
@@ -195,8 +259,16 @@ async function runMigrations() {
 }
 
 export async function ensureDbReady() {
-  if (!globalThis.__lifeOsPgReady) {
-    globalThis.__lifeOsPgReady = runMigrations();
+  if (
+    !globalThis.__lifeOsPgReady ||
+    globalThis.__lifeOsPgSchemaVersion !== SCHEMA_VERSION
+  ) {
+    globalThis.__lifeOsPgSchemaVersion = SCHEMA_VERSION;
+    // Forget a failed run so the next request retries instead of failing forever.
+    globalThis.__lifeOsPgReady = runMigrations().catch((error) => {
+      globalThis.__lifeOsPgReady = undefined;
+      throw error;
+    });
   }
 
   await globalThis.__lifeOsPgReady;
